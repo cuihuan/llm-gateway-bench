@@ -1,0 +1,21 @@
+{
+  "id": "siliconflow",
+  "annotatedAt": "2026-06-10",
+  "channel": {
+    "claim": "自营推理（开源权重模型一手渠道）",
+    "verify": "pending"
+  },
+  "promptRetention": {
+    "status": "unknown",
+    "text": "待标注",
+    "evidence": null
+  },
+  "training": {
+    "status": "unknown",
+    "text": "待标注",
+    "evidence": null
+  },
+  "entity": "北京硅基流动科技有限公司",
+  "invoice": "待标注",
+  "disclosure": null
+}

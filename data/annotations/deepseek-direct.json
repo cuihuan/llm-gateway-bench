@@ -1,0 +1,21 @@
+{
+  "id": "deepseek-direct",
+  "annotatedAt": "2026-06-10",
+  "channel": {
+    "claim": "官方",
+    "verify": "baseline"
+  },
+  "promptRetention": {
+    "status": "unknown",
+    "text": "待标注",
+    "evidence": null
+  },
+  "training": {
+    "status": "unknown",
+    "text": "待标注",
+    "evidence": null
+  },
+  "entity": "杭州深度求索人工智能基础技术研究有限公司",
+  "invoice": "待标注",
+  "disclosure": null
+}

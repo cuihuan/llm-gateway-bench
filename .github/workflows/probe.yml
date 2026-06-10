@@ -32,6 +32,13 @@ jobs:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
           AIHUBMIX_API_KEY: ${{ secrets.AIHUBMIX_API_KEY }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+          MOONSHOT_API_KEY: ${{ secrets.MOONSHOT_API_KEY }}
+          SILICONFLOW_API_KEY: ${{ secrets.SILICONFLOW_API_KEY }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          TOGETHER_API_KEY: ${{ secrets.TOGETHER_API_KEY }}
+          OHMYGPT_API_KEY: ${{ secrets.OHMYGPT_API_KEY }}
+          CLOSEAI_API_KEY: ${{ secrets.CLOSEAI_API_KEY }}
           PROBE_REGION: gh-us
         run: node probe/probe.mjs --samples 3 --out data/results
       - name: Refresh price snapshot

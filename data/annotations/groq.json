@@ -1,0 +1,21 @@
+{
+  "id": "groq",
+  "annotatedAt": "2026-06-10",
+  "channel": {
+    "claim": "自营 LPU 推理（开源权重模型一手渠道）",
+    "verify": "pending"
+  },
+  "promptRetention": {
+    "status": "unknown",
+    "text": "待标注",
+    "evidence": null
+  },
+  "training": {
+    "status": "unknown",
+    "text": "待标注",
+    "evidence": null
+  },
+  "entity": "Groq, Inc. (US)",
+  "invoice": "待标注",
+  "disclosure": null
+}

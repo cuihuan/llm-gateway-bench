@@ -46,5 +46,89 @@
     "pricingUrl": "https://platform.openai.com/docs/pricing",
     "tags": ["official", "baseline"],
     "notes": "Official API as the direct-connect baseline for latency comparison."
+  },
+  {
+    "id": "deepseek-direct",
+    "name": "DeepSeek (官方直连基线)",
+    "website": "https://platform.deepseek.com",
+    "baseUrl": "https://api.deepseek.com",
+    "protocol": "openai",
+    "authEnv": "DEEPSEEK_API_KEY",
+    "probeModels": ["deepseek-chat"],
+    "pricingUrl": "https://api-docs.deepseek.com/quick_start/pricing",
+    "tags": ["official", "baseline"],
+    "notes": "Official DeepSeek API as a CN-side direct baseline."
+  },
+  {
+    "id": "moonshot-direct",
+    "name": "Moonshot Kimi (官方直连基线)",
+    "website": "https://platform.moonshot.cn",
+    "baseUrl": "https://api.moonshot.cn",
+    "protocol": "openai",
+    "authEnv": "MOONSHOT_API_KEY",
+    "probeModels": ["moonshot-v1-8k"],
+    "pricingUrl": "https://platform.moonshot.cn/docs/pricing/chat",
+    "tags": ["official", "baseline"],
+    "notes": "Official Moonshot API as a CN-side direct baseline."
+  },
+  {
+    "id": "siliconflow",
+    "name": "SiliconFlow 硅基流动",
+    "website": "https://siliconflow.cn",
+    "baseUrl": "https://api.siliconflow.cn",
+    "protocol": "openai",
+    "authEnv": "SILICONFLOW_API_KEY",
+    "probeModels": ["Qwen/Qwen2.5-7B-Instruct"],
+    "pricingUrl": "https://siliconflow.cn/pricing",
+    "tags": ["provider", "openai-compatible"],
+    "notes": "First-party inference for open-weight models, CN entity."
+  },
+  {
+    "id": "groq",
+    "name": "Groq",
+    "website": "https://groq.com",
+    "baseUrl": "https://api.groq.com/openai",
+    "protocol": "openai",
+    "authEnv": "GROQ_API_KEY",
+    "probeModels": ["llama-3.1-8b-instant"],
+    "pricingUrl": "https://groq.com/pricing",
+    "tags": ["provider", "openai-compatible"],
+    "notes": "First-party LPU inference for open-weight models."
+  },
+  {
+    "id": "together",
+    "name": "Together AI",
+    "website": "https://www.together.ai",
+    "baseUrl": "https://api.together.xyz",
+    "protocol": "openai",
+    "authEnv": "TOGETHER_API_KEY",
+    "probeModels": ["meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo"],
+    "pricingUrl": "https://www.together.ai/pricing",
+    "tags": ["provider", "openai-compatible"],
+    "notes": "First-party inference for open-weight models."
+  },
+  {
+    "id": "ohmygpt",
+    "name": "OhMyGPT",
+    "website": "https://www.ohmygpt.com",
+    "baseUrl": "https://api.ohmygpt.com",
+    "protocol": "openai",
+    "authEnv": "OHMYGPT_API_KEY",
+    "probeModels": ["gpt-4o-mini"],
+    "pricingUrl": "https://www.ohmygpt.com",
+    "tags": ["gateway", "openai-compatible"],
+    "notes": "CN-friendly multi-model gateway."
+  },
+  {
+    "id": "closeai",
+    "name": "CloseAI",
+    "website": "https://www.closeai-asia.com",
+    "baseUrl": "https://api.closeai-asia.com",
+    "protocol": "openai",
+    "authEnv": "CLOSEAI_API_KEY",
+    "probeModels": ["gpt-4o-mini"],
+    "pricingUrl": "https://www.closeai-asia.com",
+    "tags": ["gateway", "openai-compatible"],
+    "notes": "Long-running CN-facing gateway, enterprise invoicing."
   }
 ]

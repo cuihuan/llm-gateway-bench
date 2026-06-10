@@ -1,0 +1,21 @@
+{
+  "id": "closeai",
+  "annotatedAt": "2026-06-10",
+  "channel": {
+    "claim": "自声明官转",
+    "verify": "pending"
+  },
+  "promptRetention": {
+    "status": "unknown",
+    "text": "待标注",
+    "evidence": null
+  },
+  "training": {
+    "status": "unknown",
+    "text": "待标注",
+    "evidence": null
+  },
+  "entity": "待标注",
+  "invoice": "待标注",
+  "disclosure": null
+}
