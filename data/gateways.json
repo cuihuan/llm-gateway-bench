@@ -1,0 +1,50 @@
+[
+  {
+    "id": "synthorai",
+    "name": "Synthorai",
+    "website": "https://synthorai.io",
+    "baseUrl": "https://synthorai.io",
+    "protocol": "openai",
+    "authEnv": "SYNTHORAI_API_KEY",
+    "probeModels": ["gemini-2.5-flash", "claude-haiku-4-5-20251001", "deepseek-v4-flash", "gpt-5.4-nano"],
+    "pricingUrl": "https://synthorai.io/api/pricing",
+    "tags": ["gateway", "openai-compatible", "anthropic-compatible"],
+    "notes": "Multi-protocol gateway: /v1/chat/completions, /v1/messages, public pricing API."
+  },
+  {
+    "id": "openrouter",
+    "name": "OpenRouter",
+    "website": "https://openrouter.ai",
+    "baseUrl": "https://openrouter.ai/api",
+    "protocol": "openai",
+    "authEnv": "OPENROUTER_API_KEY",
+    "probeModels": ["openai/gpt-4o-mini", "google/gemini-2.5-flash"],
+    "pricingUrl": "https://openrouter.ai/models",
+    "tags": ["gateway", "openai-compatible"],
+    "notes": "Largest public LLM gateway; per-provider routing."
+  },
+  {
+    "id": "aihubmix",
+    "name": "AiHubMix",
+    "website": "https://aihubmix.com",
+    "baseUrl": "https://aihubmix.com",
+    "protocol": "openai",
+    "authEnv": "AIHUBMIX_API_KEY",
+    "probeModels": ["gpt-4o-mini", "gemini-2.5-flash"],
+    "pricingUrl": "https://aihubmix.com/models",
+    "tags": ["gateway", "openai-compatible"],
+    "notes": "Popular CN-friendly gateway."
+  },
+  {
+    "id": "openai-direct",
+    "name": "OpenAI (官方直连基线)",
+    "website": "https://platform.openai.com",
+    "baseUrl": "https://api.openai.com",
+    "protocol": "openai",
+    "authEnv": "OPENAI_API_KEY",
+    "probeModels": ["gpt-4o-mini"],
+    "pricingUrl": "https://platform.openai.com/docs/pricing",
+    "tags": ["official", "baseline"],
+    "notes": "Official API as the direct-connect baseline for latency comparison."
+  }
+]

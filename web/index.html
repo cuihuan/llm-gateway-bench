@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LLM Gateway Bench · 大模型网关评测</title>
+<style>
+  :root {
+    --bg: #0b0e14; --panel: #11151f; --panel2: #161b28; --border: #232a3b;
+    --text: #e6e9f0; --muted: #8a93a8; --accent: #5b9cff; --good: #34d399;
+    --warn: #fbbf24; --bad: #f87171; --chip: #1d2435;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font: 15px/1.6 -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 0 24px; }
+  a { color: var(--accent); text-decoration: none; }
+
+  header { padding: 56px 0 32px; border-bottom: 1px solid var(--border);
+    background: radial-gradient(900px 300px at 20% 0%, #16203a 0%, transparent 70%); }
+  h1 { font-size: 34px; letter-spacing: .5px; }
+  h1 .en { color: var(--muted); font-size: 18px; font-weight: 400; margin-left: 10px; }
+  .tagline { color: var(--muted); margin-top: 10px; max-width: 720px; }
+  .badges { margin-top: 18px; display: flex; gap: 8px; flex-wrap: wrap; }
+  .badge { background: var(--chip); border: 1px solid var(--border); border-radius: 99px;
+    padding: 3px 12px; font-size: 12.5px; color: var(--muted); }
+  .badge b { color: var(--text); font-weight: 600; }
+  .mock-banner { background: #2a2410; border: 1px solid #5c4d1a; color: #e8c96a;
+    border-radius: 8px; padding: 8px 14px; font-size: 13px; margin-top: 20px; display: inline-block; }
+
+  section { padding: 40px 0 8px; }
+  h2 { font-size: 21px; margin-bottom: 4px; }
+  .sub { color: var(--muted); font-size: 13.5px; margin-bottom: 18px; }
+
+  /* 维度卡片 */
+  .dims { display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 14px; }
+  .dim { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px; }
+  .dim h3 { font-size: 15.5px; margin-bottom: 6px; }
+  .dim .q { color: var(--accent); font-size: 13px; }
+  .dim p { color: var(--muted); font-size: 13.5px; margin-top: 6px; }
+  .dim .soon { float: right; font-size: 11px; color: var(--warn); border: 1px solid #5c4d1a;
+    border-radius: 99px; padding: 1px 8px; }
+
+  /* 排行榜表格 */
+  .tablebox { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; min-width: 980px; }
+  th, td { padding: 12px 14px; text-align: left; white-space: nowrap; }
+  thead th { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .4px;
+    border-bottom: 1px solid var(--border); cursor: pointer; user-select: none; position: sticky; top: 0; background: var(--panel); }
+  thead th:hover { color: var(--text); }
+  thead th .arr { opacity: .5; font-size: 10px; }
+  tbody tr { border-bottom: 1px solid var(--border); }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: var(--panel2); }
+  .gw-name { font-weight: 600; }
+  .gw-name .tag { font-size: 11px; color: var(--muted); font-weight: 400; margin-left: 8px;
+    border: 1px solid var(--border); border-radius: 99px; padding: 1px 8px; }
+  .num { font-variant-numeric: tabular-nums; }
+  .good { color: var(--good); } .warn { color: var(--warn); } .bad { color: var(--bad); } .muted { color: var(--muted); }
+
+  /* uptime 条带（30 天，每格一天） */
+  .uptime-strip { display: inline-flex; gap: 2px; vertical-align: middle; }
+  .uptime-strip i { width: 5px; height: 16px; border-radius: 1.5px; background: var(--good); display: inline-block; }
+  .uptime-strip i.w { background: var(--warn); } .uptime-strip i.b { background: var(--bad); }
+
+  /* sparkline */
+  .spark { vertical-align: middle; }
+  .spark polyline { fill: none; stroke: var(--accent); stroke-width: 1.6; }
+
+  /* 价格表 */
+  .price-note { font-size: 12px; color: var(--muted); margin-top: 8px; }
+  .ratio-cell { font-size: 12px; color: var(--muted); }
+
+  /* 清单卡片 */
+  .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 14px; }
+  .card { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px; }
+  .card h3 { font-size: 16px; }
+  .card .meta { color: var(--muted); font-size: 13px; margin: 6px 0 10px; }
+  .card .row { display: flex; justify-content: space-between; font-size: 13.5px; padding: 3px 0; }
+  .card .row span:first-child { color: var(--muted); }
+
+  footer { margin-top: 48px; padding: 28px 0 48px; border-top: 1px solid var(--border);
+    color: var(--muted); font-size: 13px; }
+  footer p { margin-bottom: 6px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <h1>LLM Gateway Bench<span class="en">大模型网关评测</span></h1>
+    <p class="tagline">从用户视角持续拨测大模型 API 网关：<b>直连性 · 稳定性 · 速度 · 价格 · 模型清单</b>。
+      拨测脚本、原始数据、聚合逻辑全部开源，任何人可用自己的 key 复现。</p>
+    <div class="badges">
+      <span class="badge">探测频率 <b>每 6 小时</b></span>
+      <span class="badge">数据积累 <b id="b-days">—</b></span>
+      <span class="badge">在测网关 <b id="b-gw">—</b></span>
+      <span class="badge">探测地域 <b id="b-region">—</b></span>
+      <span class="badge">GitHub Actions 驱动 · 无服务器</span>
+    </div>
+    <div class="mock-banner">⚠️ 当前为<b>演示假数据</b>（UI 初版评审用），真实数据由 data/results/ 拨测结果驱动</div>
+  </div>
+</header>
+
+<section>
+  <div class="wrap">
+    <h2>我们测什么</h2>
+    <p class="sub">每个维度对应用户挑网关时真正会问的一个问题</p>
+    <div class="dims">
+      <div class="dim"><h3>① 直连性 <span class="q">"我能不能直接连上？"</span></h3>
+        <p>各地域到网关的可达性与连接延迟。重点是国内直连——现有评测站都不覆盖的盲区。</p></div>
+      <div class="dim"><h3>② 稳定性 <span class="q">"它会不会半夜挂掉？"</span></h3>
+        <p>7/30 天滚动成功率（uptime%）、错误画像（限流 / 故障 / 超时）、高峰期延迟漂移。跑得越久越有说服力。</p></div>
+      <div class="dim"><h3>③ 速度 <span class="q">"它快不快？"</span></h3>
+        <p>流式首 token 延迟（TTFT p50/p95）与生成吞吐（tok/s），固定 prompt 多采样取分位数。</p></div>
+      <div class="dim"><h3>④ 价格 <span class="q">"它贵不贵？有没有套路？"</span></h3>
+        <p>同一模型的网关价 ÷ 官方价 = 价格指数；并标注计费透明度（公开价格 API、缓存价、隐藏倍率）。</p></div>
+      <div class="dim"><h3>⑤ 模型清单 <span class="q">"我要的模型它有没有？"</span></h3>
+        <p>模型数量、主流模型覆盖矩阵、协议覆盖（OpenAI / Anthropic / Gemini 兼容）。</p></div>
+      <div class="dim"><h3><span class="soon">Roadmap</span>⑥ 保真度 <span class="q">"给我的真是这个模型吗？"</span></h3>
+        <p>固定请求集与官方 API 对拍（K2 Vendor Verifier 方法），检测偷换模型、过度量化、截断上下文。</p></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>网关排行榜</h2>
+    <p class="sub">默认按 30 天稳定性排序 · 点击表头切换排序 · 不做黑箱总分，按你关心的列排</p>
+    <div class="tablebox"><table id="lb">
+      <thead><tr>
+        <th data-k="name">网关</th>
+        <th data-k="connMs">直连延迟 <span class="arr">↕</span></th>
+        <th data-k="uptime">稳定性 30天 <span class="arr">↓</span></th>
+        <th data-k="ttft">TTFT p50 <span class="arr">↕</span></th>
+        <th data-k="tps">吞吐 tok/s <span class="arr">↕</span></th>
+        <th data-k="priceIdx">价格指数 <span class="arr">↕</span></th>
+        <th data-k="models">模型数 <span class="arr">↕</span></th>
+        <th>TTFT 趋势(30天)</th>
+      </tr></thead>
+      <tbody></tbody>
+    </table></div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>价格对比</h2>
+    <p class="sub">单位 USD / 1M tokens（输入 / 输出）· 括号内为相对官方价的倍率 · 官方价来源 litellm 开放价格库</p>
+    <div class="tablebox"><table id="price">
+      <thead></thead><tbody></tbody>
+    </table></div>
+    <p class="price-note">价格指数 = 该网关所有可比模型倍率的几何平均。&lt;1.00 比官方便宜，&gt;1.00 比官方贵。</p>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>网关清单</h2>
+    <p class="sub">在测网关的档案页 · 新网关通过 PR 提交 <code>data/gateways.json</code> 即可加入</p>
+    <div class="cards" id="catalog"></div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <p><b>方法论：</b>拨测脚本公开（probe/probe.mjs），每 6 小时从 GitHub Actions 运行，单次每模型 3 采样，报分位数；cron 抖动以真实时间戳为准。</p>
+    <p><b>公正性：</b>原始数据逐次提交在仓库 data/results/，任何人可用自己的 key 复现；维护者与某网关存在利益关联时在条目中披露。</p>
+    <p>MIT License · 欢迎 PR 添加网关 / 探测地域</p>
+  </div>
+</footer>
+
+<script>
+// ===================== MOCK DATA（演示用，将由 data/results/*.json 聚合替换） =====================
+const MOCK = {
+  days: 30, region: '美国 (gh-us)',
+  gateways: [
+    { id:'synthorai', name:'Synthorai', tag:'多协议网关', website:'https://synthorai.io',
+      protocols:'OpenAI / Anthropic', connMs:142, uptime:99.72, ttft:480, tps:86, priceIdx:0.92, models:46,
+      pricing:'公开价格 API', errors:'429×2 · 超时×1' },
+    { id:'openrouter', name:'OpenRouter', tag:'聚合路由', website:'https://openrouter.ai',
+      protocols:'OpenAI', connMs:88, uptime:99.41, ttft:620, tps:74, priceIdx:1.00, models:320,
+      pricing:'公开模型价格页', errors:'5xx×4 · 429×3' },
+    { id:'aihubmix', name:'AiHubMix', tag:'中转网关', website:'https://aihubmix.com',
+      protocols:'OpenAI', connMs:210, uptime:98.63, ttft:710, tps:61, priceIdx:0.86, models:180,
+      pricing:'价格页（无 API）', errors:'超时×9 · 5xx×2' },
+    { id:'openai-direct', name:'OpenAI 官方', tag:'直连基线', website:'https://platform.openai.com',
+      protocols:'OpenAI', connMs:65, uptime:99.93, ttft:390, tps:95, priceIdx:1.00, models:38,
+      pricing:'官方定价', errors:'—' },
+  ],
+  // 价格对比：每行一个模型，列与 gateways 对齐；null = 该网关无此模型
+  priceModels: [
+    { model:'claude-sonnet-4-5', official:[3.0,15.0],
+      cells:{ synthorai:[2.7,13.5], openrouter:[3.0,15.0], aihubmix:[2.4,12.0], 'openai-direct':null } },
+    { model:'gpt-4o-mini', official:[0.15,0.6],
+      cells:{ synthorai:[0.14,0.55], openrouter:[0.15,0.6], aihubmix:[0.12,0.5], 'openai-direct':[0.15,0.6] } },
+    { model:'gemini-2.5-flash', official:[0.30,2.5],
+      cells:{ synthorai:[0.27,2.2], openrouter:[0.30,2.5], aihubmix:[0.26,2.1], 'openai-direct':null } },
+    { model:'deepseek-v4-flash', official:[0.27,1.1],
+      cells:{ synthorai:[0.25,1.0], openrouter:[0.27,1.1], aihubmix:[0.22,0.9], 'openai-direct':null } },
+  ],
+};
+// 生成 mock 的 30 天 uptime 条带与 TTFT 趋势（确定性伪随机，避免每次刷新跳动）
+function seeded(seed){ let s=seed; return ()=> (s = (s*9301+49297)%233280)/233280; }
+MOCK.gateways.forEach((g,gi)=>{
+  const rnd = seeded(gi*7+3);
+  g.days = Array.from({length:30},()=>{ const r=rnd();
+    return r > (1 - (100-g.uptime)/100*6) ? (r>0.985?'b':'w') : 'g'; });
+  g.trend = Array.from({length:30},()=> g.ttft*(0.85+rnd()*0.4));
+});
+
+// ===================== 渲染 =====================
+const fmt = (n,d=0)=> n==null?'—':n.toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d});
+const el = (s)=>document.querySelector(s);
+
+document.getElementById('b-days').textContent = MOCK.days+' 天';
+document.getElementById('b-gw').textContent = MOCK.gateways.length+' 个';
+document.getElementById('b-region').textContent = MOCK.region;
+
+function strip(days){ return '<span class="uptime-strip">'+days.map(d=>`<i class="${d==='g'?'':d}"></i>`).join('')+'</span>'; }
+function spark(vals){
+  const w=120,h=26,min=Math.min(...vals),max=Math.max(...vals);
+  const pts=vals.map((v,i)=>`${(i/(vals.length-1)*w).toFixed(1)},${(h-3-(v-min)/(max-min||1)*(h-6)).toFixed(1)}`).join(' ');
+  return `<svg class="spark" width="${w}" height="${h}"><polyline points="${pts}"/></svg>`;
+}
+function uptimeCls(u){ return u>=99.5?'good':u>=98.5?'warn':'bad'; }
+function priceCls(p){ return p<1?'good':p>1?'bad':'muted'; }
+
+let sortKey='uptime', sortAsc=false;
+function renderLB(){
+  const rows=[...MOCK.gateways].sort((a,b)=>{
+    const x=a[sortKey],y=b[sortKey];
+    return (typeof x==='string'? x.localeCompare(y): x-y) * (sortAsc?1:-1);
+  });
+  el('#lb tbody').innerHTML = rows.map(g=>`<tr>
+    <td class="gw-name"><a href="${g.website}" target="_blank" rel="noopener">${g.name}</a><span class="tag">${g.tag}</span></td>
+    <td class="num">${fmt(g.connMs)} ms</td>
+    <td><span class="num ${uptimeCls(g.uptime)}">${fmt(g.uptime,2)}%</span>&nbsp;&nbsp;${strip(g.days)}</td>
+    <td class="num">${fmt(g.ttft)} ms</td>
+    <td class="num">${fmt(g.tps)}</td>
+    <td class="num ${priceCls(g.priceIdx)}">${fmt(g.priceIdx,2)}×</td>
+    <td class="num">${fmt(g.models)}</td>
+    <td>${spark(g.trend)}</td>
+  </tr>`).join('');
+}
+document.querySelectorAll('#lb thead th[data-k]').forEach(th=>{
+  th.addEventListener('click',()=>{
+    const k=th.dataset.k;
+    if(sortKey===k) sortAsc=!sortAsc; else { sortKey=k; sortAsc=(k==='name'); }
+    renderLB();
+  });
+});
+renderLB();
+
+// 价格表
+el('#price thead').innerHTML = '<tr><th>模型</th><th>官方价</th>'+
+  MOCK.gateways.map(g=>`<th>${g.name}</th>`).join('')+'</tr>';
+el('#price tbody').innerHTML = MOCK.priceModels.map(m=>{
+  const cells = MOCK.gateways.map(g=>{
+    const c=m.cells[g.id];
+    if(!c) return '<td class="muted">—</td>';
+    const ratio=((c[0]/m.official[0]+c[1]/m.official[1])/2);
+    return `<td class="num">$${c[0]} / $${c[1]} <span class="ratio-cell ${priceCls(ratio)}">(${ratio.toFixed(2)}×)</span></td>`;
+  }).join('');
+  return `<tr><td class="gw-name">${m.model}</td><td class="num muted">$${m.official[0]} / $${m.official[1]}</td>${cells}</tr>`;
+}).join('');
+
+// 网关清单卡片
+el('#catalog').innerHTML = MOCK.gateways.map(g=>`<div class="card">
+  <h3>${g.name} <span class="tag" style="font-size:11px;color:var(--muted);border:1px solid var(--border);border-radius:99px;padding:1px 8px;">${g.tag}</span></h3>
+  <div class="meta"><a href="${g.website}" target="_blank" rel="noopener">${g.website.replace('https://','')}</a></div>
+  <div class="row"><span>协议</span><b>${g.protocols}</b></div>
+  <div class="row"><span>模型数</span><b>${g.models}</b></div>
+  <div class="row"><span>30天稳定性</span><b class="${uptimeCls(g.uptime)}">${fmt(g.uptime,2)}%</b></div>
+  <div class="row"><span>价格透明度</span><b>${g.pricing}</b></div>
+  <div class="row"><span>近期错误画像</span><b class="muted">${g.errors}</b></div>
+</div>`).join('');
+</script>
+</body>
+</html>

@@ -1,0 +1,37 @@
+# Periodic dial-test of all configured gateways, committed back to data/results/.
+# Keys live ONLY in repo secrets (Settings → Secrets → Actions). A gateway whose
+# secret is absent is skipped, never failed.
+name: probe
+on:
+  schedule:
+    - cron: '17 */6 * * *' # every 6 hours
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Run unit tests
+        run: npm test
+      - name: Dial-test all gateways
+        env:
+          SYNTHORAI_API_KEY: ${{ secrets.SYNTHORAI_API_KEY }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          AIHUBMIX_API_KEY: ${{ secrets.AIHUBMIX_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          PROBE_REGION: gh-us
+        run: node probe/probe.mjs --samples 3 --out data/results
+      - name: Commit results
+        run: |
+          git config user.name 'gateway-bench-bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add data/results
+          git diff --cached --quiet || git commit -m "data: probe run $(date -u +%FT%TZ)"
+          git push
