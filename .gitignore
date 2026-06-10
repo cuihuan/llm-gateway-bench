@@ -1,7 +1,10 @@
 node_modules/
 .env
 .env.*
+!.env.example
 *.local
 .DS_Store
 # local-only probe output (CI publishes to data/results/)
 out/
+# local recorder logs (scripts/record.sh via launchd)
+logs/

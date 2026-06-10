@@ -44,6 +44,26 @@ python3 -m http.server -d web 8080        # http://localhost:8080 看排行榜
 # （file:// 直接打开会因浏览器限制 fetch 失败，自动回退为演示数据）
 ```
 
+## 本地 10 分钟高频记录器（macOS）
+
+CI 的美国探针每 6 小时一次；本机探针补上高频 + 本地网络视角（国内直连体感）：
+
+```bash
+cp .env.example .env                      # 填入手头有的 API key
+./scripts/install-recorder.sh             # 装 launchd 定时器，每 600s 拨测一次
+tail -f logs/record.log                   # 看运行日志
+```
+
+- 每模型 1 采样控制成本；缺 key 的网关自动跳过，全缺 key 时不写文件；
+- 数据持续以 JSON 文档落盘 `data/results/`，git 提交每 ≥6 小时归集一批；
+- 卸载：`launchctl unload ~/Library/LaunchAgents/io.llm-gateway-bench.record.plist`。
+
+> **macOS 隐私授权**：仓库在 `~/Documents` 下时，launchd 后台任务首次访问会被 TCC
+> 拦截（日志报 `can't open input file`）。首次运行若弹出"zsh 想访问您的'文稿'文件夹"
+> 请点允许；没弹的话到 系统设置 → 隐私与安全性 → 文件和文件夹（或完全磁盘访问权限）
+> 给 `zsh` 勾上"文稿"，然后 `launchctl kickstart gui/$(id -u)/io.llm-gateway-bench.record`。
+> 不想授权也可以在终端前台跑：`npm run record:loop`（终端自带文稿访问权限）。
+
 ## 添加一个网关
 
 PR 修改 [`data/gateways.json`](data/gateways.json)：填 `baseUrl`（OpenAI 兼容）、
