@@ -10,9 +10,15 @@ on:
 permissions:
   contents: write
 
+# 串行化：手动触发撞上 cron、或慢任务撞上下一次 cron 时排队而不是并行竞争 git push
+concurrency:
+  group: probe
+  cancel-in-progress: false
+
 jobs:
   probe:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -38,5 +44,7 @@ jobs:
           git config user.name 'gateway-bench-bot'
           git config user.email 'actions@users.noreply.github.com'
           git add data/results data/prices.json web/data.json
-          git diff --cached --quiet || git commit -m "data: probe run $(date -u +%FT%TZ)"
+          if git diff --cached --quiet; then echo "nothing to commit"; exit 0; fi
+          git commit -m "data: probe run $(date -u +%FT%TZ)"
+          git pull --rebase origin main   # 远端推进过也不丢本次拨测数据
           git push
