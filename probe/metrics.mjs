@@ -40,8 +40,33 @@ export function summarize(samples) {
     ttftMs: { avg: round(avg(ttft)), p50: round(percentile(ttft, 50)), p95: round(percentile(ttft, 95)) },
     tokensPerSec: { avg: round(avg(tps)), p50: round(percentile(tps, 50)) },
     totalMs: { avg: round(avg(total)), p95: round(percentile(total, 95)) },
+    // 流式响应里是否带 usage（计费透明度信号；缺 usage 的网关 tok/s 只能按 chunk 数估）
+    usageReportedRate: okSamples.length
+      ? round(okSamples.filter((s) => s.usageReported === true).length / okSamples.length, 2)
+      : null,
     errors: samples.filter((s) => !s.ok).map((s) => s.error ?? 'unknown').slice(0, 5),
   };
+}
+
+/**
+ * Judge one non-stream chat completion body for tool-calling support.
+ * ok ⇔ the model called `expectedTool` with parseable JSON arguments —
+ * evidence the gateway forwards tool definitions intact instead of
+ * stripping them (a common failure mode of resold/reverse channels).
+ */
+export function evalToolCall(body, expectedTool) {
+  const call = body?.choices?.[0]?.message?.tool_calls?.[0];
+  if (!call) return { ok: false, reason: 'no tool_calls in response' };
+  const name = call.function?.name;
+  if (expectedTool && name !== expectedTool) {
+    return { ok: false, reason: `called ${name ?? 'unknown'} instead of ${expectedTool}` };
+  }
+  try {
+    JSON.parse(call.function?.arguments ?? '');
+  } catch {
+    return { ok: false, reason: 'tool arguments are not valid JSON' };
+  }
+  return { ok: true };
 }
 
 /**

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { percentile, summarize, stabilityOverTime } from './metrics.mjs';
+import { percentile, summarize, stabilityOverTime, evalToolCall } from './metrics.mjs';
 
 test('percentile: empty and basic cases', () => {
   assert.equal(percentile([], 50), null);
@@ -38,6 +38,26 @@ test('summarize: empty input', () => {
   const s = summarize([]);
   assert.equal(s.samples, 0);
   assert.equal(s.successRate, null);
+});
+
+test('summarize: usageReportedRate over successful samples only', () => {
+  const s = summarize([
+    { ok: true, ttftMs: 100, usageReported: true },
+    { ok: true, ttftMs: 100, usageReported: false },
+    { ok: false, error: 'HTTP 502' },
+  ]);
+  assert.equal(s.usageReportedRate, 0.5);
+  assert.equal(summarize([{ ok: false, error: 'x' }]).usageReportedRate, null);
+});
+
+test('evalToolCall: valid call passes, wrong tool / bad args / missing rejected', () => {
+  const body = (call) => ({ choices: [{ message: { tool_calls: call ? [call] : undefined } }] });
+  assert.equal(evalToolCall(body({ function: { name: 'get_time', arguments: '{"city":"Tokyo"}' } }), 'get_time').ok, true);
+  assert.equal(evalToolCall(body({ function: { name: 'other_fn', arguments: '{}' } }), 'get_time').ok, false);
+  assert.equal(evalToolCall(body({ function: { name: 'get_time', arguments: '{broken' } }), 'get_time').ok, false);
+  assert.equal(evalToolCall(body(null), 'get_time').ok, false);
+  assert.equal(evalToolCall(undefined, 'get_time').ok, false);
+  assert.equal(evalToolCall({ choices: [{ message: { content: 'plain text answer' } }] }, 'get_time').ok, false);
 });
 
 test('stabilityOverTime: averages daily success rates equally', () => {

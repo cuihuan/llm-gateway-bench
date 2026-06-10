@@ -12,7 +12,7 @@
 // "not tested" from "failed".
 
 import { readFile, mkdir, writeFile } from 'node:fs/promises';
-import { summarize } from './metrics.mjs';
+import { summarize, evalToolCall } from './metrics.mjs';
 
 const args = process.argv.slice(2);
 function flag(name, fallback) {
@@ -23,8 +23,18 @@ const SAMPLES = Number(flag('samples', 3));
 const OUT_DIR = flag('out', 'out');
 const ONLY_GATEWAY = flag('gateway', null);
 const TIMEOUT_MS = 60_000;
-const PROBE_PROMPT = 'Reply with the single word: pong';
+// 每次采样带随机串防网关侧缓存（docs/research.md 工程红线）
+const probePrompt = () => `Reply with the single word: pong. Ignore this request id: ${Math.random().toString(36).slice(2, 8)}`;
 const MAX_TOKENS = 64;
+
+const PROBE_TOOL = {
+  type: 'function',
+  function: {
+    name: 'get_time',
+    description: 'Get the current local time in a city',
+    parameters: { type: 'object', properties: { city: { type: 'string' } }, required: ['city'] },
+  },
+};
 
 async function timedFetch(url, init) {
   const ctrl = new AbortController();
@@ -62,7 +72,7 @@ async function probeChatOnce(gw, model, key) {
       headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
         model,
-        messages: [{ role: 'user', content: PROBE_PROMPT }],
+        messages: [{ role: 'user', content: probePrompt() }],
         max_tokens: MAX_TOKENS,
         stream: true,
         stream_options: { include_usage: true },
@@ -112,6 +122,35 @@ async function probeChatOnce(gw, model, key) {
   }
 }
 
+// One non-stream completion with a tool definition: does the gateway forward
+// tools intact (resold/reverse channels often strip them)? Doubles as the
+// non-stream total-latency sample.
+async function probeToolCall(gw, model, key) {
+  const t0 = performance.now();
+  try {
+    const res = await timedFetch(`${gw.baseUrl}/v1/chat/completions`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model,
+        messages: [{ role: 'user', content: `What time is it in Tokyo right now? Use the tool. Ignore this request id: ${Math.random().toString(36).slice(2, 8)}` }],
+        tools: [PROBE_TOOL],
+        tool_choice: 'auto',
+        max_tokens: MAX_TOKENS,
+      }),
+    });
+    const totalMs = Math.round(performance.now() - t0);
+    if (!res.ok) {
+      const text = await res.text().catch(() => '');
+      return { ok: false, totalMs, error: `HTTP ${res.status} ${text.slice(0, 120)}` };
+    }
+    const verdict = evalToolCall(await res.json().catch(() => null), 'get_time');
+    return verdict.ok ? { ok: true, totalMs } : { ok: false, totalMs, error: verdict.reason };
+  } catch (e) {
+    return { ok: false, totalMs: Math.round(performance.now() - t0), error: String(e?.message ?? e) };
+  }
+}
+
 async function main() {
   const gateways = JSON.parse(await readFile(new URL('../data/gateways.json', import.meta.url), 'utf8'));
   const startedAt = new Date().toISOString();
@@ -131,10 +170,15 @@ async function main() {
       const samples = [];
       for (let i = 0; i < SAMPLES; i++) samples.push(await probeChatOnce(gw, model, key));
       const summary = summarize(samples);
-      console.error(`[chat] ${gw.id}/${model}: ok ${summary.success}/${summary.samples}, ttft p50 ${summary.ttftMs.p50}ms, ${summary.tokensPerSec.avg} tok/s`);
-      models.push({ model, ...summary });
+      const toolCall = await probeToolCall(gw, model, key);
+      console.error(`[chat] ${gw.id}/${model}: ok ${summary.success}/${summary.samples}, ttft p50 ${summary.ttftMs.p50}ms, ${summary.tokensPerSec.avg} tok/s, tool ${toolCall.ok ? '✓' : `✗ (${toolCall.error})`}`);
+      models.push({ model, ...summary, toolCall });
     }
     results.push({ gateway: gw.id, skipped: false, connectivity, models });
+  }
+  if (results.every((r) => r.skipped)) {
+    console.error('[probe] all gateways skipped (no keys in env) — nothing written');
+    return;
   }
   const run = {
     schema: 1,
