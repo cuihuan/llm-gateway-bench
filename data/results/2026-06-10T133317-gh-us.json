@@ -1,0 +1,128 @@
+{
+  "schema": 1,
+  "startedAt": "2026-06-10T13:33:17.118Z",
+  "finishedAt": "2026-06-10T13:33:23.071Z",
+  "region": "gh-us",
+  "runner": "github-actions",
+  "samplesPerModel": 3,
+  "results": [
+    {
+      "gateway": "synthorai",
+      "skipped": false,
+      "connectivity": {
+        "ok": true,
+        "latencyMs": 303,
+        "modelCount": 40
+      },
+      "models": [
+        {
+          "model": "gemini-2.5-flash",
+          "samples": 3,
+          "success": 0,
+          "successRate": 0,
+          "ttftMs": {
+            "avg": null,
+            "p50": null,
+            "p95": null
+          },
+          "tokensPerSec": {
+            "avg": null,
+            "p50": null
+          },
+          "totalMs": {
+            "avg": null,
+            "p95": null
+          },
+          "errors": [
+            "HTTP 403 {\"error\":{\"message\":\"API key does not have access to any of the requested models\",\"type\":\"model_not_allowed\"}}",
+            "HTTP 403 {\"error\":{\"message\":\"API key does not have access to any of the requested models\",\"type\":\"model_not_allowed\"}}",
+            "HTTP 403 {\"error\":{\"message\":\"API key does not have access to any of the requested models\",\"type\":\"model_not_allowed\"}}"
+          ]
+        },
+        {
+          "model": "claude-haiku-4-5-20251001",
+          "samples": 3,
+          "success": 0,
+          "successRate": 0,
+          "ttftMs": {
+            "avg": null,
+            "p50": null,
+            "p95": null
+          },
+          "tokensPerSec": {
+            "avg": null,
+            "p50": null
+          },
+          "totalMs": {
+            "avg": null,
+            "p95": null
+          },
+          "errors": [
+            "HTTP 403 {\"error\":{\"message\":\"API key does not have access to any of the requested models\",\"type\":\"model_not_allowed\"}}",
+            "HTTP 403 {\"error\":{\"message\":\"API key does not have access to any of the requested models\",\"type\":\"model_not_allowed\"}}",
+            "HTTP 403 {\"error\":{\"message\":\"API key does not have access to any of the requested models\",\"type\":\"model_not_allowed\"}}"
+          ]
+        },
+        {
+          "model": "deepseek-v4-flash",
+          "samples": 3,
+          "success": 3,
+          "successRate": 1,
+          "ttftMs": {
+            "avg": 1603,
+            "p50": 1627,
+            "p95": 1890.7
+          },
+          "tokensPerSec": {
+            "avg": 502.9,
+            "p50": 404.2
+          },
+          "totalMs": {
+            "avg": 1662.3,
+            "p95": 1959.2
+          },
+          "errors": []
+        },
+        {
+          "model": "gpt-5.4-nano",
+          "samples": 3,
+          "success": 0,
+          "successRate": 0,
+          "ttftMs": {
+            "avg": null,
+            "p50": null,
+            "p95": null
+          },
+          "tokensPerSec": {
+            "avg": null,
+            "p50": null
+          },
+          "totalMs": {
+            "avg": null,
+            "p95": null
+          },
+          "errors": [
+            "HTTP 403 {\"error\":{\"message\":\"API key does not have access to any of the requested models\",\"type\":\"model_not_allowed\"}}",
+            "HTTP 403 {\"error\":{\"message\":\"API key does not have access to any of the requested models\",\"type\":\"model_not_allowed\"}}",
+            "HTTP 403 {\"error\":{\"message\":\"API key does not have access to any of the requested models\",\"type\":\"model_not_allowed\"}}"
+          ]
+        }
+      ]
+    },
+    {
+      "gateway": "openrouter",
+      "skipped": true,
+      "reason": "missing OPENROUTER_API_KEY"
+    },
+    {
+      "gateway": "aihubmix",
+      "skipped": true,
+      "reason": "missing AIHUBMIX_API_KEY"
+    },
+    {
+      "gateway": "openai-direct",
+      "skipped": true,
+      "reason": "missing OPENAI_API_KEY"
+    }
+  ]
+}
