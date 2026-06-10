@@ -22,9 +22,10 @@
 
 ```
 GitHub Actions（每 6 小时 cron）
-  └─ probe/probe.mjs 拨测 data/gateways.json 里的每个 网关×模型
-       └─ 结果 JSON 提交回 data/results/   ←—— 时间序列随仓库积累
-            └─ web/index.html 静态渲染排行榜（GitHub Pages）
+  ├─ probe/probe.mjs    拨测 data/gateways.json 里的每个 网关×模型 → data/results/
+  ├─ probe/prices.mjs   拉取 litellm 官方价 + 各网关价格 API → data/prices.json
+  └─ probe/aggregate.mjs 聚合 results + annotations(人工标注) + prices → web/data.json
+       └─ web/index.html 静态读取 data.json 渲染排行榜（GitHub Pages）
 ```
 
 - **没有服务器、没有数据库**：原始数据逐次 commit，全量可审计、可复现；
@@ -35,9 +36,12 @@ GitHub Actions（每 6 小时 cron）
 
 ```bash
 # Node >= 20，零依赖
-npm test                                  # 单测
+npm test                                  # 单测（metrics / aggregate / prices）
 SYNTHORAI_API_KEY=sk-... node probe/probe.mjs --samples 3 --gateway synthorai
-open web/index.html                       # 看 UI（当前为演示假数据）
+npm run prices                            # 刷新价格快照 data/prices.json
+npm run aggregate                         # 聚合出 web/data.json
+python3 -m http.server -d web 8080        # http://localhost:8080 看排行榜
+# （file:// 直接打开会因浏览器限制 fetch 失败，自动回退为演示数据）
 ```
 
 ## 添加一个网关

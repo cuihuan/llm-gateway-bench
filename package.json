@@ -6,7 +6,9 @@
   "type": "module",
   "engines": { "node": ">=20" },
   "scripts": {
-    "test": "node --test probe/metrics.test.mjs",
-    "probe": "node probe/probe.mjs"
+    "test": "node --test probe/metrics.test.mjs probe/aggregate.test.mjs probe/prices.test.mjs",
+    "probe": "node probe/probe.mjs",
+    "prices": "node probe/prices.mjs",
+    "aggregate": "node probe/aggregate.mjs"
   }
 }
