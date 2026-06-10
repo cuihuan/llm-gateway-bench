@@ -30,33 +30,51 @@ const round = (x, d = 0) => (x == null ? null : Math.round(x * 10 ** d) / 10 ** 
  * Roll up one gateway's entries across runs.
  * runEntries: [{ startedAt, connectivity, models:[{model,samples,success,ttftMs,tokensPerSec,errors}] }]
  * `today` is injectable for tests (YYYY-MM-DD).
+ *
+ * All stability stats (uptimePct, uptime7dPct, probes, errors, authExcluded)
+ * honor the WINDOW_DAYS window; only lastRun/connectivity reflect the absolute
+ * latest run, and the speed snapshot the latest run with ≥1 successful sample.
  */
 export function rollupGateway(runEntries, today) {
+  const end = new Date(`${today}T00:00:00Z`).getTime();
+  const windowStart = new Date(end - (WINDOW_DAYS - 1) * 86_400_000).toISOString().slice(0, 10);
+  const day7Start = new Date(end - 6 * 86_400_000).toISOString().slice(0, 10);
+
   const byDay = new Map(); // day -> {ok, total, ttfts:[]}
   const errors = { '429': 0, '5xx': 0, timeout: 0, other: 0 };
   let authExcluded = 0;
   let probes = 0;
-  let latest = null;
+  let latest = null;   // current state: connectivity, lastRun
+  let latestOk = null; // speed snapshot source
 
   for (const run of runEntries) {
     if (!latest || run.startedAt > latest.startedAt) latest = run;
+    if ((run.models ?? []).some((m) => m.success > 0) && (!latestOk || run.startedAt > latestOk.startedAt)) latestOk = run;
     const day = dayOf(run.startedAt);
+    if (day < windowStart || day > today) continue;
     if (!byDay.has(day)) byDay.set(day, { ok: 0, total: 0, ttfts: [] });
     const bucket = byDay.get(day);
     for (const m of run.models ?? []) {
       const classes = (m.errors ?? []).map(classifyError);
-      const allAuth = m.success === 0 && classes.length > 0 && classes.every((c) => c === 'auth');
-      if (allAuth) { authExcluded += m.samples; continue; }
-      probes += m.samples;
-      bucket.total += m.samples;
+      const failed = m.samples - m.success;
+      // errors[] is capped at 5 per model by metrics.summarize(); when every
+      // captured error is auth, attribute ALL failures to auth (prober key
+      // problem, not gateway), otherwise count auth errors one by one.
+      const authN = classes.length > 0 && classes.every((c) => c === 'auth')
+        ? failed
+        : classes.filter((c) => c === 'auth').length;
+      authExcluded += authN;
+      const counted = m.samples - authN;
+      if (counted <= 0) continue;
+      probes += counted;
+      bucket.total += counted;
       bucket.ok += m.success;
-      for (const c of classes) { if (c !== 'auth') errors[c]++; else authExcluded++; }
+      for (const c of classes) { if (c !== 'auth') errors[c]++; }
       if (typeof m.ttftMs?.p50 === 'number') bucket.ttfts.push(m.ttftMs.p50);
     }
   }
 
   // last WINDOW_DAYS calendar days ending today
-  const end = new Date(`${today}T00:00:00Z`).getTime();
   const daysArr = [];
   const trend = [];
   for (let i = WINDOW_DAYS - 1; i >= 0; i--) {
@@ -68,13 +86,15 @@ export function rollupGateway(runEntries, today) {
     if (b.ttfts.length) trend.push({ date: d, ttftP50: round(percentile(b.ttfts, 50)) });
   }
 
-  let ok = 0, total = 0;
-  for (const b of byDay.values()) { ok += b.ok; total += b.total; }
+  let ok = 0, total = 0, ok7 = 0, total7 = 0;
+  for (const [d, b] of byDay) {
+    ok += b.ok; total += b.total;
+    if (d >= day7Start) { ok7 += b.ok; total7 += b.total; }
+  }
 
-  // speed snapshot from the most recent run that has successful samples
   let ttftP50 = null, ttftP95 = null, tps = null;
-  if (latest) {
-    const rows = (latest.models ?? []).filter((m) => m.success > 0);
+  if (latestOk) {
+    const rows = (latestOk.models ?? []).filter((m) => m.success > 0);
     const p50s = rows.map((m) => m.ttftMs?.p50).filter((v) => typeof v === 'number');
     const p95s = rows.map((m) => m.ttftMs?.p95).filter((v) => typeof v === 'number');
     const tpss = rows.map((m) => m.tokensPerSec?.avg).filter((v) => typeof v === 'number');
@@ -86,6 +106,7 @@ export function rollupGateway(runEntries, today) {
   return {
     probes,
     uptimePct: total ? round((ok / total) * 100, 2) : null,
+    uptime7dPct: total7 ? round((ok7 / total7) * 100, 2) : null,
     daysArr,
     errors,
     authExcluded,
@@ -97,7 +118,12 @@ export function rollupGateway(runEntries, today) {
   };
 }
 
-/** geometric mean of gateway/official price ratios over comparable models */
+/**
+ * Price index. Per model the ratio is the ARITHMETIC mean of the input-price
+ * ratio and output-price ratio (documented in docs/methodology.md — matters
+ * for asymmetric pricing); the index is the geometric mean of those per-model
+ * ratios over all comparable models.
+ */
 export function priceIndex(priceModels, gatewayId) {
   const ratios = [];
   for (const m of priceModels ?? []) {

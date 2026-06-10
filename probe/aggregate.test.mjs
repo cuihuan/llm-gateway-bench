@@ -53,6 +53,76 @@ test('rollupGateway: real failures lower uptime and are classified', () => {
   assert.equal(r.speed.ttftP50, 700);      // from latest run only
 });
 
+test('rollupGateway: mixed run — auth samples excluded per-sample, successes still count', () => {
+  // 4 samples, 3 ok, 1 fails with 401: the auth sample must NOT count as downtime
+  // and must NOT make the day an outage, only be disclosed via authExcluded.
+  const r = rollupGateway([
+    run('2026-06-10T06:00:00.000Z', [
+      { model: 'a', samples: 4, success: 3, ttftMs: { p50: 500 }, tokensPerSec: { avg: 80 }, errors: ['HTTP 401 unauthorized'] },
+    ]),
+  ], '2026-06-10');
+  assert.equal(r.uptimePct, 100);
+  assert.equal(r.authExcluded, 1);
+  assert.equal(r.probes, 3);
+  assert.equal(r.daysArr.at(-1).status, 'g');
+  assert.deepEqual(r.errors, { '429': 0, '5xx': 0, timeout: 0, other: 0 });
+});
+
+test('rollupGateway: auth mixed with real failures — only real ones count against uptime', () => {
+  const r = rollupGateway([
+    run('2026-06-10T06:00:00.000Z', [
+      { model: 'a', samples: 3, success: 0, ttftMs: {}, tokensPerSec: {}, errors: ['HTTP 401 x', 'HTTP 502 y', 'HTTP 401 z'] },
+    ]),
+  ], '2026-06-10');
+  assert.equal(r.authExcluded, 2);
+  assert.equal(r.probes, 1);
+  assert.equal(r.uptimePct, 0);   // the one counted sample is a real 5xx failure
+  assert.equal(r.errors['5xx'], 1);
+});
+
+test('rollupGateway: runs older than the 30-day window are excluded from uptime/probes/errors', () => {
+  const r = rollupGateway([
+    run('2026-01-01T06:00:00.000Z', [
+      { model: 'a', samples: 10, success: 0, ttftMs: {}, tokensPerSec: {}, errors: ['HTTP 502 old outage'] },
+    ]),
+    run('2026-06-10T06:00:00.000Z', [
+      { model: 'a', samples: 10, success: 10, ttftMs: { p50: 600, p95: 800 }, tokensPerSec: { avg: 70 }, errors: [] },
+    ]),
+  ], '2026-06-10');
+  assert.equal(r.uptimePct, 100);  // the January outage is outside the window
+  assert.equal(r.probes, 10);
+  assert.equal(r.errors['5xx'], 0);
+  assert.equal(r.lastRun, '2026-06-10T06:00:00.000Z');
+});
+
+test('rollupGateway: uptime7dPct only counts the last 7 days', () => {
+  const r = rollupGateway([
+    run('2026-05-31T06:00:00.000Z', [  // 10 days ago: in 30d window, outside 7d
+      { model: 'a', samples: 4, success: 0, ttftMs: {}, tokensPerSec: {}, errors: ['HTTP 502 x'] },
+    ]),
+    run('2026-06-10T06:00:00.000Z', [
+      { model: 'a', samples: 4, success: 4, ttftMs: { p50: 600 }, tokensPerSec: { avg: 70 }, errors: [] },
+    ]),
+  ], '2026-06-10');
+  assert.equal(r.uptimePct, 50);
+  assert.equal(r.uptime7dPct, 100);
+});
+
+test('rollupGateway: speed snapshot comes from the latest run WITH successes', () => {
+  const r = rollupGateway([
+    run('2026-06-09T06:00:00.000Z', [
+      { model: 'a', samples: 3, success: 3, ttftMs: { p50: 700, p95: 900 }, tokensPerSec: { avg: 60 }, errors: [] },
+    ], { ok: true, latencyMs: 90, modelCount: 12 }),
+    run('2026-06-10T06:00:00.000Z', [  // full outage: no speed data here
+      { model: 'a', samples: 3, success: 0, ttftMs: {}, tokensPerSec: {}, errors: ['HTTP 503 down'] },
+    ], { ok: false, latencyMs: null, modelCount: null }),
+  ], '2026-06-10');
+  assert.equal(r.speed.ttftP50, 700);          // from the 06-09 run
+  assert.equal(r.speed.tps, 60);
+  assert.equal(r.lastRun, '2026-06-10T06:00:00.000Z'); // current state still latest
+  assert.equal(r.uptimePct, 50);
+});
+
 test('rollupGateway: empty input yields nulls, not NaN', () => {
   const r = rollupGateway([], '2026-06-10');
   assert.equal(r.uptimePct, null);
