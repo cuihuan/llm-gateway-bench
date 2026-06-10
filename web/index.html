@@ -5,189 +5,248 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>LLM Gateway Bench · 大模型网关评测</title>
 <style>
+  /* GitHub-dark 基调：克制、高密度、工程师向 */
   :root {
-    --bg: #0b0e14; --panel: #11151f; --panel2: #161b28; --border: #232a3b;
-    --text: #e6e9f0; --muted: #8a93a8; --accent: #5b9cff; --good: #34d399;
-    --warn: #fbbf24; --bad: #f87171; --chip: #1d2435;
+    --bg: #0d1117; --panel: #161b22; --panel2: #1c2128; --border: #30363d;
+    --text: #e6edf3; --muted: #8b949e; --faint: #6e7681;
+    --accent: #58a6ff; --good: #3fb950; --warn: #d29922; --bad: #f85149;
+    --good-bg: #12261e; --warn-bg: #2a2204; --bad-bg: #2d1517; --unk-bg: #21262d;
+    --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: var(--bg); color: var(--text); font: 15px/1.6 -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; }
-  .wrap { max-width: 1180px; margin: 0 auto; padding: 0 24px; }
+  html { scroll-behavior: smooth; scroll-padding-top: 64px; }
+  body { background: var(--bg); color: var(--text);
+    font: 14px/1.55 -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; }
+  .wrap { max-width: 1240px; margin: 0 auto; padding: 0 24px; }
   a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code { font-family: var(--mono); font-size: 12.5px; background: var(--panel2);
+    border: 1px solid var(--border); border-radius: 4px; padding: 1px 5px; }
+  .num { font-family: var(--mono); font-size: 13px; font-variant-numeric: tabular-nums; }
+  .good { color: var(--good); } .warn { color: var(--warn); }
+  .bad { color: var(--bad); } .muted { color: var(--muted); }
 
-  header { padding: 56px 0 32px; border-bottom: 1px solid var(--border);
-    background: radial-gradient(900px 300px at 20% 0%, #16203a 0%, transparent 70%); }
-  h1 { font-size: 34px; letter-spacing: .5px; }
-  h1 .en { color: var(--muted); font-size: 18px; font-weight: 400; margin-left: 10px; }
-  .tagline { color: var(--muted); margin-top: 10px; max-width: 720px; }
-  .badges { margin-top: 18px; display: flex; gap: 8px; flex-wrap: wrap; }
-  .badge { background: var(--chip); border: 1px solid var(--border); border-radius: 99px;
-    padding: 3px 12px; font-size: 12.5px; color: var(--muted); }
-  .badge b { color: var(--text); font-weight: 600; }
-  .mock-banner { background: #2a2410; border: 1px solid #5c4d1a; color: #e8c96a;
-    border-radius: 8px; padding: 8px 14px; font-size: 13px; margin-top: 20px; display: inline-block; }
+  /* ===== 顶部导航 ===== */
+  nav { position: sticky; top: 0; z-index: 10; background: rgba(13,17,23,.92);
+    backdrop-filter: blur(6px); border-bottom: 1px solid var(--border); }
+  nav .wrap { display: flex; align-items: center; gap: 22px; height: 52px; }
+  nav .logo { font-weight: 700; font-size: 15px; color: var(--text); }
+  nav .logo span { color: var(--faint); font-weight: 400; margin-left: 8px; font-size: 13px; }
+  nav a.lnk { color: var(--muted); font-size: 13.5px; }
+  nav a.lnk:hover { color: var(--text); text-decoration: none; }
+  nav .right { margin-left: auto; display: flex; gap: 16px; }
 
-  section { padding: 40px 0 8px; }
-  h2 { font-size: 21px; margin-bottom: 4px; }
-  .sub { color: var(--muted); font-size: 13.5px; margin-bottom: 18px; }
+  /* ===== 头部 ===== */
+  header { padding: 36px 0 24px; border-bottom: 1px solid var(--border); }
+  h1 { font-size: 24px; font-weight: 700; }
+  .tagline { color: var(--muted); margin-top: 8px; max-width: 760px; font-size: 14px; }
+  .meta-row { display: flex; gap: 28px; margin-top: 18px; flex-wrap: wrap; }
+  .meta-item .k { font-size: 11.5px; color: var(--faint); text-transform: uppercase; letter-spacing: .5px; }
+  .meta-item .v { font-family: var(--mono); font-size: 15px; margin-top: 2px; }
+  .mock-banner { background: var(--warn-bg); border: 1px solid #4d3800; color: var(--warn);
+    border-radius: 6px; padding: 7px 12px; font-size: 12.5px; margin-top: 18px; display: inline-block; }
 
-  /* 维度卡片 */
-  .dims { display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 14px; }
-  .dim { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px; }
-  .dim h3 { font-size: 15.5px; margin-bottom: 6px; }
-  .dim .q { color: var(--accent); font-size: 13px; }
-  .dim p { color: var(--muted); font-size: 13.5px; margin-top: 6px; }
-  .dim .soon { float: right; font-size: 11px; color: var(--warn); border: 1px solid #5c4d1a;
-    border-radius: 99px; padding: 1px 8px; }
+  /* ===== 区块 ===== */
+  section { padding: 36px 0 6px; }
+  h2 { font-size: 18px; font-weight: 700; }
+  h2 .anchor { color: var(--faint); font-weight: 400; font-size: 13px; margin-left: 8px; }
+  .sub { color: var(--muted); font-size: 13px; margin: 4px 0 16px; }
 
-  /* 排行榜表格 */
-  .tablebox { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; overflow-x: auto; }
-  table { width: 100%; border-collapse: collapse; min-width: 980px; }
-  th, td { padding: 12px 14px; text-align: left; white-space: nowrap; }
-  thead th { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .4px;
-    border-bottom: 1px solid var(--border); cursor: pointer; user-select: none; position: sticky; top: 0; background: var(--panel); }
-  thead th:hover { color: var(--text); }
-  thead th .arr { opacity: .5; font-size: 10px; }
-  tbody tr { border-bottom: 1px solid var(--border); }
+  /* ===== 表格 ===== */
+  .tablebox { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; }
+  th, td { padding: 9px 14px; text-align: left; white-space: nowrap; vertical-align: middle; }
+  thead th { font-size: 11.5px; color: var(--muted); text-transform: uppercase; letter-spacing: .4px;
+    border-bottom: 1px solid var(--border); background: var(--panel); }
+  thead th.sortable { cursor: pointer; user-select: none; }
+  thead th.sortable:hover { color: var(--text); }
+  thead th .arr { font-size: 9px; opacity: .6; }
+  tbody tr { border-bottom: 1px solid #21262d; }
   tbody tr:last-child { border-bottom: none; }
   tbody tr:hover { background: var(--panel2); }
-  .gw-name { font-weight: 600; }
-  .gw-name .tag { font-size: 11px; color: var(--muted); font-weight: 400; margin-left: 8px;
-    border: 1px solid var(--border); border-radius: 99px; padding: 1px 8px; }
-  .num { font-variant-numeric: tabular-nums; }
-  .good { color: var(--good); } .warn { color: var(--warn); } .bad { color: var(--bad); } .muted { color: var(--muted); }
+  td.r, th.r { text-align: right; }
+  .gw-name { font-weight: 600; font-size: 14px; }
+  .gw-name a { color: var(--text); }
+  .gw-sub { font-size: 11.5px; color: var(--faint); font-family: var(--mono); }
 
-  /* uptime 条带（30 天，每格一天） */
+  /* ===== 徽章 ===== */
+  .bdg { display: inline-block; font-size: 11.5px; line-height: 1; padding: 4px 8px;
+    border-radius: 99px; border: 1px solid; font-weight: 500; }
+  .bdg.ok   { color: var(--good); border-color: #1f4a2c; background: var(--good-bg); }
+  .bdg.warn { color: var(--warn); border-color: #4d3800; background: var(--warn-bg); }
+  .bdg.bad  { color: var(--bad);  border-color: #5c2326; background: var(--bad-bg); }
+  .bdg.unk  { color: var(--muted); border-color: var(--border); background: var(--unk-bg); }
+
+  /* ===== uptime 条带 ===== */
   .uptime-strip { display: inline-flex; gap: 2px; vertical-align: middle; }
-  .uptime-strip i { width: 5px; height: 16px; border-radius: 1.5px; background: var(--good); display: inline-block; }
+  .uptime-strip i { width: 4px; height: 15px; border-radius: 1px; background: var(--good); }
   .uptime-strip i.w { background: var(--warn); } .uptime-strip i.b { background: var(--bad); }
+  .uptime-strip i:hover { outline: 1px solid var(--text); }
 
-  /* sparkline */
   .spark { vertical-align: middle; }
-  .spark polyline { fill: none; stroke: var(--accent); stroke-width: 1.6; }
+  .spark polyline { fill: none; stroke: var(--accent); stroke-width: 1.4; }
 
-  /* 价格表 */
-  .price-note { font-size: 12px; color: var(--muted); margin-top: 8px; }
-  .ratio-cell { font-size: 12px; color: var(--muted); }
+  /* ===== 痛点导引三卡 ===== */
+  .pains { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 12px; margin-top: 16px; }
+  .pain { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; }
+  .pain .no { font-family: var(--mono); color: var(--faint); font-size: 12px; }
+  .pain h3 { font-size: 14.5px; margin: 2px 0 4px; }
+  .pain p { color: var(--muted); font-size: 12.5px; }
+  .pain a { font-size: 12.5px; }
 
-  /* 清单卡片 */
-  .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 14px; }
-  .card { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px; }
-  .card h3 { font-size: 16px; }
-  .card .meta { color: var(--muted); font-size: 13px; margin: 6px 0 10px; }
-  .card .row { display: flex; justify-content: space-between; font-size: 13.5px; padding: 3px 0; }
-  .card .row span:first-child { color: var(--muted); }
+  /* ===== 稳定性面板 ===== */
+  .stab-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(540px, 1fr)); gap: 12px; }
+  .stab { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 16px 18px; }
+  .stab .head { display: flex; align-items: baseline; gap: 12px; margin-bottom: 10px; }
+  .stab .head .pct { font-family: var(--mono); font-size: 22px; font-weight: 700; }
+  .stab .row { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
+  .stab .lbl { width: 88px; flex: none; font-size: 11.5px; color: var(--faint);
+    text-transform: uppercase; letter-spacing: .4px; }
+  .errbar { display: flex; height: 8px; border-radius: 4px; overflow: hidden; flex: 1; background: var(--unk-bg); }
+  .errbar i { height: 100%; }
+  .legend { font-size: 11.5px; color: var(--muted); font-family: var(--mono); }
 
-  footer { margin-top: 48px; padding: 28px 0 48px; border-top: 1px solid var(--border);
-    color: var(--muted); font-size: 13px; }
-  footer p { margin-bottom: 6px; }
+  .axis { font-family: var(--mono); font-size: 10px; fill: var(--faint); }
+  .gridline { stroke: #21262d; stroke-width: 1; }
+
+  /* ===== 信任表注释 ===== */
+  .evidence { font-size: 11px; color: var(--faint); }
+  .fn { font-size: 12px; color: var(--muted); margin-top: 10px; }
+  .fn b { color: var(--text); }
+
+  footer { margin-top: 44px; padding: 24px 0 44px; border-top: 1px solid var(--border);
+    color: var(--muted); font-size: 12.5px; }
+  footer p { margin-bottom: 5px; }
 </style>
 </head>
 <body>
 
-<header>
-  <div class="wrap">
-    <h1>LLM Gateway Bench<span class="en">大模型网关评测</span></h1>
-    <p class="tagline">从用户视角持续拨测大模型 API 网关：<b>直连性 · 稳定性 · 速度 · 价格 · 模型清单</b>。
-      拨测脚本、原始数据、聚合逻辑全部开源，任何人可用自己的 key 复现。</p>
-    <div class="badges">
-      <span class="badge">探测频率 <b>每 6 小时</b></span>
-      <span class="badge">数据积累 <b id="b-days">—</b></span>
-      <span class="badge">在测网关 <b id="b-gw">—</b></span>
-      <span class="badge">探测地域 <b id="b-region">—</b></span>
-      <span class="badge">GitHub Actions 驱动 · 无服务器</span>
-    </div>
-    <div class="mock-banner">⚠️ 当前为<b>演示假数据</b>（UI 初版评审用），真实数据由 data/results/ 拨测结果驱动</div>
+<nav><div class="wrap">
+  <div class="logo">LLM Gateway Bench<span>大模型网关评测</span></div>
+  <a class="lnk" href="#leaderboard">排行榜</a>
+  <a class="lnk" href="#trust">信任与合规</a>
+  <a class="lnk" href="#price">价格</a>
+  <a class="lnk" href="#stability">稳定性</a>
+  <a class="lnk" href="#catalog">网关清单</a>
+  <div class="right">
+    <a class="lnk" href="../docs/methodology.md">方法论</a>
+    <a class="lnk" href="https://github.com/cuihuan/llm-gateway-bench">GitHub</a>
   </div>
-</header>
+</div></nav>
 
-<section>
-  <div class="wrap">
-    <h2>我们测什么</h2>
-    <p class="sub">每个维度对应用户挑网关时真正会问的一个问题</p>
-    <div class="dims">
-      <div class="dim"><h3>① 直连性 <span class="q">"我能不能直接连上？"</span></h3>
-        <p>各地域到网关的可达性与连接延迟。重点是国内直连——现有评测站都不覆盖的盲区。</p></div>
-      <div class="dim"><h3>② 稳定性 <span class="q">"它会不会半夜挂掉？"</span></h3>
-        <p>7/30 天滚动成功率（uptime%）、错误画像（限流 / 故障 / 超时）、高峰期延迟漂移。跑得越久越有说服力。</p></div>
-      <div class="dim"><h3>③ 速度 <span class="q">"它快不快？"</span></h3>
-        <p>流式首 token 延迟（TTFT p50/p95）与生成吞吐（tok/s），固定 prompt 多采样取分位数。</p></div>
-      <div class="dim"><h3>④ 价格 <span class="q">"它贵不贵？有没有套路？"</span></h3>
-        <p>同一模型的网关价 ÷ 官方价 = 价格指数；并标注计费透明度（公开价格 API、缓存价、隐藏倍率）。</p></div>
-      <div class="dim"><h3>⑤ 模型清单 <span class="q">"我要的模型它有没有？"</span></h3>
-        <p>模型数量、主流模型覆盖矩阵、协议覆盖（OpenAI / Anthropic / Gemini 兼容）。</p></div>
-      <div class="dim"><h3><span class="soon">Roadmap</span>⑥ 保真度 <span class="q">"给我的真是这个模型吗？"</span></h3>
-        <p>固定请求集与官方 API 对拍（K2 Vendor Verifier 方法），检测偷换模型、过度量化、截断上下文。</p></div>
-    </div>
+<header><div class="wrap">
+  <h1>大模型网关评测</h1>
+  <p class="tagline">从工程师视角持续评测大模型 API 网关。三个核心问题：<b>信得过吗（直连官转 · 数据留存）· 贵不贵（对标官方价）· 稳不稳（30 天拨测数据）</b>。拨测脚本、原始数据、聚合逻辑全部开源，可用自己的 key 复现。</p>
+  <div class="meta-row">
+    <div class="meta-item"><div class="k">最近拨测</div><div class="v" id="m-last">—</div></div>
+    <div class="meta-item"><div class="k">拨测频率</div><div class="v">6h / 次</div></div>
+    <div class="meta-item"><div class="k">数据积累</div><div class="v" id="m-days">—</div></div>
+    <div class="meta-item"><div class="k">在测网关</div><div class="v" id="m-gw">—</div></div>
+    <div class="meta-item"><div class="k">探测地域</div><div class="v" id="m-region">—</div></div>
   </div>
-</section>
+  <div class="pains">
+    <div class="pain"><div class="no">PAIN #1</div><h3>信得过吗？</h3>
+      <p>是不是直连官方上游、prompt 有没有被记录、主体能不能开发票。声明不算数，看<a href="#trust">对拍验证与证据链接 ↓</a></p></div>
+    <div class="pain"><div class="no">PAIN #2</div><h3>贵不贵？</h3>
+      <p>同一个模型，网关价对标官方价是几折，有没有隐藏倍率。<a href="#price">价格矩阵 ↓</a></p></div>
+    <div class="pain"><div class="no">PAIN #3</div><h3>稳不稳？</h3>
+      <p>最近 30 天成功率、错误是限流还是故障、高峰期会不会变慢。<a href="#stability">拨测时序 ↓</a></p></div>
+  </div>
+  <div class="mock-banner">⚠ 当前页面为演示数据（UI 框架评审用）。上线后由 data/results/ 拨测结果与带证据链接的人工标注驱动。</div>
+</div></header>
 
-<section>
-  <div class="wrap">
-    <h2>网关排行榜</h2>
-    <p class="sub">默认按 30 天稳定性排序 · 点击表头切换排序 · 不做黑箱总分，按你关心的列排</p>
-    <div class="tablebox"><table id="lb">
-      <thead><tr>
-        <th data-k="name">网关</th>
-        <th data-k="connMs">直连延迟 <span class="arr">↕</span></th>
-        <th data-k="uptime">稳定性 30天 <span class="arr">↓</span></th>
-        <th data-k="ttft">TTFT p50 <span class="arr">↕</span></th>
-        <th data-k="tps">吞吐 tok/s <span class="arr">↕</span></th>
-        <th data-k="priceIdx">价格指数 <span class="arr">↕</span></th>
-        <th data-k="models">模型数 <span class="arr">↕</span></th>
-        <th>TTFT 趋势(30天)</th>
-      </tr></thead>
-      <tbody></tbody>
-    </table></div>
-  </div>
-</section>
+<section id="leaderboard"><div class="wrap">
+  <h2>排行榜<span class="anchor">默认按 30 天稳定性排序 · 点击表头切换 · 不做黑箱总分</span></h2>
+  <div class="tablebox"><table id="lb">
+    <thead><tr>
+      <th>网关</th>
+      <th>信任评级</th>
+      <th>数据留存</th>
+      <th class="r sortable" data-k="priceIdx">价格指数 <span class="arr">↕</span></th>
+      <th class="sortable" data-k="uptime">稳定性 30D <span class="arr">↓</span></th>
+      <th class="r sortable" data-k="ttft">TTFT P50 <span class="arr">↕</span></th>
+      <th class="r sortable" data-k="tps">TOK/S <span class="arr">↕</span></th>
+      <th class="r sortable" data-k="models">模型数 <span class="arr">↕</span></th>
+      <th>TTFT 30D</th>
+    </tr></thead>
+    <tbody></tbody>
+  </table></div>
+  <p class="fn">信任评级三档：<span class="bdg ok">直连已验证</span> 通过对拍验证；<span class="bdg warn">声明未验证</span> 网关自声明、暂无对拍证据；<span class="bdg unk">未验证</span> 无声明或拒测。详见下节。</p>
+</div></section>
 
-<section>
-  <div class="wrap">
-    <h2>价格对比</h2>
-    <p class="sub">单位 USD / 1M tokens（输入 / 输出）· 括号内为相对官方价的倍率 · 官方价来源 litellm 开放价格库</p>
-    <div class="tablebox"><table id="price">
-      <thead></thead><tbody></tbody>
-    </table></div>
-    <p class="price-note">价格指数 = 该网关所有可比模型倍率的几何平均。&lt;1.00 比官方便宜，&gt;1.00 比官方贵。</p>
-  </div>
-</section>
+<section id="trust"><div class="wrap">
+  <h2>信任与合规<span class="anchor">声明不算数，每个结论都要挂证据链接，接受 PR 纠错</span></h2>
+  <p class="sub">渠道来源用「对拍验证」出硬证据：固定请求集（含工具调用与采样敏感用例）同时打到网关与官方 API，比对工具调用合法率、tokenizer 行为与延迟特征（K2 Vendor Verifier 方法）。数据留存与主体资质来自条款原文的人工标注，附标注日期。</p>
+  <div class="tablebox"><table id="trust-tbl">
+    <thead><tr>
+      <th>网关</th><th>渠道来源</th><th>对拍验证</th>
+      <th>Prompt 留存</th><th>用于训练</th><th>经营主体</th><th>发票</th><th>证据</th>
+    </tr></thead>
+    <tbody></tbody>
+  </table></div>
+</div></section>
 
-<section>
-  <div class="wrap">
-    <h2>网关清单</h2>
-    <p class="sub">在测网关的档案页 · 新网关通过 PR 提交 <code>data/gateways.json</code> 即可加入</p>
-    <div class="cards" id="catalog"></div>
-  </div>
-</section>
+<section id="price"><div class="wrap">
+  <h2>价格<span class="anchor">USD / 1M tokens（输入 / 输出）· 倍率 = 网关价 ÷ 官方价 · 官方价源自 litellm 开放价格库</span></h2>
+  <div class="tablebox"><table id="price-tbl"><thead></thead><tbody></tbody></table></div>
+  <p class="fn"><b>价格指数</b> = 该网关全部可比模型倍率的几何平均：<span class="num good">&lt;1.00</span> 比官方便宜，<span class="num bad">&gt;1.00</span> 比官方贵。便宜得反常（&lt;0.5×）通常意味着逆向渠道，请对照信任评级一起看。</p>
+</div></section>
 
-<footer>
-  <div class="wrap">
-    <p><b>方法论：</b>拨测脚本公开（probe/probe.mjs），每 6 小时从 GitHub Actions 运行，单次每模型 3 采样，报分位数；cron 抖动以真实时间戳为准。</p>
-    <p><b>公正性：</b>原始数据逐次提交在仓库 data/results/，任何人可用自己的 key 复现；维护者与某网关存在利益关联时在条目中披露。</p>
-    <p>MIT License · 欢迎 PR 添加网关 / 探测地域</p>
-  </div>
-</footer>
+<section id="stability"><div class="wrap">
+  <h2>稳定性<span class="anchor">每 6 小时拨测 · 每格一天 · 错误按性质分类：429 限流 ≠ 5xx 故障 ≠ 超时</span></h2>
+  <div class="stab-grid" id="stab-grid"></div>
+</div></section>
+
+<section id="catalog"><div class="wrap">
+  <h2>网关清单<span class="anchor">新网关：PR 提交 data/gateways.json 即可进入拨测</span></h2>
+  <div class="tablebox"><table id="cat-tbl">
+    <thead><tr>
+      <th>网关</th><th>协议</th><th class="r">模型数</th><th>探测模型</th><th>价格透明度</th><th class="r">直连延迟 (gh-us)</th>
+    </tr></thead>
+    <tbody></tbody>
+  </table></div>
+</div></section>
+
+<footer><div class="wrap">
+  <p><b>方法论摘要</b> — 拨测：GitHub Actions 每 6h，固定 prompt 流式请求，每模型 3 采样报分位数，并发 ≤4（拨测不是压测）；cron 抖动以真实时间戳为准。政策类标注必须附证据链接与日期。</p>
+  <p><b>公正性</b> — 原始数据逐次 commit 于 data/results/，任何人可用自己的 key 复现；维护者与某网关存在利益关联时在条目中披露。</p>
+  <p>MIT License · <a href="https://github.com/cuihuan/llm-gateway-bench">github.com/cuihuan/llm-gateway-bench</a></p>
+</div></footer>
 
 <script>
-// ===================== MOCK DATA（演示用，将由 data/results/*.json 聚合替换） =====================
+// ================= MOCK DATA（演示用，将由 data/results/*.json 聚合 + 人工标注文件替换） =================
 const MOCK = {
-  days: 30, region: '美国 (gh-us)',
+  lastProbe: '2026-06-10 07:59 UTC', days: 30, region: 'gh-us（国内/香港探针 roadmap）',
   gateways: [
-    { id:'synthorai', name:'Synthorai', tag:'多协议网关', website:'https://synthorai.io',
-      protocols:'OpenAI / Anthropic', connMs:142, uptime:99.72, ttft:480, tps:86, priceIdx:0.92, models:46,
-      pricing:'公开价格 API', errors:'429×2 · 超时×1' },
-    { id:'openrouter', name:'OpenRouter', tag:'聚合路由', website:'https://openrouter.ai',
+    { id:'synthorai', name:'Synthorai', host:'synthorai.io', website:'https://synthorai.io',
+      protocols:'OpenAI · Anthropic', connMs:327, uptime:99.72, ttft:480, tps:86, priceIdx:0.92, models:46,
+      probeModels:'deepseek-v4-flash · gemini-2.5-flash', pricing:'公开价格 API（/api/pricing）',
+      trust:{ level:'ok', levelText:'直连已验证', channel:'官方直连',
+        verify:{cls:'good', text:'对拍 12/12 通过'}, prompt:{cls:'good', text:'不留存正文'},
+        train:{cls:'good', text:'否'}, entity:'已公开', invoice:'支持', evidence:'政策原文 · 2026-06' },
+      errors:{ '429':2, '5xx':0, timeout:1 } },
+    { id:'openrouter', name:'OpenRouter', host:'openrouter.ai', website:'https://openrouter.ai',
       protocols:'OpenAI', connMs:88, uptime:99.41, ttft:620, tps:74, priceIdx:1.00, models:320,
-      pricing:'公开模型价格页', errors:'5xx×4 · 429×3' },
-    { id:'aihubmix', name:'AiHubMix', tag:'中转网关', website:'https://aihubmix.com',
+      probeModels:'openai/gpt-4o-mini · google/gemini-2.5-flash', pricing:'公开模型价格页',
+      trust:{ level:'ok', levelText:'直连已验证', channel:'官方直连（供应商公开）',
+        verify:{cls:'good', text:'对拍 11/12 通过'}, prompt:{cls:'warn', text:'默认不留存，opt-in 记录换折扣'},
+        train:{cls:'good', text:'否（默认）'}, entity:'已公开 (US)', invoice:'国际发票', evidence:'政策原文 · 2026-05' },
+      errors:{ '429':3, '5xx':4, timeout:0 } },
+    { id:'aihubmix', name:'AiHubMix', host:'aihubmix.com', website:'https://aihubmix.com',
       protocols:'OpenAI', connMs:210, uptime:98.63, ttft:710, tps:61, priceIdx:0.86, models:180,
-      pricing:'价格页（无 API）', errors:'超时×9 · 5xx×2' },
-    { id:'openai-direct', name:'OpenAI 官方', tag:'直连基线', website:'https://platform.openai.com',
+      probeModels:'gpt-4o-mini · gemini-2.5-flash', pricing:'价格页（无 API）',
+      trust:{ level:'warn', levelText:'声明未验证', channel:'自声明官转',
+        verify:{cls:'warn', text:'待对拍'}, prompt:{cls:'unk', text:'条款未明示'},
+        train:{cls:'unk', text:'未知'}, entity:'已公开 (CN)', invoice:'支持', evidence:'待补' },
+      errors:{ '429':0, '5xx':2, timeout:9 } },
+    { id:'openai-direct', name:'OpenAI 官方', host:'api.openai.com', website:'https://platform.openai.com',
       protocols:'OpenAI', connMs:65, uptime:99.93, ttft:390, tps:95, priceIdx:1.00, models:38,
-      pricing:'官方定价', errors:'—' },
+      probeModels:'gpt-4o-mini', pricing:'官方定价',
+      trust:{ level:'ok', levelText:'官方基线', channel:'官方',
+        verify:{cls:'muted', text:'基线本体'}, prompt:{cls:'good', text:'API 默认不训练'},
+        train:{cls:'good', text:'否'}, entity:'OpenAI, Inc.', invoice:'国际发票', evidence:'政策原文 · 2026-04' },
+      errors:{ '429':1, '5xx':0, timeout:0 } },
   ],
-  // 价格对比：每行一个模型，列与 gateways 对齐；null = 该网关无此模型
   priceModels: [
     { model:'claude-sonnet-4-5', official:[3.0,15.0],
       cells:{ synthorai:[2.7,13.5], openrouter:[3.0,15.0], aihubmix:[2.4,12.0], 'openai-direct':null } },
@@ -199,81 +258,125 @@ const MOCK = {
       cells:{ synthorai:[0.25,1.0], openrouter:[0.27,1.1], aihubmix:[0.22,0.9], 'openai-direct':null } },
   ],
 };
-// 生成 mock 的 30 天 uptime 条带与 TTFT 趋势（确定性伪随机，避免每次刷新跳动）
+// 确定性伪随机生成 30 天 uptime 条带与 TTFT 趋势（避免刷新跳动）
 function seeded(seed){ let s=seed; return ()=> (s = (s*9301+49297)%233280)/233280; }
 MOCK.gateways.forEach((g,gi)=>{
   const rnd = seeded(gi*7+3);
-  g.days = Array.from({length:30},()=>{ const r=rnd();
+  g.daysArr = Array.from({length:30},()=>{ const r=rnd();
     return r > (1 - (100-g.uptime)/100*6) ? (r>0.985?'b':'w') : 'g'; });
-  g.trend = Array.from({length:30},()=> g.ttft*(0.85+rnd()*0.4));
+  g.trend = Array.from({length:30},()=> Math.round(g.ttft*(0.85+rnd()*0.4)));
 });
 
-// ===================== 渲染 =====================
+// ================= 渲染 =================
+const $ = (s)=>document.querySelector(s);
 const fmt = (n,d=0)=> n==null?'—':n.toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d});
-const el = (s)=>document.querySelector(s);
+const uptimeCls = (u)=> u>=99.5?'good':u>=98.5?'warn':'bad';
+const priceCls = (p)=> p<1?'good':p>1?'bad':'muted';
 
-document.getElementById('b-days').textContent = MOCK.days+' 天';
-document.getElementById('b-gw').textContent = MOCK.gateways.length+' 个';
-document.getElementById('b-region').textContent = MOCK.region;
+$('#m-last').textContent = MOCK.lastProbe;
+$('#m-days').textContent = MOCK.days+' 天';
+$('#m-gw').textContent = MOCK.gateways.length+' 个';
+$('#m-region').textContent = MOCK.region;
 
-function strip(days){ return '<span class="uptime-strip">'+days.map(d=>`<i class="${d==='g'?'':d}"></i>`).join('')+'</span>'; }
-function spark(vals){
-  const w=120,h=26,min=Math.min(...vals),max=Math.max(...vals);
-  const pts=vals.map((v,i)=>`${(i/(vals.length-1)*w).toFixed(1)},${(h-3-(v-min)/(max-min||1)*(h-6)).toFixed(1)}`).join(' ');
+const strip = (days)=>'<span class="uptime-strip" title="近30天，每格一天">'+
+  days.map(d=>`<i class="${d==='g'?'':d}"></i>`).join('')+'</span>';
+function spark(vals,w=110,h=24){
+  const min=Math.min(...vals),max=Math.max(...vals);
+  const pts=vals.map((v,i)=>`${(i/(vals.length-1)*w).toFixed(1)},${(h-2-(v-min)/(max-min||1)*(h-4)).toFixed(1)}`).join(' ');
   return `<svg class="spark" width="${w}" height="${h}"><polyline points="${pts}"/></svg>`;
 }
-function uptimeCls(u){ return u>=99.5?'good':u>=98.5?'warn':'bad'; }
-function priceCls(p){ return p<1?'good':p>1?'bad':'muted'; }
+const bdg = (cls,text)=>`<span class="bdg ${cls}">${text}</span>`;
 
+// ---- 排行榜 ----
 let sortKey='uptime', sortAsc=false;
 function renderLB(){
-  const rows=[...MOCK.gateways].sort((a,b)=>{
-    const x=a[sortKey],y=b[sortKey];
-    return (typeof x==='string'? x.localeCompare(y): x-y) * (sortAsc?1:-1);
-  });
-  el('#lb tbody').innerHTML = rows.map(g=>`<tr>
-    <td class="gw-name"><a href="${g.website}" target="_blank" rel="noopener">${g.name}</a><span class="tag">${g.tag}</span></td>
-    <td class="num">${fmt(g.connMs)} ms</td>
-    <td><span class="num ${uptimeCls(g.uptime)}">${fmt(g.uptime,2)}%</span>&nbsp;&nbsp;${strip(g.days)}</td>
-    <td class="num">${fmt(g.ttft)} ms</td>
-    <td class="num">${fmt(g.tps)}</td>
-    <td class="num ${priceCls(g.priceIdx)}">${fmt(g.priceIdx,2)}×</td>
-    <td class="num">${fmt(g.models)}</td>
+  const rows=[...MOCK.gateways].sort((a,b)=>(a[sortKey]-b[sortKey])*(sortAsc?1:-1));
+  $('#lb tbody').innerHTML = rows.map(g=>`<tr>
+    <td><div class="gw-name"><a href="${g.website}" target="_blank" rel="noopener">${g.name}</a></div>
+        <div class="gw-sub">${g.host}</div></td>
+    <td>${bdg(g.trust.level, g.trust.levelText)}</td>
+    <td>${bdg(g.trust.prompt.cls==='good'?'ok':g.trust.prompt.cls==='warn'?'warn':'unk', g.trust.prompt.text)}</td>
+    <td class="r num ${priceCls(g.priceIdx)}">${fmt(g.priceIdx,2)}×</td>
+    <td><span class="num ${uptimeCls(g.uptime)}">${fmt(g.uptime,2)}%</span>&nbsp; ${strip(g.daysArr)}</td>
+    <td class="r num">${fmt(g.ttft)} ms</td>
+    <td class="r num">${fmt(g.tps)}</td>
+    <td class="r num">${fmt(g.models)}</td>
     <td>${spark(g.trend)}</td>
   </tr>`).join('');
 }
-document.querySelectorAll('#lb thead th[data-k]').forEach(th=>{
+document.querySelectorAll('#lb thead th.sortable').forEach(th=>{
   th.addEventListener('click',()=>{
     const k=th.dataset.k;
-    if(sortKey===k) sortAsc=!sortAsc; else { sortKey=k; sortAsc=(k==='name'); }
+    if(sortKey===k) sortAsc=!sortAsc; else { sortKey=k; sortAsc=false; }
     renderLB();
   });
 });
 renderLB();
 
-// 价格表
-el('#price thead').innerHTML = '<tr><th>模型</th><th>官方价</th>'+
-  MOCK.gateways.map(g=>`<th>${g.name}</th>`).join('')+'</tr>';
-el('#price tbody').innerHTML = MOCK.priceModels.map(m=>{
+// ---- 信任与合规 ----
+$('#trust-tbl tbody').innerHTML = MOCK.gateways.map(g=>{const t=g.trust;return `<tr>
+  <td><div class="gw-name">${g.name}</div></td>
+  <td>${t.channel}</td>
+  <td class="${t.verify.cls}">${t.verify.text}</td>
+  <td class="${t.prompt.cls}">${t.prompt.text}</td>
+  <td class="${t.train.cls}">${t.train.text}</td>
+  <td>${t.entity}</td>
+  <td>${t.invoice}</td>
+  <td class="evidence">${t.evidence==='待补'?'<span class="warn">待补</span>':`<a href="#">${t.evidence}</a>`}</td>
+</tr>`;}).join('');
+
+// ---- 价格矩阵 ----
+$('#price-tbl thead').innerHTML = '<tr><th>模型</th><th class="r">官方价</th>'+
+  MOCK.gateways.map(g=>`<th class="r">${g.name}</th>`).join('')+'</tr>';
+$('#price-tbl tbody').innerHTML = MOCK.priceModels.map(m=>{
   const cells = MOCK.gateways.map(g=>{
     const c=m.cells[g.id];
-    if(!c) return '<td class="muted">—</td>';
-    const ratio=((c[0]/m.official[0]+c[1]/m.official[1])/2);
-    return `<td class="num">$${c[0]} / $${c[1]} <span class="ratio-cell ${priceCls(ratio)}">(${ratio.toFixed(2)}×)</span></td>`;
+    if(!c) return '<td class="r muted">—</td>';
+    const ratio=(c[0]/m.official[0]+c[1]/m.official[1])/2;
+    return `<td class="r num">$${c[0]} / $${c[1]} <span class="${priceCls(ratio)}" style="font-size:11px">(${ratio.toFixed(2)}×)</span></td>`;
   }).join('');
-  return `<tr><td class="gw-name">${m.model}</td><td class="num muted">$${m.official[0]} / $${m.official[1]}</td>${cells}</tr>`;
+  return `<tr><td><code>${m.model}</code></td><td class="r num muted">$${m.official[0]} / $${m.official[1]}</td>${cells}</tr>`;
 }).join('');
 
-// 网关清单卡片
-el('#catalog').innerHTML = MOCK.gateways.map(g=>`<div class="card">
-  <h3>${g.name} <span class="tag" style="font-size:11px;color:var(--muted);border:1px solid var(--border);border-radius:99px;padding:1px 8px;">${g.tag}</span></h3>
-  <div class="meta"><a href="${g.website}" target="_blank" rel="noopener">${g.website.replace('https://','')}</a></div>
-  <div class="row"><span>协议</span><b>${g.protocols}</b></div>
-  <div class="row"><span>模型数</span><b>${g.models}</b></div>
-  <div class="row"><span>30天稳定性</span><b class="${uptimeCls(g.uptime)}">${fmt(g.uptime,2)}%</b></div>
-  <div class="row"><span>价格透明度</span><b>${g.pricing}</b></div>
-  <div class="row"><span>近期错误画像</span><b class="muted">${g.errors}</b></div>
-</div>`).join('');
+// ---- 稳定性面板 ----
+const ERR_META = { '429':{c:'var(--warn)',label:'429 限流'}, '5xx':{c:'var(--bad)',label:'5xx 故障'}, timeout:{c:'#a371f7',label:'超时'} };
+function trendChart(vals,w=460,h=64){
+  const min=Math.min(...vals),max=Math.max(...vals),pad=4;
+  const pts=vals.map((v,i)=>`${(pad+i/(vals.length-1)*(w-pad-44)).toFixed(1)},${(h-10-(v-min)/(max-min||1)*(h-20)).toFixed(1)}`).join(' ');
+  return `<svg width="${w}" height="${h}" style="max-width:100%">
+    <line class="gridline" x1="${pad}" y1="${h-10}" x2="${w-44}" y2="${h-10}"/>
+    <line class="gridline" x1="${pad}" y1="10" x2="${w-44}" y2="10"/>
+    <text class="axis" x="${w-40}" y="14">${max}ms</text>
+    <text class="axis" x="${w-40}" y="${h-7}">${min}ms</text>
+    <polyline points="${pts}" fill="none" stroke="var(--accent)" stroke-width="1.5"/></svg>`;
+}
+$('#stab-grid').innerHTML = MOCK.gateways.map(g=>{
+  const total=Object.values(g.errors).reduce((a,b)=>a+b,0)||0;
+  const segs=Object.entries(g.errors).filter(([,n])=>n>0)
+    .map(([k,n])=>`<i style="width:${n/Math.max(total,1)*100}%;background:${ERR_META[k].c}" title="${ERR_META[k].label} ×${n}"></i>`).join('');
+  const legend=Object.entries(g.errors).filter(([,n])=>n>0)
+    .map(([k,n])=>`<span style="color:${ERR_META[k].c}">■</span> ${ERR_META[k].label} ×${n}`).join(' · ')||'无失败';
+  return `<div class="stab">
+    <div class="head"><span class="gw-name">${g.name}</span>
+      <span class="pct ${uptimeCls(g.uptime)}">${fmt(g.uptime,2)}%</span>
+      <span class="muted" style="font-size:12px">30 天成功率 · 120 次拨测</span></div>
+    <div class="row"><span class="lbl">逐日状态</span>${strip(g.daysArr)}</div>
+    <div class="row"><span class="lbl">错误画像</span><span class="errbar">${segs||''}</span></div>
+    <div class="row"><span class="lbl"></span><span class="legend">${legend}</span></div>
+    <div class="row"><span class="lbl">TTFT 趋势</span>${trendChart(g.trend)}</div>
+  </div>`;
+}).join('');
+
+// ---- 网关清单 ----
+$('#cat-tbl tbody').innerHTML = MOCK.gateways.map(g=>`<tr>
+  <td><div class="gw-name"><a href="${g.website}" target="_blank" rel="noopener">${g.name}</a></div>
+      <div class="gw-sub">${g.host}</div></td>
+  <td>${g.protocols}</td>
+  <td class="r num">${fmt(g.models)}</td>
+  <td><code>${g.probeModels}</code></td>
+  <td>${g.pricing}</td>
+  <td class="r num">${fmt(g.connMs)} ms</td>
+</tr>`).join('');
 </script>
 </body>
 </html>
