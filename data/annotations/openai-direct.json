@@ -1,0 +1,10 @@
+{
+  "id": "openai-direct",
+  "annotatedAt": "2026-06-10",
+  "channel": { "claim": "官方", "verify": "baseline" },
+  "promptRetention": { "status": "good", "text": "API 数据默认不用于训练；滥用监测留存后删除", "evidence": "https://openai.com/enterprise-privacy/" },
+  "training": { "status": "good", "text": "否（默认）", "evidence": "https://openai.com/enterprise-privacy/" },
+  "entity": "OpenAI, Inc.",
+  "invoice": "国际发票",
+  "disclosure": null
+}
