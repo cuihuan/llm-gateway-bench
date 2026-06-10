@@ -7,8 +7,10 @@
 //   - synthorai:         GET https://synthorai.io/api/pricing
 //   - openrouter:        GET https://openrouter.ai/api/v1/models
 //
-// On any source failure the script logs and keeps going (cell stays null);
-// it only exits non-zero if NO source could be fetched.
+// On a source failure that source's column falls back to the previous
+// committed snapshot (a partial outage never clobbers good data); a source
+// that WAS fetched overwrites, even with null (model delisted there).
+// Exits non-zero only if NO source could be fetched.
 
 import { readFile, writeFile } from 'node:fs/promises';
 
@@ -67,6 +69,26 @@ async function tryFetch(label, fn) {
   }
 }
 
+/**
+ * Build per-model price rows. A null source (fetch failed) falls back to the
+ * previous snapshot's value for that source's column; a non-null source wins
+ * even when the model is missing from it (delisted ⇒ cell goes null).
+ */
+export function buildModels(tracked, { litellm, synthorai, openrouter }, prevModels) {
+  const prevById = new Map((prevModels ?? []).map((m) => [m.model, m]));
+  return tracked.map((t) => {
+    const prev = prevById.get(t.id);
+    return {
+      model: t.id,
+      official: litellm ? officialPrice(litellm, t.litellm) : prev?.official ?? null,
+      cells: {
+        synthorai: synthorai ? cheapestSynthorai(synthorai, t.aliases.synthorai) : prev?.cells?.synthorai ?? null,
+        openrouter: openrouter ? fromOpenRouter(openrouter, t.aliases.openrouter) : prev?.cells?.openrouter ?? null,
+      },
+    };
+  });
+}
+
 async function main() {
   const tracked = JSON.parse(await readFile(new URL('../data/tracked-models.json', import.meta.url), 'utf8'));
   const litellm = await tryFetch('litellm', () => fetchJson(LITELLM_URL));
@@ -76,14 +98,9 @@ async function main() {
     console.error('[prices] all sources failed, keeping existing snapshot');
     process.exit(1);
   }
-  const models = tracked.map((t) => ({
-    model: t.id,
-    official: officialPrice(litellm, t.litellm),
-    cells: {
-      synthorai: cheapestSynthorai(synthorai, t.aliases.synthorai),
-      openrouter: fromOpenRouter(openrouter, t.aliases.openrouter),
-    },
-  }));
+  let prev = null;
+  try { prev = JSON.parse(await readFile(new URL('../data/prices.json', import.meta.url), 'utf8')); } catch {}
+  const models = buildModels(tracked, { litellm, synthorai, openrouter }, prev?.models);
   const out = {
     fetchedAt: new Date().toISOString(),
     unit: 'USD per 1M tokens [input, output]',
