@@ -130,7 +130,7 @@
   <a class="lnk" href="#stability">稳定性</a>
   <a class="lnk" href="#catalog">网关清单</a>
   <div class="right">
-    <a class="lnk" href="../docs/methodology.md">方法论</a>
+    <a class="lnk" href="https://github.com/cuihuan/llm-gateway-bench/blob/main/docs/methodology.md">方法论</a>
     <a class="lnk" href="https://github.com/cuihuan/llm-gateway-bench">GitHub</a>
   </div>
 </div></nav>
@@ -258,7 +258,7 @@ function adapt(raw){
   const gateways = (raw.gateways ?? []).map(g=>({
     id:g.id, name:g.name, host:g.host, website:g.website, protocols:g.protocols,
     pricing:g.pricing, probeModels:g.probeModels ?? [],
-    priceIdx:g.priceIdx, uptime:g.uptimePct, probes:g.probes ?? 0,
+    priceIdx:g.priceIdx, uptime:g.uptimePct, uptime7:g.uptime7dPct ?? null, probes:g.probes ?? 0,
     ttft:g.speed?.ttftP50 ?? null, tps:g.speed?.tps ?? null,
     models:g.modelCount, connMs:g.connMs,
     daysArr:(g.daysArr ?? []).map(d=>({ s:d.status, d:d.date })),
@@ -325,6 +325,7 @@ const DEMO = {
   ],
 };
 DEMO.gateways.forEach((g,gi)=>{
+  g.uptime7 = g.uptime;
   const rnd = seeded(gi*7+3);
   g.daysArr = Array.from({length:30},()=>{ const r=rnd();
     return { s: r > (1 - (100-g.uptime)/100*6) ? (r>0.985?'b':'w') : 'g', d:null }; });
@@ -337,6 +338,9 @@ const fmt = (n,d=0)=> n==null?'—':n.toLocaleString('en-US',{minimumFractionDig
 const uptimeCls = (u)=> u==null?'muted':u>=99.5?'good':u>=98.5?'warn':'bad';
 const priceCls = (p)=> p==null?'muted':p<1?'good':p>1?'bad':'muted';
 const bdg = (cls,text)=>`<span class="bdg ${cls}">${text}</span>`;
+// 标注/网关清单文件是 PR 贡献的，所有进 innerHTML 的字符串一律转义，链接只放行 http(s)
+const esc = (s)=> String(s??'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const safeUrl = (u)=> /^https?:\/\//.test(u??'') ? esc(u) : null;
 const DAY_LABEL = { g:'正常', w:'降级', b:'故障', n:'无数据' };
 
 const strip = (days)=>'<span class="uptime-strip">'+
@@ -390,10 +394,10 @@ function render(site, isDemo){
       return (av-bv)*(sortAsc?1:-1);
     });
     $('#lb tbody').innerHTML = rows.map(g=>`<tr>
-      <td><div class="gw-name"><a href="${g.website}" target="_blank" rel="noopener">${g.name}</a></div>
-          <div class="gw-sub">${g.host}</div></td>
-      <td>${bdg(g.trust.level, g.trust.levelText)}</td>
-      <td>${bdg(g.trust.prompt.bdg??'unk', g.trust.prompt.text)}</td>
+      <td><div class="gw-name"><a href="${safeUrl(g.website)??'#'}" target="_blank" rel="noopener">${esc(g.name)}</a></div>
+          <div class="gw-sub">${esc(g.host)}</div></td>
+      <td>${bdg(g.trust.level, esc(g.trust.levelText))}</td>
+      <td>${bdg(g.trust.prompt.bdg??'unk', esc(g.trust.prompt.text))}</td>
       <td class="r num ${priceCls(g.priceIdx)}">${g.priceIdx==null?'—':fmt(g.priceIdx,2)+'×'}</td>
       <td><span class="num ${uptimeCls(g.uptime)}">${g.uptime==null?'—':fmt(g.uptime,2)+'%'}</span>&nbsp; ${strip(g.daysArr)}</td>
       <td class="r num">${g.ttft==null?'—':fmt(g.ttft)+' ms'}</td>
@@ -413,20 +417,20 @@ function render(site, isDemo){
 
   // ---- 信任与合规 ----
   $('#trust-tbl tbody').innerHTML = site.gateways.map(g=>{const t=g.trust;return `<tr>
-    <td><div class="gw-name">${g.name}</div></td>
-    <td>${t.channel}</td>
-    <td class="${t.verify.cls}">${t.verify.text}</td>
-    <td class="${t.prompt.cls}">${t.prompt.text}</td>
-    <td class="${t.train.cls}">${t.train.text}</td>
-    <td>${t.entity}</td>
-    <td>${t.invoice}</td>
-    <td class="evidence">${t.evidence?`<a href="${t.evidence.url}" target="_blank" rel="noopener">${t.evidence.text}</a>`:'<span class="warn">待补</span>'}</td>
+    <td><div class="gw-name">${esc(g.name)}</div></td>
+    <td>${esc(t.channel)}</td>
+    <td class="${t.verify.cls}">${esc(t.verify.text)}</td>
+    <td class="${t.prompt.cls}">${esc(t.prompt.text)}</td>
+    <td class="${t.train.cls}">${esc(t.train.text)}</td>
+    <td>${esc(t.entity)}</td>
+    <td>${esc(t.invoice)}</td>
+    <td class="evidence">${t.evidence&&safeUrl(t.evidence.url)?`<a href="${safeUrl(t.evidence.url)}" target="_blank" rel="noopener">${esc(t.evidence.text)}</a>`:'<span class="warn">待补</span>'}</td>
   </tr>`;}).join('');
   const disclosures = site.gateways.filter(g=>g.trust.disclosure);
   if(disclosures.length){
     const el = document.createElement('p');
     el.className='fn';
-    el.innerHTML = disclosures.map(g=>`<b>利益披露</b> — ${g.name}: ${g.trust.disclosure}`).join('<br>');
+    el.innerHTML = disclosures.map(g=>`<b>利益披露</b> — ${esc(g.name)}: ${esc(g.trust.disclosure)}`).join('<br>');
     $('#trust .tablebox').after(el);
   }
 
@@ -437,7 +441,7 @@ function render(site, isDemo){
     $('#price-tbl tbody').innerHTML = '<tr><td class="muted" style="padding:18px">暂无价格快照（node probe/prices.mjs 生成 data/prices.json）</td></tr>';
   } else {
     $('#price-tbl thead').innerHTML = '<tr><th>模型</th><th class="r">官方价</th>'+
-      priceGws.map(g=>`<th class="r">${g.name}</th>`).join('')+'</tr>';
+      priceGws.map(g=>`<th class="r">${esc(g.name)}</th>`).join('')+'</tr>';
     $('#price-tbl tbody').innerHTML = site.priceModels.map(m=>{
       const cells = priceGws.map(g=>{
         const c=m.cells?.[g.id];
@@ -447,7 +451,7 @@ function render(site, isDemo){
         return `<td class="r num">$${c[0]} / $${c[1]}${ratioHtml}</td>`;
       }).join('');
       const off = m.official ? `$${m.official[0]} / $${m.official[1]}` : '—';
-      return `<tr><td><code>${m.model}</code></td><td class="r num muted">${off}</td>${cells}</tr>`;
+      return `<tr><td><code>${esc(m.model)}</code></td><td class="r num muted">${off}</td>${cells}</tr>`;
     }).join('');
   }
 
@@ -455,7 +459,7 @@ function render(site, isDemo){
   $('#stab-grid').innerHTML = site.gateways.map(g=>{
     if(!g.probes && !g.authExcluded){
       return `<div class="stab">
-        <div class="head"><span class="gw-name">${g.name}</span>
+        <div class="head"><span class="gw-name">${esc(g.name)}</span>
           <span class="pct muted">—</span>
           <span class="muted" style="font-size:12px">尚无拨测数据（CI 未配 key 或暂未运行）</span></div>
         <div class="row"><span class="lbl">逐日状态</span>${strip(g.daysArr)}</div>
@@ -467,9 +471,9 @@ function render(site, isDemo){
     const legend = errEntries.map(([k,n])=>`<span style="color:${ERR_META[k].c}">■</span> ${ERR_META[k].label} ×${n}`).join(' · ')||'无失败';
     const authNote = g.authExcluded?`<div class="row"><span class="lbl"></span><span class="legend muted">鉴权排除 ×${g.authExcluded}（探针 key 无该模型权限，按方法论不计入失败）</span></div>`:'';
     return `<div class="stab">
-      <div class="head"><span class="gw-name">${g.name}</span>
+      <div class="head"><span class="gw-name">${esc(g.name)}</span>
         <span class="pct ${uptimeCls(g.uptime)}">${g.uptime==null?'—':fmt(g.uptime,2)+'%'}</span>
-        <span class="muted" style="font-size:12px">${site.windowDays} 天成功率 · ${g.probes} 次采样</span></div>
+        <span class="muted" style="font-size:12px">${site.windowDays} 天成功率${g.uptime7!=null?` · 近 7 天 ${fmt(g.uptime7,2)}%`:''} · ${g.probes} 次采样</span></div>
       <div class="row"><span class="lbl">逐日状态</span>${strip(g.daysArr)}</div>
       <div class="row"><span class="lbl">错误画像</span><span class="errbar">${segs||''}</span></div>
       <div class="row"><span class="lbl"></span><span class="legend">${legend}</span></div>
@@ -480,12 +484,12 @@ function render(site, isDemo){
 
   // ---- 网关清单 ----
   $('#cat-tbl tbody').innerHTML = site.gateways.map(g=>`<tr>
-    <td><div class="gw-name"><a href="${g.website}" target="_blank" rel="noopener">${g.name}</a></div>
-        <div class="gw-sub">${g.host}</div></td>
-    <td>${g.protocols}</td>
+    <td><div class="gw-name"><a href="${safeUrl(g.website)??'#'}" target="_blank" rel="noopener">${esc(g.name)}</a></div>
+        <div class="gw-sub">${esc(g.host)}</div></td>
+    <td>${esc(g.protocols)}</td>
     <td class="r num">${fmt(g.models)}</td>
-    <td><code>${(g.probeModels??[]).join(' · ')||'—'}</code></td>
-    <td>${/^https?:/.test(g.pricing??'')?`<a href="${g.pricing}" target="_blank" rel="noopener">价格页</a>`:(g.pricing??'—')}</td>
+    <td><code>${esc((g.probeModels??[]).join(' · '))||'—'}</code></td>
+    <td>${safeUrl(g.pricing)?`<a href="${safeUrl(g.pricing)}" target="_blank" rel="noopener">价格页</a>`:esc(g.pricing??'—')}</td>
     <td class="r num">${g.connMs==null?'—':fmt(g.connMs)+' ms'}</td>
   </tr>`).join('');
 }

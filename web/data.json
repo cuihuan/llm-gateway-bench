@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-10T08:35:58.283Z",
+  "generatedAt": "2026-06-10T13:21:29.340Z",
   "demo": false,
   "windowDays": 30,
   "regions": [
@@ -44,6 +44,7 @@
       },
       "probes": 3,
       "uptimePct": 100,
+      "uptime7dPct": 100,
       "daysArr": [
         {
           "date": "2026-05-12",
@@ -224,6 +225,7 @@
       },
       "probes": 0,
       "uptimePct": null,
+      "uptime7dPct": null,
       "daysArr": [
         {
           "date": "2026-05-12",
@@ -399,6 +401,7 @@
       },
       "probes": 0,
       "uptimePct": null,
+      "uptime7dPct": null,
       "daysArr": [
         {
           "date": "2026-05-12",
@@ -573,6 +576,7 @@
       },
       "probes": 0,
       "uptimePct": null,
+      "uptime7dPct": null,
       "daysArr": [
         {
           "date": "2026-05-12",
