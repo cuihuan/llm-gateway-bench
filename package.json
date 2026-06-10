@@ -1,0 +1,12 @@
+{
+  "name": "llm-gateway-bench",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Open, user-perspective benchmark for LLM API gateways: connectivity, latency, stability, price.",
+  "type": "module",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "test": "node --test probe/metrics.test.mjs",
+    "probe": "node probe/probe.mjs"
+  }
+}
