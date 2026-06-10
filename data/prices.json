@@ -1,0 +1,76 @@
+{
+  "fetchedAt": "2026-06-10T08:35:58.211Z",
+  "unit": "USD per 1M tokens [input, output]",
+  "sources": {
+    "official": "litellm",
+    "synthorai": "https://synthorai.io/api/pricing",
+    "openrouter": "https://openrouter.ai/api/v1/models"
+  },
+  "models": [
+    {
+      "model": "claude-sonnet-4-5",
+      "official": [
+        3,
+        15
+      ],
+      "cells": {
+        "synthorai": [
+          3,
+          15
+        ],
+        "openrouter": [
+          3,
+          15
+        ]
+      }
+    },
+    {
+      "model": "claude-haiku-4-5",
+      "official": [
+        1,
+        5
+      ],
+      "cells": {
+        "synthorai": [
+          1,
+          5
+        ],
+        "openrouter": [
+          1,
+          5
+        ]
+      }
+    },
+    {
+      "model": "gemini-2.5-flash",
+      "official": [
+        0.3,
+        2.5
+      ],
+      "cells": {
+        "synthorai": [
+          0.3,
+          2.5
+        ],
+        "openrouter": [
+          0.3,
+          2.5
+        ]
+      }
+    },
+    {
+      "model": "deepseek-v4-flash",
+      "official": null,
+      "cells": {
+        "synthorai": [
+          0.138,
+          0.275
+        ],
+        "openrouter": [
+          0.098,
+          0.197
+        ]
+      }
+    }
+  ]
+}

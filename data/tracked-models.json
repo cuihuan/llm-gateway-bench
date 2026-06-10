@@ -1,0 +1,22 @@
+[
+  {
+    "id": "claude-sonnet-4-5",
+    "litellm": ["claude-sonnet-4-5"],
+    "aliases": { "synthorai": "claude-sonnet-4-5", "openrouter": "anthropic/claude-sonnet-4.5" }
+  },
+  {
+    "id": "claude-haiku-4-5",
+    "litellm": ["claude-haiku-4-5"],
+    "aliases": { "synthorai": "claude-haiku-4-5", "openrouter": "anthropic/claude-haiku-4.5" }
+  },
+  {
+    "id": "gemini-2.5-flash",
+    "litellm": ["gemini-2.5-flash", "gemini/gemini-2.5-flash"],
+    "aliases": { "synthorai": "gemini-2.5-flash", "openrouter": "google/gemini-2.5-flash" }
+  },
+  {
+    "id": "deepseek-v4-flash",
+    "litellm": ["deepseek-v4-flash", "deepseek/deepseek-v4-flash"],
+    "aliases": { "synthorai": "deepseek-v4-flash", "openrouter": "deepseek/deepseek-v4-flash" }
+  }
+]
