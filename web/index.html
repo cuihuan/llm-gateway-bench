@@ -81,6 +81,7 @@
   .uptime-strip { display: inline-flex; gap: 2px; vertical-align: middle; }
   .uptime-strip i { width: 4px; height: 15px; border-radius: 1px; background: var(--good); }
   .uptime-strip i.w { background: var(--warn); } .uptime-strip i.b { background: var(--bad); }
+  .uptime-strip i.n { background: var(--unk-bg); }
   .uptime-strip i:hover { outline: 1px solid var(--text); }
 
   .spark { vertical-align: middle; }
@@ -152,7 +153,7 @@
     <div class="pain"><div class="no">PAIN #3</div><h3>稳不稳？</h3>
       <p>最近 30 天成功率、错误是限流还是故障、高峰期会不会变慢。<a href="#stability">拨测时序 ↓</a></p></div>
   </div>
-  <div class="mock-banner">⚠ 当前页面为演示数据（UI 框架评审用）。上线后由 data/results/ 拨测结果与带证据链接的人工标注驱动。</div>
+  <div class="mock-banner" id="banner" hidden></div>
 </div></header>
 
 <section id="leaderboard"><div class="wrap">
@@ -214,38 +215,103 @@
 </div></footer>
 
 <script>
-// ================= MOCK DATA（演示用，将由 data/results/*.json 聚合 + 人工标注文件替换） =================
-const MOCK = {
-  lastProbe: '2026-06-10 07:59 UTC', days: 30, region: 'gh-us（国内/香港探针 roadmap）',
+// ============ 数据来源 ============
+// 正式数据：web/data.json（probe/aggregate.mjs 聚合 data/results + annotations + prices 产出）。
+// fetch 失败（如 file:// 直接打开）时回退到内置 DEMO 数据并显示横幅。
+
+// ---- 真实 schema → 视图模型适配 ----
+const VERIFY_MAP = {
+  baseline: { level:'ok',   levelText:'官方基线',   cls:'muted', text:'基线本体' },
+  pass:     { level:'ok',   levelText:'直连已验证', cls:'good',  text:'对拍通过' },
+  fail:     { level:'bad',  levelText:'对拍未通过', cls:'bad',   text:'对拍未通过' },
+  pending:  { level:'warn', levelText:'声明未验证', cls:'warn',  text:'待对拍' },
+  none:     { level:'unk',  levelText:'未验证',     cls:'muted', text:'无标注' },
+};
+const STATUS_TONE = {
+  good:    { cls:'good',  bdg:'ok' },
+  warn:    { cls:'warn',  bdg:'warn' },
+  bad:     { cls:'bad',   bdg:'bad' },
+  unknown: { cls:'muted', bdg:'unk' },
+};
+const tone = (s)=> STATUS_TONE[s?.status] ?? STATUS_TONE.unknown;
+
+function adaptTrust(a){
+  if(!a) return { level:'unk', levelText:'未验证', channel:'—',
+    verify:{cls:'muted',text:'无标注'},
+    prompt:{cls:'muted',bdg:'unk',text:'未标注'}, train:{cls:'muted',bdg:'unk',text:'未标注'},
+    entity:'—', invoice:'—', evidence:null, disclosure:null };
+  const v = VERIFY_MAP[a.channel?.verify] ?? VERIFY_MAP.none;
+  const evUrl = a.promptRetention?.evidence || a.training?.evidence || null;
+  return {
+    level: v.level, levelText: v.levelText,
+    channel: a.channel?.claim ?? '—',
+    verify: { cls: v.cls, text: v.text },
+    prompt: { ...tone(a.promptRetention), text: a.promptRetention?.text ?? '未标注' },
+    train:  { ...tone(a.training),        text: a.training?.text ?? '未标注' },
+    entity: a.entity ?? '—', invoice: a.invoice ?? '—',
+    evidence: evUrl ? { url: evUrl, text: `政策原文 · ${a.annotatedAt ?? ''}` } : null,
+    disclosure: a.disclosure ?? null,
+  };
+}
+
+function adapt(raw){
+  const gateways = (raw.gateways ?? []).map(g=>({
+    id:g.id, name:g.name, host:g.host, website:g.website, protocols:g.protocols,
+    pricing:g.pricing, probeModels:g.probeModels ?? [],
+    priceIdx:g.priceIdx, uptime:g.uptimePct, probes:g.probes ?? 0,
+    ttft:g.speed?.ttftP50 ?? null, tps:g.speed?.tps ?? null,
+    models:g.modelCount, connMs:g.connMs,
+    daysArr:(g.daysArr ?? []).map(d=>({ s:d.status, d:d.date })),
+    trend:(g.speed?.trend ?? []).map(t=>t.ttftP50).filter(v=>v!=null),
+    errors:g.errors ?? {}, authExcluded:g.authExcluded ?? 0,
+    trust: adaptTrust(g.trust),
+  }));
+  const lastRuns = gateways.map(g=>raw.gateways.find(x=>x.id===g.id)?.lastRun).filter(Boolean).sort();
+  return {
+    lastProbe: lastRuns.length ? lastRuns[lastRuns.length-1].replace('T',' ').slice(0,16)+' UTC' : '—',
+    windowDays: raw.windowDays ?? 30, runCount: raw.runCount ?? 0,
+    region: (raw.regions?.length ? raw.regions.join(' · ') : '—') + '（国内/香港探针 roadmap）',
+    gateways, priceModels: raw.prices?.models ?? [],
+  };
+}
+
+// ---- DEMO 回退（fetch 不可用时；形态与视图模型一致） ----
+function seeded(seed){ let s=seed; return ()=> (s = (s*9301+49297)%233280)/233280; }
+const DEMO = {
+  lastProbe:'2026-06-10 07:59 UTC', windowDays:30, runCount:120, region:'gh-us（演示）',
   gateways: [
     { id:'synthorai', name:'Synthorai', host:'synthorai.io', website:'https://synthorai.io',
       protocols:'OpenAI · Anthropic', connMs:327, uptime:99.72, ttft:480, tps:86, priceIdx:0.92, models:46,
-      probeModels:'deepseek-v4-flash · gemini-2.5-flash', pricing:'公开价格 API（/api/pricing）',
+      probeModels:['deepseek-v4-flash','gemini-2.5-flash'], pricing:'https://synthorai.io/api/pricing',
+      probes:120, authExcluded:0, errors:{ '429':2, '5xx':0, timeout:1, other:0 },
       trust:{ level:'ok', levelText:'直连已验证', channel:'官方直连',
-        verify:{cls:'good', text:'对拍 12/12 通过'}, prompt:{cls:'good', text:'不留存正文'},
-        train:{cls:'good', text:'否'}, entity:'已公开', invoice:'支持', evidence:'政策原文 · 2026-06' },
-      errors:{ '429':2, '5xx':0, timeout:1 } },
+        verify:{cls:'good', text:'对拍 12/12 通过'}, prompt:{cls:'good', bdg:'ok', text:'不留存正文'},
+        train:{cls:'good', text:'否'}, entity:'已公开', invoice:'支持',
+        evidence:{url:'#', text:'政策原文 · 2026-06'}, disclosure:null } },
     { id:'openrouter', name:'OpenRouter', host:'openrouter.ai', website:'https://openrouter.ai',
       protocols:'OpenAI', connMs:88, uptime:99.41, ttft:620, tps:74, priceIdx:1.00, models:320,
-      probeModels:'openai/gpt-4o-mini · google/gemini-2.5-flash', pricing:'公开模型价格页',
+      probeModels:['openai/gpt-4o-mini','google/gemini-2.5-flash'], pricing:'https://openrouter.ai/models',
+      probes:120, authExcluded:0, errors:{ '429':3, '5xx':4, timeout:0, other:0 },
       trust:{ level:'ok', levelText:'直连已验证', channel:'官方直连（供应商公开）',
-        verify:{cls:'good', text:'对拍 11/12 通过'}, prompt:{cls:'warn', text:'默认不留存，opt-in 记录换折扣'},
-        train:{cls:'good', text:'否（默认）'}, entity:'已公开 (US)', invoice:'国际发票', evidence:'政策原文 · 2026-05' },
-      errors:{ '429':3, '5xx':4, timeout:0 } },
+        verify:{cls:'good', text:'对拍 11/12 通过'}, prompt:{cls:'warn', bdg:'warn', text:'默认不留存，opt-in 记录换折扣'},
+        train:{cls:'good', text:'否（默认）'}, entity:'已公开 (US)', invoice:'国际发票',
+        evidence:{url:'#', text:'政策原文 · 2026-05'}, disclosure:null } },
     { id:'aihubmix', name:'AiHubMix', host:'aihubmix.com', website:'https://aihubmix.com',
       protocols:'OpenAI', connMs:210, uptime:98.63, ttft:710, tps:61, priceIdx:0.86, models:180,
-      probeModels:'gpt-4o-mini · gemini-2.5-flash', pricing:'价格页（无 API）',
+      probeModels:['gpt-4o-mini','gemini-2.5-flash'], pricing:'https://aihubmix.com/models',
+      probes:120, authExcluded:0, errors:{ '429':0, '5xx':2, timeout:9, other:0 },
       trust:{ level:'warn', levelText:'声明未验证', channel:'自声明官转',
-        verify:{cls:'warn', text:'待对拍'}, prompt:{cls:'unk', text:'条款未明示'},
-        train:{cls:'unk', text:'未知'}, entity:'已公开 (CN)', invoice:'支持', evidence:'待补' },
-      errors:{ '429':0, '5xx':2, timeout:9 } },
+        verify:{cls:'warn', text:'待对拍'}, prompt:{cls:'muted', bdg:'unk', text:'条款未明示'},
+        train:{cls:'muted', text:'未知'}, entity:'已公开 (CN)', invoice:'支持',
+        evidence:null, disclosure:null } },
     { id:'openai-direct', name:'OpenAI 官方', host:'api.openai.com', website:'https://platform.openai.com',
       protocols:'OpenAI', connMs:65, uptime:99.93, ttft:390, tps:95, priceIdx:1.00, models:38,
-      probeModels:'gpt-4o-mini', pricing:'官方定价',
+      probeModels:['gpt-4o-mini'], pricing:'https://platform.openai.com/docs/pricing',
+      probes:120, authExcluded:0, errors:{ '429':1, '5xx':0, timeout:0, other:0 },
       trust:{ level:'ok', levelText:'官方基线', channel:'官方',
-        verify:{cls:'muted', text:'基线本体'}, prompt:{cls:'good', text:'API 默认不训练'},
-        train:{cls:'good', text:'否'}, entity:'OpenAI, Inc.', invoice:'国际发票', evidence:'政策原文 · 2026-04' },
-      errors:{ '429':1, '5xx':0, timeout:0 } },
+        verify:{cls:'muted', text:'基线本体'}, prompt:{cls:'good', bdg:'ok', text:'API 默认不训练'},
+        train:{cls:'good', text:'否'}, entity:'OpenAI, Inc.', invoice:'国际发票',
+        evidence:{url:'#', text:'政策原文 · 2026-04'}, disclosure:null } },
   ],
   priceModels: [
     { model:'claude-sonnet-4-5', official:[3.0,15.0],
@@ -258,89 +324,34 @@ const MOCK = {
       cells:{ synthorai:[0.25,1.0], openrouter:[0.27,1.1], aihubmix:[0.22,0.9], 'openai-direct':null } },
   ],
 };
-// 确定性伪随机生成 30 天 uptime 条带与 TTFT 趋势（避免刷新跳动）
-function seeded(seed){ let s=seed; return ()=> (s = (s*9301+49297)%233280)/233280; }
-MOCK.gateways.forEach((g,gi)=>{
+DEMO.gateways.forEach((g,gi)=>{
   const rnd = seeded(gi*7+3);
   g.daysArr = Array.from({length:30},()=>{ const r=rnd();
-    return r > (1 - (100-g.uptime)/100*6) ? (r>0.985?'b':'w') : 'g'; });
+    return { s: r > (1 - (100-g.uptime)/100*6) ? (r>0.985?'b':'w') : 'g', d:null }; });
   g.trend = Array.from({length:30},()=> Math.round(g.ttft*(0.85+rnd()*0.4)));
 });
 
-// ================= 渲染 =================
+// ============ 渲染 ============
 const $ = (s)=>document.querySelector(s);
 const fmt = (n,d=0)=> n==null?'—':n.toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d});
-const uptimeCls = (u)=> u>=99.5?'good':u>=98.5?'warn':'bad';
-const priceCls = (p)=> p<1?'good':p>1?'bad':'muted';
+const uptimeCls = (u)=> u==null?'muted':u>=99.5?'good':u>=98.5?'warn':'bad';
+const priceCls = (p)=> p==null?'muted':p<1?'good':p>1?'bad':'muted';
+const bdg = (cls,text)=>`<span class="bdg ${cls}">${text}</span>`;
+const DAY_LABEL = { g:'正常', w:'降级', b:'故障', n:'无数据' };
 
-$('#m-last').textContent = MOCK.lastProbe;
-$('#m-days').textContent = MOCK.days+' 天';
-$('#m-gw').textContent = MOCK.gateways.length+' 个';
-$('#m-region').textContent = MOCK.region;
+const strip = (days)=>'<span class="uptime-strip">'+
+  days.map(x=>`<i class="${x.s==='g'?'':x.s}" title="${x.d?x.d+' · ':''}${DAY_LABEL[x.s]??''}"></i>`).join('')+'</span>';
 
-const strip = (days)=>'<span class="uptime-strip" title="近30天，每格一天">'+
-  days.map(d=>`<i class="${d==='g'?'':d}"></i>`).join('')+'</span>';
 function spark(vals,w=110,h=24){
+  if(!vals || vals.length<2) return '<span class="muted" style="font-size:11px">积累中</span>';
   const min=Math.min(...vals),max=Math.max(...vals);
   const pts=vals.map((v,i)=>`${(i/(vals.length-1)*w).toFixed(1)},${(h-2-(v-min)/(max-min||1)*(h-4)).toFixed(1)}`).join(' ');
   return `<svg class="spark" width="${w}" height="${h}"><polyline points="${pts}"/></svg>`;
 }
-const bdg = (cls,text)=>`<span class="bdg ${cls}">${text}</span>`;
 
-// ---- 排行榜 ----
-let sortKey='uptime', sortAsc=false;
-function renderLB(){
-  const rows=[...MOCK.gateways].sort((a,b)=>(a[sortKey]-b[sortKey])*(sortAsc?1:-1));
-  $('#lb tbody').innerHTML = rows.map(g=>`<tr>
-    <td><div class="gw-name"><a href="${g.website}" target="_blank" rel="noopener">${g.name}</a></div>
-        <div class="gw-sub">${g.host}</div></td>
-    <td>${bdg(g.trust.level, g.trust.levelText)}</td>
-    <td>${bdg(g.trust.prompt.cls==='good'?'ok':g.trust.prompt.cls==='warn'?'warn':'unk', g.trust.prompt.text)}</td>
-    <td class="r num ${priceCls(g.priceIdx)}">${fmt(g.priceIdx,2)}×</td>
-    <td><span class="num ${uptimeCls(g.uptime)}">${fmt(g.uptime,2)}%</span>&nbsp; ${strip(g.daysArr)}</td>
-    <td class="r num">${fmt(g.ttft)} ms</td>
-    <td class="r num">${fmt(g.tps)}</td>
-    <td class="r num">${fmt(g.models)}</td>
-    <td>${spark(g.trend)}</td>
-  </tr>`).join('');
-}
-document.querySelectorAll('#lb thead th.sortable').forEach(th=>{
-  th.addEventListener('click',()=>{
-    const k=th.dataset.k;
-    if(sortKey===k) sortAsc=!sortAsc; else { sortKey=k; sortAsc=false; }
-    renderLB();
-  });
-});
-renderLB();
-
-// ---- 信任与合规 ----
-$('#trust-tbl tbody').innerHTML = MOCK.gateways.map(g=>{const t=g.trust;return `<tr>
-  <td><div class="gw-name">${g.name}</div></td>
-  <td>${t.channel}</td>
-  <td class="${t.verify.cls}">${t.verify.text}</td>
-  <td class="${t.prompt.cls}">${t.prompt.text}</td>
-  <td class="${t.train.cls}">${t.train.text}</td>
-  <td>${t.entity}</td>
-  <td>${t.invoice}</td>
-  <td class="evidence">${t.evidence==='待补'?'<span class="warn">待补</span>':`<a href="#">${t.evidence}</a>`}</td>
-</tr>`;}).join('');
-
-// ---- 价格矩阵 ----
-$('#price-tbl thead').innerHTML = '<tr><th>模型</th><th class="r">官方价</th>'+
-  MOCK.gateways.map(g=>`<th class="r">${g.name}</th>`).join('')+'</tr>';
-$('#price-tbl tbody').innerHTML = MOCK.priceModels.map(m=>{
-  const cells = MOCK.gateways.map(g=>{
-    const c=m.cells[g.id];
-    if(!c) return '<td class="r muted">—</td>';
-    const ratio=(c[0]/m.official[0]+c[1]/m.official[1])/2;
-    return `<td class="r num">$${c[0]} / $${c[1]} <span class="${priceCls(ratio)}" style="font-size:11px">(${ratio.toFixed(2)}×)</span></td>`;
-  }).join('');
-  return `<tr><td><code>${m.model}</code></td><td class="r num muted">$${m.official[0]} / $${m.official[1]}</td>${cells}</tr>`;
-}).join('');
-
-// ---- 稳定性面板 ----
-const ERR_META = { '429':{c:'var(--warn)',label:'429 限流'}, '5xx':{c:'var(--bad)',label:'5xx 故障'}, timeout:{c:'#a371f7',label:'超时'} };
 function trendChart(vals,w=460,h=64){
+  if(!vals || vals.length<2)
+    return `<span class="muted" style="font-size:12px">数据积累中（${vals?.length??0} 个采样日，需 ≥2 天出趋势）</span>`;
   const min=Math.min(...vals),max=Math.max(...vals),pad=4;
   const pts=vals.map((v,i)=>`${(pad+i/(vals.length-1)*(w-pad-44)).toFixed(1)},${(h-10-(v-min)/(max-min||1)*(h-20)).toFixed(1)}`).join(' ');
   return `<svg width="${w}" height="${h}" style="max-width:100%">
@@ -350,33 +361,144 @@ function trendChart(vals,w=460,h=64){
     <text class="axis" x="${w-40}" y="${h-7}">${min}ms</text>
     <polyline points="${pts}" fill="none" stroke="var(--accent)" stroke-width="1.5"/></svg>`;
 }
-$('#stab-grid').innerHTML = MOCK.gateways.map(g=>{
-  const total=Object.values(g.errors).reduce((a,b)=>a+b,0)||0;
-  const segs=Object.entries(g.errors).filter(([,n])=>n>0)
-    .map(([k,n])=>`<i style="width:${n/Math.max(total,1)*100}%;background:${ERR_META[k].c}" title="${ERR_META[k].label} ×${n}"></i>`).join('');
-  const legend=Object.entries(g.errors).filter(([,n])=>n>0)
-    .map(([k,n])=>`<span style="color:${ERR_META[k].c}">■</span> ${ERR_META[k].label} ×${n}`).join(' · ')||'无失败';
-  return `<div class="stab">
-    <div class="head"><span class="gw-name">${g.name}</span>
-      <span class="pct ${uptimeCls(g.uptime)}">${fmt(g.uptime,2)}%</span>
-      <span class="muted" style="font-size:12px">30 天成功率 · 120 次拨测</span></div>
-    <div class="row"><span class="lbl">逐日状态</span>${strip(g.daysArr)}</div>
-    <div class="row"><span class="lbl">错误画像</span><span class="errbar">${segs||''}</span></div>
-    <div class="row"><span class="lbl"></span><span class="legend">${legend}</span></div>
-    <div class="row"><span class="lbl">TTFT 趋势</span>${trendChart(g.trend)}</div>
-  </div>`;
-}).join('');
 
-// ---- 网关清单 ----
-$('#cat-tbl tbody').innerHTML = MOCK.gateways.map(g=>`<tr>
-  <td><div class="gw-name"><a href="${g.website}" target="_blank" rel="noopener">${g.name}</a></div>
-      <div class="gw-sub">${g.host}</div></td>
-  <td>${g.protocols}</td>
-  <td class="r num">${fmt(g.models)}</td>
-  <td><code>${g.probeModels}</code></td>
-  <td>${g.pricing}</td>
-  <td class="r num">${fmt(g.connMs)} ms</td>
-</tr>`).join('');
+const ERR_META = { '429':{c:'var(--warn)',label:'429 限流'}, '5xx':{c:'var(--bad)',label:'5xx 故障'},
+  timeout:{c:'#a371f7',label:'超时'}, other:{c:'var(--faint)',label:'其他'} };
+
+function render(site, isDemo){
+  const banner = $('#banner');
+  if(isDemo){
+    banner.hidden = false;
+    banner.textContent = '⚠ 演示数据：未能加载 web/data.json（file:// 直接打开时浏览器禁止 fetch，请用 python3 -m http.server 起服务后访问）。';
+  } else if(site.runCount < 28){
+    banner.hidden = false;
+    banner.textContent = `ℹ 数据积累早期：当前共 ${site.runCount} 次拨测。CI 每 6 小时拨测一次，30 天窗口将逐步填满；缺 key 的网关显示为无数据。`;
+  }
+
+  $('#m-last').textContent = site.lastProbe;
+  $('#m-days').textContent = `${site.runCount} 次 / ${site.windowDays} 天窗口`;
+  $('#m-gw').textContent = site.gateways.length+' 个';
+  $('#m-region').textContent = site.region;
+
+  // ---- 排行榜（null 永远排末尾） ----
+  let sortKey='uptime', sortAsc=false;
+  const renderLB = ()=>{
+    const rows=[...site.gateways].sort((a,b)=>{
+      const av=a[sortKey], bv=b[sortKey];
+      if(av==null&&bv==null) return 0;
+      if(av==null) return 1; if(bv==null) return -1;
+      return (av-bv)*(sortAsc?1:-1);
+    });
+    $('#lb tbody').innerHTML = rows.map(g=>`<tr>
+      <td><div class="gw-name"><a href="${g.website}" target="_blank" rel="noopener">${g.name}</a></div>
+          <div class="gw-sub">${g.host}</div></td>
+      <td>${bdg(g.trust.level, g.trust.levelText)}</td>
+      <td>${bdg(g.trust.prompt.bdg??'unk', g.trust.prompt.text)}</td>
+      <td class="r num ${priceCls(g.priceIdx)}">${g.priceIdx==null?'—':fmt(g.priceIdx,2)+'×'}</td>
+      <td><span class="num ${uptimeCls(g.uptime)}">${g.uptime==null?'—':fmt(g.uptime,2)+'%'}</span>&nbsp; ${strip(g.daysArr)}</td>
+      <td class="r num">${g.ttft==null?'—':fmt(g.ttft)+' ms'}</td>
+      <td class="r num">${fmt(g.tps)}</td>
+      <td class="r num">${fmt(g.models)}</td>
+      <td>${spark(g.trend)}</td>
+    </tr>`).join('');
+  };
+  document.querySelectorAll('#lb thead th.sortable').forEach(th=>{
+    th.addEventListener('click',()=>{
+      const k=th.dataset.k;
+      if(sortKey===k) sortAsc=!sortAsc; else { sortKey=k; sortAsc=false; }
+      renderLB();
+    });
+  });
+  renderLB();
+
+  // ---- 信任与合规 ----
+  $('#trust-tbl tbody').innerHTML = site.gateways.map(g=>{const t=g.trust;return `<tr>
+    <td><div class="gw-name">${g.name}</div></td>
+    <td>${t.channel}</td>
+    <td class="${t.verify.cls}">${t.verify.text}</td>
+    <td class="${t.prompt.cls}">${t.prompt.text}</td>
+    <td class="${t.train.cls}">${t.train.text}</td>
+    <td>${t.entity}</td>
+    <td>${t.invoice}</td>
+    <td class="evidence">${t.evidence?`<a href="${t.evidence.url}" target="_blank" rel="noopener">${t.evidence.text}</a>`:'<span class="warn">待补</span>'}</td>
+  </tr>`;}).join('');
+  const disclosures = site.gateways.filter(g=>g.trust.disclosure);
+  if(disclosures.length){
+    const el = document.createElement('p');
+    el.className='fn';
+    el.innerHTML = disclosures.map(g=>`<b>利益披露</b> — ${g.name}: ${g.trust.disclosure}`).join('<br>');
+    $('#trust .tablebox').after(el);
+  }
+
+  // ---- 价格矩阵（只列出现在价格快照里的网关） ----
+  const priceGwIds = [...new Set(site.priceModels.flatMap(m=>Object.keys(m.cells??{})))];
+  const priceGws = site.gateways.filter(g=>priceGwIds.includes(g.id));
+  if(!site.priceModels.length){
+    $('#price-tbl tbody').innerHTML = '<tr><td class="muted" style="padding:18px">暂无价格快照（node probe/prices.mjs 生成 data/prices.json）</td></tr>';
+  } else {
+    $('#price-tbl thead').innerHTML = '<tr><th>模型</th><th class="r">官方价</th>'+
+      priceGws.map(g=>`<th class="r">${g.name}</th>`).join('')+'</tr>';
+    $('#price-tbl tbody').innerHTML = site.priceModels.map(m=>{
+      const cells = priceGws.map(g=>{
+        const c=m.cells?.[g.id];
+        if(!c) return '<td class="r muted">—</td>';
+        const ratio = m.official ? (c[0]/m.official[0]+c[1]/m.official[1])/2 : null;
+        const ratioHtml = ratio==null?'':` <span class="${priceCls(ratio)}" style="font-size:11px">(${ratio.toFixed(2)}×)</span>`;
+        return `<td class="r num">$${c[0]} / $${c[1]}${ratioHtml}</td>`;
+      }).join('');
+      const off = m.official ? `$${m.official[0]} / $${m.official[1]}` : '—';
+      return `<tr><td><code>${m.model}</code></td><td class="r num muted">${off}</td>${cells}</tr>`;
+    }).join('');
+  }
+
+  // ---- 稳定性面板 ----
+  $('#stab-grid').innerHTML = site.gateways.map(g=>{
+    if(!g.probes && !g.authExcluded){
+      return `<div class="stab">
+        <div class="head"><span class="gw-name">${g.name}</span>
+          <span class="pct muted">—</span>
+          <span class="muted" style="font-size:12px">尚无拨测数据（CI 未配 key 或暂未运行）</span></div>
+        <div class="row"><span class="lbl">逐日状态</span>${strip(g.daysArr)}</div>
+      </div>`;
+    }
+    const errEntries = Object.entries(g.errors).filter(([k,n])=>ERR_META[k]&&n>0);
+    const total = errEntries.reduce((a,[,n])=>a+n,0);
+    const segs = errEntries.map(([k,n])=>`<i style="width:${n/Math.max(total,1)*100}%;background:${ERR_META[k].c}" title="${ERR_META[k].label} ×${n}"></i>`).join('');
+    const legend = errEntries.map(([k,n])=>`<span style="color:${ERR_META[k].c}">■</span> ${ERR_META[k].label} ×${n}`).join(' · ')||'无失败';
+    const authNote = g.authExcluded?`<div class="row"><span class="lbl"></span><span class="legend muted">鉴权排除 ×${g.authExcluded}（探针 key 无该模型权限，按方法论不计入失败）</span></div>`:'';
+    return `<div class="stab">
+      <div class="head"><span class="gw-name">${g.name}</span>
+        <span class="pct ${uptimeCls(g.uptime)}">${g.uptime==null?'—':fmt(g.uptime,2)+'%'}</span>
+        <span class="muted" style="font-size:12px">${site.windowDays} 天成功率 · ${g.probes} 次采样</span></div>
+      <div class="row"><span class="lbl">逐日状态</span>${strip(g.daysArr)}</div>
+      <div class="row"><span class="lbl">错误画像</span><span class="errbar">${segs||''}</span></div>
+      <div class="row"><span class="lbl"></span><span class="legend">${legend}</span></div>
+      ${authNote}
+      <div class="row"><span class="lbl">TTFT 趋势</span>${trendChart(g.trend)}</div>
+    </div>`;
+  }).join('');
+
+  // ---- 网关清单 ----
+  $('#cat-tbl tbody').innerHTML = site.gateways.map(g=>`<tr>
+    <td><div class="gw-name"><a href="${g.website}" target="_blank" rel="noopener">${g.name}</a></div>
+        <div class="gw-sub">${g.host}</div></td>
+    <td>${g.protocols}</td>
+    <td class="r num">${fmt(g.models)}</td>
+    <td><code>${(g.probeModels??[]).join(' · ')||'—'}</code></td>
+    <td>${/^https?:/.test(g.pricing??'')?`<a href="${g.pricing}" target="_blank" rel="noopener">价格页</a>`:(g.pricing??'—')}</td>
+    <td class="r num">${g.connMs==null?'—':fmt(g.connMs)+' ms'}</td>
+  </tr>`).join('');
+}
+
+(async function init(){
+  try {
+    const r = await fetch('data.json', {cache:'no-store'});
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    render(adapt(await r.json()), false);
+  } catch (e) {
+    render(DEMO, true);
+  }
+})();
 </script>
 </body>
 </html>

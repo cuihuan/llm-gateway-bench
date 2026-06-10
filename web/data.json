@@ -1,0 +1,793 @@
+{
+  "generatedAt": "2026-06-10T08:35:58.283Z",
+  "demo": false,
+  "windowDays": 30,
+  "regions": [
+    "gh-us"
+  ],
+  "runCount": 1,
+  "gateways": [
+    {
+      "id": "synthorai",
+      "name": "Synthorai",
+      "host": "synthorai.io",
+      "website": "https://synthorai.io",
+      "protocols": "OpenAI · Anthropic",
+      "pricing": "https://synthorai.io/api/pricing",
+      "probeModels": [
+        "gemini-2.5-flash",
+        "claude-haiku-4-5-20251001",
+        "deepseek-v4-flash",
+        "gpt-5.4-nano"
+      ],
+      "priceIdx": 1,
+      "trust": {
+        "id": "synthorai",
+        "annotatedAt": "2026-06-10",
+        "channel": {
+          "claim": "官方直连（自声明）",
+          "verify": "pending"
+        },
+        "promptRetention": {
+          "status": "unknown",
+          "text": "待标注",
+          "evidence": null
+        },
+        "training": {
+          "status": "unknown",
+          "text": "待标注",
+          "evidence": null
+        },
+        "entity": "待标注",
+        "invoice": "待标注",
+        "disclosure": "本仓库维护者为 Synthorai 开发者（利益关联，已披露）"
+      },
+      "probes": 3,
+      "uptimePct": 100,
+      "daysArr": [
+        {
+          "date": "2026-05-12",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-13",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-14",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-15",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-16",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-17",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-18",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-19",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-20",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-21",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-22",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-23",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-24",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-25",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-26",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-27",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-28",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-29",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-30",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-31",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-01",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-02",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-03",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-04",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-05",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-06",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-07",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-08",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-09",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-10",
+          "status": "g"
+        }
+      ],
+      "errors": {
+        "429": 0,
+        "5xx": 0,
+        "timeout": 0,
+        "other": 0
+      },
+      "authExcluded": 9,
+      "speed": {
+        "ttftP50": 1542,
+        "ttftP95": 1844,
+        "tps": 955,
+        "trend": [
+          {
+            "date": "2026-06-10",
+            "ttftP50": 1542
+          }
+        ]
+      },
+      "connMs": 327,
+      "connOk": true,
+      "modelCount": 40,
+      "lastRun": "2026-06-10T07:59:19.696Z"
+    },
+    {
+      "id": "openrouter",
+      "name": "OpenRouter",
+      "host": "openrouter.ai/api",
+      "website": "https://openrouter.ai",
+      "protocols": "OpenAI",
+      "pricing": "https://openrouter.ai/models",
+      "probeModels": [
+        "openai/gpt-4o-mini",
+        "google/gemini-2.5-flash"
+      ],
+      "priceIdx": 1,
+      "trust": {
+        "id": "openrouter",
+        "annotatedAt": "2026-06-10",
+        "channel": {
+          "claim": "官方/公开供应商路由",
+          "verify": "pending"
+        },
+        "promptRetention": {
+          "status": "warn",
+          "text": "默认不留存正文；可 opt-in 记录换折扣",
+          "evidence": "https://openrouter.ai/docs/features/privacy-and-logging"
+        },
+        "training": {
+          "status": "good",
+          "text": "否（默认）",
+          "evidence": "https://openrouter.ai/docs/features/privacy-and-logging"
+        },
+        "entity": "OpenRouter, Inc. (US)",
+        "invoice": "国际发票",
+        "disclosure": null
+      },
+      "probes": 0,
+      "uptimePct": null,
+      "daysArr": [
+        {
+          "date": "2026-05-12",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-13",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-14",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-15",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-16",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-17",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-18",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-19",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-20",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-21",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-22",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-23",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-24",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-25",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-26",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-27",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-28",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-29",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-30",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-31",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-01",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-02",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-03",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-04",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-05",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-06",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-07",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-08",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-09",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-10",
+          "status": "n"
+        }
+      ],
+      "errors": {
+        "429": 0,
+        "5xx": 0,
+        "timeout": 0,
+        "other": 0
+      },
+      "authExcluded": 0,
+      "speed": {
+        "ttftP50": null,
+        "ttftP95": null,
+        "tps": null,
+        "trend": []
+      },
+      "connMs": null,
+      "connOk": null,
+      "modelCount": null,
+      "lastRun": null
+    },
+    {
+      "id": "aihubmix",
+      "name": "AiHubMix",
+      "host": "aihubmix.com",
+      "website": "https://aihubmix.com",
+      "protocols": "OpenAI",
+      "pricing": "https://aihubmix.com/models",
+      "probeModels": [
+        "gpt-4o-mini",
+        "gemini-2.5-flash"
+      ],
+      "priceIdx": null,
+      "trust": {
+        "id": "aihubmix",
+        "annotatedAt": "2026-06-10",
+        "channel": {
+          "claim": "自声明官转",
+          "verify": "pending"
+        },
+        "promptRetention": {
+          "status": "unknown",
+          "text": "待标注",
+          "evidence": null
+        },
+        "training": {
+          "status": "unknown",
+          "text": "待标注",
+          "evidence": null
+        },
+        "entity": "待标注",
+        "invoice": "待标注",
+        "disclosure": null
+      },
+      "probes": 0,
+      "uptimePct": null,
+      "daysArr": [
+        {
+          "date": "2026-05-12",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-13",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-14",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-15",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-16",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-17",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-18",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-19",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-20",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-21",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-22",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-23",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-24",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-25",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-26",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-27",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-28",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-29",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-30",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-31",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-01",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-02",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-03",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-04",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-05",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-06",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-07",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-08",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-09",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-10",
+          "status": "n"
+        }
+      ],
+      "errors": {
+        "429": 0,
+        "5xx": 0,
+        "timeout": 0,
+        "other": 0
+      },
+      "authExcluded": 0,
+      "speed": {
+        "ttftP50": null,
+        "ttftP95": null,
+        "tps": null,
+        "trend": []
+      },
+      "connMs": null,
+      "connOk": null,
+      "modelCount": null,
+      "lastRun": null
+    },
+    {
+      "id": "openai-direct",
+      "name": "OpenAI (官方直连基线)",
+      "host": "api.openai.com",
+      "website": "https://platform.openai.com",
+      "protocols": "OpenAI",
+      "pricing": "https://platform.openai.com/docs/pricing",
+      "probeModels": [
+        "gpt-4o-mini"
+      ],
+      "priceIdx": null,
+      "trust": {
+        "id": "openai-direct",
+        "annotatedAt": "2026-06-10",
+        "channel": {
+          "claim": "官方",
+          "verify": "baseline"
+        },
+        "promptRetention": {
+          "status": "good",
+          "text": "API 数据默认不用于训练；滥用监测留存后删除",
+          "evidence": "https://openai.com/enterprise-privacy/"
+        },
+        "training": {
+          "status": "good",
+          "text": "否（默认）",
+          "evidence": "https://openai.com/enterprise-privacy/"
+        },
+        "entity": "OpenAI, Inc.",
+        "invoice": "国际发票",
+        "disclosure": null
+      },
+      "probes": 0,
+      "uptimePct": null,
+      "daysArr": [
+        {
+          "date": "2026-05-12",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-13",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-14",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-15",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-16",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-17",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-18",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-19",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-20",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-21",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-22",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-23",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-24",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-25",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-26",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-27",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-28",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-29",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-30",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-31",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-01",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-02",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-03",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-04",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-05",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-06",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-07",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-08",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-09",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-10",
+          "status": "n"
+        }
+      ],
+      "errors": {
+        "429": 0,
+        "5xx": 0,
+        "timeout": 0,
+        "other": 0
+      },
+      "authExcluded": 0,
+      "speed": {
+        "ttftP50": null,
+        "ttftP95": null,
+        "tps": null,
+        "trend": []
+      },
+      "connMs": null,
+      "connOk": null,
+      "modelCount": null,
+      "lastRun": null
+    }
+  ],
+  "prices": {
+    "fetchedAt": "2026-06-10T08:35:58.211Z",
+    "unit": "USD per 1M tokens [input, output]",
+    "sources": {
+      "official": "litellm",
+      "synthorai": "https://synthorai.io/api/pricing",
+      "openrouter": "https://openrouter.ai/api/v1/models"
+    },
+    "models": [
+      {
+        "model": "claude-sonnet-4-5",
+        "official": [
+          3,
+          15
+        ],
+        "cells": {
+          "synthorai": [
+            3,
+            15
+          ],
+          "openrouter": [
+            3,
+            15
+          ]
+        }
+      },
+      {
+        "model": "claude-haiku-4-5",
+        "official": [
+          1,
+          5
+        ],
+        "cells": {
+          "synthorai": [
+            1,
+            5
+          ],
+          "openrouter": [
+            1,
+            5
+          ]
+        }
+      },
+      {
+        "model": "gemini-2.5-flash",
+        "official": [
+          0.3,
+          2.5
+        ],
+        "cells": {
+          "synthorai": [
+            0.3,
+            2.5
+          ],
+          "openrouter": [
+            0.3,
+            2.5
+          ]
+        }
+      },
+      {
+        "model": "deepseek-v4-flash",
+        "official": null,
+        "cells": {
+          "synthorai": [
+            0.138,
+            0.275
+          ],
+          "openrouter": [
+            0.098,
+            0.197
+          ]
+        }
+      }
+    ]
+  }
+}
