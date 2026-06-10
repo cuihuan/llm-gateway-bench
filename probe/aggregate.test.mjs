@@ -123,6 +123,28 @@ test('rollupGateway: speed snapshot comes from the latest run WITH successes', (
   assert.equal(r.uptimePct, 50);
 });
 
+test('rollupGateway: tool-call capability snapshot from the latest run', () => {
+  const r = rollupGateway([
+    run('2026-06-09T06:00:00.000Z', [
+      { model: 'a', samples: 1, success: 1, ttftMs: { p50: 700 }, tokensPerSec: { avg: 60 }, errors: [], toolCall: { ok: false, totalMs: 900, error: 'no tool_calls in response' } },
+    ]),
+    run('2026-06-10T06:00:00.000Z', [
+      { model: 'a', samples: 1, success: 1, ttftMs: { p50: 600 }, tokensPerSec: { avg: 70 }, errors: [], toolCall: { ok: true, totalMs: 800 } },
+      { model: 'b', samples: 1, success: 1, ttftMs: { p50: 650 }, tokensPerSec: { avg: 65 }, errors: [], toolCall: { ok: false, totalMs: 1200, error: 'arguments not valid JSON' } },
+    ]),
+  ], '2026-06-10');
+  assert.deepEqual(r.toolCalls, { ok: 1, total: 2, nonStreamMs: 1000 }); // latest run only, p50 of [800,1200]
+});
+
+test('rollupGateway: runs without toolCall data yield toolCalls null', () => {
+  const r = rollupGateway([
+    run('2026-06-10T06:00:00.000Z', [
+      { model: 'a', samples: 1, success: 1, ttftMs: { p50: 600 }, tokensPerSec: { avg: 70 }, errors: [] },
+    ]),
+  ], '2026-06-10');
+  assert.equal(r.toolCalls, null);
+});
+
 test('rollupGateway: empty input yields nulls, not NaN', () => {
   const r = rollupGateway([], '2026-06-10');
   assert.equal(r.uptimePct, null);

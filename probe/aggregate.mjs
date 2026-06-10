@@ -92,6 +92,19 @@ export function rollupGateway(runEntries, today) {
     if (d >= day7Start) { ok7 += b.ok; total7 += b.total; }
   }
 
+  // tool-call capability snapshot from the most recent run that attempted it
+  let toolCalls = null;
+  if (latest) {
+    const rows = (latest.models ?? []).filter((m) => m.toolCall);
+    if (rows.length) {
+      toolCalls = {
+        ok: rows.filter((m) => m.toolCall.ok).length,
+        total: rows.length,
+        nonStreamMs: round(percentile(rows.map((m) => m.toolCall.totalMs).filter((v) => typeof v === 'number'), 50)),
+      };
+    }
+  }
+
   let ttftP50 = null, ttftP95 = null, tps = null;
   if (latestOk) {
     const rows = (latestOk.models ?? []).filter((m) => m.success > 0);
@@ -111,6 +124,7 @@ export function rollupGateway(runEntries, today) {
     errors,
     authExcluded,
     speed: { ttftP50, ttftP95, tps, trend },
+    toolCalls,
     connMs: latest?.connectivity?.latencyMs ?? null,
     connOk: latest?.connectivity?.ok ?? null,
     modelCount: latest?.connectivity?.modelCount ?? null,

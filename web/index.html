@@ -202,7 +202,7 @@
   <h2>网关清单<span class="anchor">新网关：PR 提交 data/gateways.json 即可进入拨测</span></h2>
   <div class="tablebox"><table id="cat-tbl">
     <thead><tr>
-      <th>网关</th><th>协议</th><th class="r">模型数</th><th>探测模型</th><th>价格透明度</th><th class="r">直连延迟 (gh-us)</th>
+      <th>网关</th><th>协议</th><th class="r">模型数</th><th>探测模型</th><th>工具调用</th><th>价格透明度</th><th class="r">直连延迟</th>
     </tr></thead>
     <tbody></tbody>
   </table></div>
@@ -264,6 +264,7 @@ function adapt(raw){
     daysArr:(g.daysArr ?? []).map(d=>({ s:d.status, d:d.date })),
     trend:(g.speed?.trend ?? []).map(t=>t.ttftP50).filter(v=>v!=null),
     errors:g.errors ?? {}, authExcluded:g.authExcluded ?? 0,
+    toolCalls:g.toolCalls ?? null,
     trust: adaptTrust(g.trust),
   }));
   const lastRuns = gateways.map(g=>raw.gateways.find(x=>x.id===g.id)?.lastRun).filter(Boolean).sort();
@@ -326,6 +327,7 @@ const DEMO = {
 };
 DEMO.gateways.forEach((g,gi)=>{
   g.uptime7 = g.uptime;
+  g.toolCalls = { ok: g.probeModels.length, total: g.probeModels.length, nonStreamMs: g.ttft*2 };
   const rnd = seeded(gi*7+3);
   g.daysArr = Array.from({length:30},()=>{ const r=rnd();
     return { s: r > (1 - (100-g.uptime)/100*6) ? (r>0.985?'b':'w') : 'g', d:null }; });
@@ -489,6 +491,7 @@ function render(site, isDemo){
     <td>${esc(g.protocols)}</td>
     <td class="r num">${fmt(g.models)}</td>
     <td><code>${esc((g.probeModels??[]).join(' · '))||'—'}</code></td>
+    <td>${g.toolCalls==null?'<span class="muted">—</span>':`<span class="num ${g.toolCalls.ok===g.toolCalls.total?'good':g.toolCalls.ok>0?'warn':'bad'}">${g.toolCalls.ok}/${g.toolCalls.total} 模型通过</span>`}</td>
     <td>${safeUrl(g.pricing)?`<a href="${safeUrl(g.pricing)}" target="_blank" rel="noopener">价格页</a>`:esc(g.pricing??'—')}</td>
     <td class="r num">${g.connMs==null?'—':fmt(g.connMs)+' ms'}</td>
   </tr>`).join('');

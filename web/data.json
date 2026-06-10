@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-10T13:21:29.340Z",
+  "generatedAt": "2026-06-10T13:40:42.955Z",
   "demo": false,
   "windowDays": 30,
   "regions": [
@@ -185,6 +185,7 @@
           }
         ]
       },
+      "toolCalls": null,
       "connMs": 327,
       "connOk": true,
       "modelCount": 40,
@@ -361,6 +362,7 @@
         "tps": null,
         "trend": []
       },
+      "toolCalls": null,
       "connMs": null,
       "connOk": null,
       "modelCount": null,
@@ -537,6 +539,7 @@
         "tps": null,
         "trend": []
       },
+      "toolCalls": null,
       "connMs": null,
       "connOk": null,
       "modelCount": null,
@@ -712,6 +715,1239 @@
         "tps": null,
         "trend": []
       },
+      "toolCalls": null,
+      "connMs": null,
+      "connOk": null,
+      "modelCount": null,
+      "lastRun": null
+    },
+    {
+      "id": "deepseek-direct",
+      "name": "DeepSeek (官方直连基线)",
+      "host": "api.deepseek.com",
+      "website": "https://platform.deepseek.com",
+      "protocols": "OpenAI",
+      "pricing": "https://api-docs.deepseek.com/quick_start/pricing",
+      "probeModels": [
+        "deepseek-chat"
+      ],
+      "priceIdx": null,
+      "trust": {
+        "id": "deepseek-direct",
+        "annotatedAt": "2026-06-10",
+        "channel": {
+          "claim": "官方",
+          "verify": "baseline"
+        },
+        "promptRetention": {
+          "status": "unknown",
+          "text": "待标注",
+          "evidence": null
+        },
+        "training": {
+          "status": "unknown",
+          "text": "待标注",
+          "evidence": null
+        },
+        "entity": "杭州深度求索人工智能基础技术研究有限公司",
+        "invoice": "待标注",
+        "disclosure": null
+      },
+      "probes": 0,
+      "uptimePct": null,
+      "uptime7dPct": null,
+      "daysArr": [
+        {
+          "date": "2026-05-12",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-13",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-14",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-15",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-16",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-17",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-18",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-19",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-20",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-21",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-22",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-23",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-24",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-25",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-26",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-27",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-28",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-29",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-30",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-31",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-01",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-02",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-03",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-04",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-05",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-06",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-07",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-08",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-09",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-10",
+          "status": "n"
+        }
+      ],
+      "errors": {
+        "429": 0,
+        "5xx": 0,
+        "timeout": 0,
+        "other": 0
+      },
+      "authExcluded": 0,
+      "speed": {
+        "ttftP50": null,
+        "ttftP95": null,
+        "tps": null,
+        "trend": []
+      },
+      "toolCalls": null,
+      "connMs": null,
+      "connOk": null,
+      "modelCount": null,
+      "lastRun": null
+    },
+    {
+      "id": "moonshot-direct",
+      "name": "Moonshot Kimi (官方直连基线)",
+      "host": "api.moonshot.cn",
+      "website": "https://platform.moonshot.cn",
+      "protocols": "OpenAI",
+      "pricing": "https://platform.moonshot.cn/docs/pricing/chat",
+      "probeModels": [
+        "moonshot-v1-8k"
+      ],
+      "priceIdx": null,
+      "trust": {
+        "id": "moonshot-direct",
+        "annotatedAt": "2026-06-10",
+        "channel": {
+          "claim": "官方",
+          "verify": "baseline"
+        },
+        "promptRetention": {
+          "status": "unknown",
+          "text": "待标注",
+          "evidence": null
+        },
+        "training": {
+          "status": "unknown",
+          "text": "待标注",
+          "evidence": null
+        },
+        "entity": "北京月之暗面科技有限公司",
+        "invoice": "待标注",
+        "disclosure": null
+      },
+      "probes": 0,
+      "uptimePct": null,
+      "uptime7dPct": null,
+      "daysArr": [
+        {
+          "date": "2026-05-12",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-13",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-14",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-15",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-16",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-17",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-18",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-19",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-20",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-21",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-22",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-23",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-24",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-25",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-26",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-27",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-28",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-29",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-30",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-31",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-01",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-02",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-03",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-04",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-05",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-06",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-07",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-08",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-09",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-10",
+          "status": "n"
+        }
+      ],
+      "errors": {
+        "429": 0,
+        "5xx": 0,
+        "timeout": 0,
+        "other": 0
+      },
+      "authExcluded": 0,
+      "speed": {
+        "ttftP50": null,
+        "ttftP95": null,
+        "tps": null,
+        "trend": []
+      },
+      "toolCalls": null,
+      "connMs": null,
+      "connOk": null,
+      "modelCount": null,
+      "lastRun": null
+    },
+    {
+      "id": "siliconflow",
+      "name": "SiliconFlow 硅基流动",
+      "host": "api.siliconflow.cn",
+      "website": "https://siliconflow.cn",
+      "protocols": "OpenAI",
+      "pricing": "https://siliconflow.cn/pricing",
+      "probeModels": [
+        "Qwen/Qwen2.5-7B-Instruct"
+      ],
+      "priceIdx": null,
+      "trust": {
+        "id": "siliconflow",
+        "annotatedAt": "2026-06-10",
+        "channel": {
+          "claim": "自营推理（开源权重模型一手渠道）",
+          "verify": "pending"
+        },
+        "promptRetention": {
+          "status": "unknown",
+          "text": "待标注",
+          "evidence": null
+        },
+        "training": {
+          "status": "unknown",
+          "text": "待标注",
+          "evidence": null
+        },
+        "entity": "北京硅基流动科技有限公司",
+        "invoice": "待标注",
+        "disclosure": null
+      },
+      "probes": 0,
+      "uptimePct": null,
+      "uptime7dPct": null,
+      "daysArr": [
+        {
+          "date": "2026-05-12",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-13",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-14",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-15",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-16",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-17",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-18",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-19",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-20",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-21",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-22",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-23",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-24",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-25",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-26",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-27",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-28",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-29",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-30",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-31",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-01",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-02",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-03",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-04",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-05",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-06",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-07",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-08",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-09",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-10",
+          "status": "n"
+        }
+      ],
+      "errors": {
+        "429": 0,
+        "5xx": 0,
+        "timeout": 0,
+        "other": 0
+      },
+      "authExcluded": 0,
+      "speed": {
+        "ttftP50": null,
+        "ttftP95": null,
+        "tps": null,
+        "trend": []
+      },
+      "toolCalls": null,
+      "connMs": null,
+      "connOk": null,
+      "modelCount": null,
+      "lastRun": null
+    },
+    {
+      "id": "groq",
+      "name": "Groq",
+      "host": "api.groq.com/openai",
+      "website": "https://groq.com",
+      "protocols": "OpenAI",
+      "pricing": "https://groq.com/pricing",
+      "probeModels": [
+        "llama-3.1-8b-instant"
+      ],
+      "priceIdx": null,
+      "trust": {
+        "id": "groq",
+        "annotatedAt": "2026-06-10",
+        "channel": {
+          "claim": "自营 LPU 推理（开源权重模型一手渠道）",
+          "verify": "pending"
+        },
+        "promptRetention": {
+          "status": "unknown",
+          "text": "待标注",
+          "evidence": null
+        },
+        "training": {
+          "status": "unknown",
+          "text": "待标注",
+          "evidence": null
+        },
+        "entity": "Groq, Inc. (US)",
+        "invoice": "待标注",
+        "disclosure": null
+      },
+      "probes": 0,
+      "uptimePct": null,
+      "uptime7dPct": null,
+      "daysArr": [
+        {
+          "date": "2026-05-12",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-13",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-14",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-15",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-16",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-17",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-18",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-19",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-20",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-21",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-22",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-23",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-24",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-25",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-26",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-27",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-28",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-29",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-30",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-31",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-01",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-02",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-03",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-04",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-05",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-06",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-07",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-08",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-09",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-10",
+          "status": "n"
+        }
+      ],
+      "errors": {
+        "429": 0,
+        "5xx": 0,
+        "timeout": 0,
+        "other": 0
+      },
+      "authExcluded": 0,
+      "speed": {
+        "ttftP50": null,
+        "ttftP95": null,
+        "tps": null,
+        "trend": []
+      },
+      "toolCalls": null,
+      "connMs": null,
+      "connOk": null,
+      "modelCount": null,
+      "lastRun": null
+    },
+    {
+      "id": "together",
+      "name": "Together AI",
+      "host": "api.together.xyz",
+      "website": "https://www.together.ai",
+      "protocols": "OpenAI",
+      "pricing": "https://www.together.ai/pricing",
+      "probeModels": [
+        "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo"
+      ],
+      "priceIdx": null,
+      "trust": {
+        "id": "together",
+        "annotatedAt": "2026-06-10",
+        "channel": {
+          "claim": "自营推理（开源权重模型一手渠道）",
+          "verify": "pending"
+        },
+        "promptRetention": {
+          "status": "unknown",
+          "text": "待标注",
+          "evidence": null
+        },
+        "training": {
+          "status": "unknown",
+          "text": "待标注",
+          "evidence": null
+        },
+        "entity": "Together Computer, Inc. (US)",
+        "invoice": "待标注",
+        "disclosure": null
+      },
+      "probes": 0,
+      "uptimePct": null,
+      "uptime7dPct": null,
+      "daysArr": [
+        {
+          "date": "2026-05-12",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-13",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-14",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-15",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-16",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-17",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-18",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-19",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-20",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-21",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-22",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-23",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-24",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-25",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-26",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-27",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-28",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-29",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-30",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-31",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-01",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-02",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-03",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-04",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-05",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-06",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-07",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-08",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-09",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-10",
+          "status": "n"
+        }
+      ],
+      "errors": {
+        "429": 0,
+        "5xx": 0,
+        "timeout": 0,
+        "other": 0
+      },
+      "authExcluded": 0,
+      "speed": {
+        "ttftP50": null,
+        "ttftP95": null,
+        "tps": null,
+        "trend": []
+      },
+      "toolCalls": null,
+      "connMs": null,
+      "connOk": null,
+      "modelCount": null,
+      "lastRun": null
+    },
+    {
+      "id": "ohmygpt",
+      "name": "OhMyGPT",
+      "host": "api.ohmygpt.com",
+      "website": "https://www.ohmygpt.com",
+      "protocols": "OpenAI",
+      "pricing": "https://www.ohmygpt.com",
+      "probeModels": [
+        "gpt-4o-mini"
+      ],
+      "priceIdx": null,
+      "trust": {
+        "id": "ohmygpt",
+        "annotatedAt": "2026-06-10",
+        "channel": {
+          "claim": "自声明官转",
+          "verify": "pending"
+        },
+        "promptRetention": {
+          "status": "unknown",
+          "text": "待标注",
+          "evidence": null
+        },
+        "training": {
+          "status": "unknown",
+          "text": "待标注",
+          "evidence": null
+        },
+        "entity": "待标注",
+        "invoice": "待标注",
+        "disclosure": null
+      },
+      "probes": 0,
+      "uptimePct": null,
+      "uptime7dPct": null,
+      "daysArr": [
+        {
+          "date": "2026-05-12",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-13",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-14",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-15",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-16",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-17",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-18",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-19",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-20",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-21",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-22",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-23",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-24",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-25",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-26",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-27",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-28",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-29",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-30",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-31",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-01",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-02",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-03",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-04",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-05",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-06",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-07",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-08",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-09",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-10",
+          "status": "n"
+        }
+      ],
+      "errors": {
+        "429": 0,
+        "5xx": 0,
+        "timeout": 0,
+        "other": 0
+      },
+      "authExcluded": 0,
+      "speed": {
+        "ttftP50": null,
+        "ttftP95": null,
+        "tps": null,
+        "trend": []
+      },
+      "toolCalls": null,
+      "connMs": null,
+      "connOk": null,
+      "modelCount": null,
+      "lastRun": null
+    },
+    {
+      "id": "closeai",
+      "name": "CloseAI",
+      "host": "api.closeai-asia.com",
+      "website": "https://www.closeai-asia.com",
+      "protocols": "OpenAI",
+      "pricing": "https://www.closeai-asia.com",
+      "probeModels": [
+        "gpt-4o-mini"
+      ],
+      "priceIdx": null,
+      "trust": {
+        "id": "closeai",
+        "annotatedAt": "2026-06-10",
+        "channel": {
+          "claim": "自声明官转",
+          "verify": "pending"
+        },
+        "promptRetention": {
+          "status": "unknown",
+          "text": "待标注",
+          "evidence": null
+        },
+        "training": {
+          "status": "unknown",
+          "text": "待标注",
+          "evidence": null
+        },
+        "entity": "待标注",
+        "invoice": "待标注",
+        "disclosure": null
+      },
+      "probes": 0,
+      "uptimePct": null,
+      "uptime7dPct": null,
+      "daysArr": [
+        {
+          "date": "2026-05-12",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-13",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-14",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-15",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-16",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-17",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-18",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-19",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-20",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-21",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-22",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-23",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-24",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-25",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-26",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-27",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-28",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-29",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-30",
+          "status": "n"
+        },
+        {
+          "date": "2026-05-31",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-01",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-02",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-03",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-04",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-05",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-06",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-07",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-08",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-09",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-10",
+          "status": "n"
+        }
+      ],
+      "errors": {
+        "429": 0,
+        "5xx": 0,
+        "timeout": 0,
+        "other": 0
+      },
+      "authExcluded": 0,
+      "speed": {
+        "ttftP50": null,
+        "ttftP95": null,
+        "tps": null,
+        "trend": []
+      },
+      "toolCalls": null,
       "connMs": null,
       "connOk": null,
       "modelCount": null,
