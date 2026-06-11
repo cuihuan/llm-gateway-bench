@@ -40,7 +40,8 @@ export function rollupGateway(runEntries, today) {
   const windowStart = new Date(end - (WINDOW_DAYS - 1) * 86_400_000).toISOString().slice(0, 10);
   const day7Start = new Date(end - 6 * 86_400_000).toISOString().slice(0, 10);
 
-  const byDay = new Map(); // day -> {ok, total, ttfts:[]}
+  const byDay = new Map();  // day -> {ok, total, ttfts:[]}
+  const byHour = new Map(); // UTC hour-of-day 0-23 -> {ok, total, ttfts:[]}
   const errors = { '429': 0, '5xx': 0, timeout: 0, other: 0 };
   let authExcluded = 0;
   let probes = 0;
@@ -53,7 +54,10 @@ export function rollupGateway(runEntries, today) {
     const day = dayOf(run.startedAt);
     if (day < windowStart || day > today) continue;
     if (!byDay.has(day)) byDay.set(day, { ok: 0, total: 0, ttfts: [] });
+    const hour = new Date(run.startedAt).getUTCHours();
+    if (!byHour.has(hour)) byHour.set(hour, { ok: 0, total: 0, ttfts: [] });
     const bucket = byDay.get(day);
+    const hbucket = byHour.get(hour);
     for (const m of run.models ?? []) {
       const classes = (m.errors ?? []).map(classifyError);
       const failed = m.samples - m.success;
@@ -69,8 +73,10 @@ export function rollupGateway(runEntries, today) {
       probes += counted;
       bucket.total += counted;
       bucket.ok += m.success;
+      hbucket.total += counted;
+      hbucket.ok += m.success;
       for (const c of classes) { if (c !== 'auth') errors[c]++; }
-      if (typeof m.ttftMs?.p50 === 'number') bucket.ttfts.push(m.ttftMs.p50);
+      if (typeof m.ttftMs?.p50 === 'number') { bucket.ttfts.push(m.ttftMs.p50); hbucket.ttfts.push(m.ttftMs.p50); }
     }
   }
 
@@ -90,6 +96,31 @@ export function rollupGateway(runEntries, today) {
   for (const [d, b] of byDay) {
     ok += b.ok; total += b.total;
     if (d >= day7Start) { ok7 += b.ok; total7 += b.total; }
+  }
+
+  // 时段画像（按 UTC 小时）：拨测核心价值——揭示"高峰期变慢/限速"。每个有数据
+  // 的小时给 TTFT p50 与成功率。peakDrift = 最慢小时 TTFT ÷ 最快小时 TTFT（≥2
+  // 表示存在明显高峰漂移），worstOkRateHour = 成功率最低的小时。窗口太空则为 null。
+  const hourly = [...byHour.entries()]
+    .map(([hour, b]) => ({
+      hour,
+      ttftP50: b.ttfts.length ? round(percentile(b.ttfts, 50)) : null,
+      okRate: b.total ? round((b.ok / b.total) * 100, 1) : null,
+      n: b.total,
+    }))
+    .sort((a, b) => a.hour - b.hour);
+  let peakDrift = null;
+  const ttftHours = hourly.filter((h) => h.ttftP50 != null);
+  if (ttftHours.length >= 2) {
+    const slow = ttftHours.reduce((a, b) => (b.ttftP50 > a.ttftP50 ? b : a));
+    const fast = ttftHours.reduce((a, b) => (b.ttftP50 < a.ttftP50 ? b : a));
+    const worst = hourly.filter((h) => h.okRate != null).reduce((a, b) => (b.okRate < a.okRate ? b : a), { okRate: 101 });
+    peakDrift = {
+      ratio: round(slow.ttftP50 / Math.max(fast.ttftP50, 1), 2),
+      slowHour: slow.hour, slowTtft: slow.ttftP50,
+      fastHour: fast.hour, fastTtft: fast.ttftP50,
+      worstOkRateHour: worst.hour ?? null, worstOkRate: worst.okRate <= 100 ? worst.okRate : null,
+    };
   }
 
   // 流式真实性快照：最近一次运行里可判定模型中，疑似假流式（burstStreamRate≥0.5）的个数
@@ -146,6 +177,8 @@ export function rollupGateway(runEntries, today) {
     toolCalls,
     streamBurst,
     usageByModel,
+    hourly,
+    peakDrift,
     connMs: latest?.connectivity?.latencyMs ?? null,
     connOk: latest?.connectivity?.ok ?? null,
     modelCount: latest?.connectivity?.modelCount ?? null,

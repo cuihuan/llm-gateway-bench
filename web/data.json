@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-11T05:32:41.667Z",
+  "generatedAt": "2026-06-11T05:39:56.014Z",
   "demo": false,
   "windowDays": 30,
   "regions": [
@@ -205,6 +205,59 @@
           "promptTokens": 33
         }
       ],
+      "hourly": [
+        {
+          "hour": 1,
+          "ttftP50": 1961,
+          "okRate": 100,
+          "n": 3
+        },
+        {
+          "hour": 2,
+          "ttftP50": 1149,
+          "okRate": 100,
+          "n": 3
+        },
+        {
+          "hour": 4,
+          "ttftP50": 1719,
+          "okRate": 100,
+          "n": 3
+        },
+        {
+          "hour": 5,
+          "ttftP50": 1875,
+          "okRate": 100,
+          "n": 9
+        },
+        {
+          "hour": 7,
+          "ttftP50": 1542,
+          "okRate": 100,
+          "n": 3
+        },
+        {
+          "hour": 13,
+          "ttftP50": 1627,
+          "okRate": 100,
+          "n": 3
+        },
+        {
+          "hour": 19,
+          "ttftP50": 1625,
+          "okRate": 100,
+          "n": 3
+        }
+      ],
+      "peakDrift": {
+        "ratio": 1.71,
+        "slowHour": 1,
+        "slowTtft": 1961,
+        "fastHour": 2,
+        "fastTtft": 1149,
+        "worstOkRateHour": 1,
+        "worstOkRate": 100
+      },
       "connMs": 196,
       "connOk": true,
       "modelCount": 39,
@@ -384,6 +437,8 @@
       "toolCalls": null,
       "streamBurst": null,
       "usageByModel": null,
+      "hourly": [],
+      "peakDrift": null,
       "connMs": null,
       "connOk": null,
       "modelCount": null,
@@ -563,6 +618,8 @@
       "toolCalls": null,
       "streamBurst": null,
       "usageByModel": null,
+      "hourly": [],
+      "peakDrift": null,
       "connMs": null,
       "connOk": null,
       "modelCount": null,
@@ -741,6 +798,8 @@
       "toolCalls": null,
       "streamBurst": null,
       "usageByModel": null,
+      "hourly": [],
+      "peakDrift": null,
       "connMs": null,
       "connOk": null,
       "modelCount": null,
@@ -919,6 +978,8 @@
       "toolCalls": null,
       "streamBurst": null,
       "usageByModel": null,
+      "hourly": [],
+      "peakDrift": null,
       "connMs": null,
       "connOk": null,
       "modelCount": null,
@@ -1097,6 +1158,8 @@
       "toolCalls": null,
       "streamBurst": null,
       "usageByModel": null,
+      "hourly": [],
+      "peakDrift": null,
       "connMs": null,
       "connOk": null,
       "modelCount": null,
@@ -1275,6 +1338,8 @@
       "toolCalls": null,
       "streamBurst": null,
       "usageByModel": null,
+      "hourly": [],
+      "peakDrift": null,
       "connMs": null,
       "connOk": null,
       "modelCount": null,
@@ -1453,6 +1518,8 @@
       "toolCalls": null,
       "streamBurst": null,
       "usageByModel": null,
+      "hourly": [],
+      "peakDrift": null,
       "connMs": null,
       "connOk": null,
       "modelCount": null,
@@ -1631,6 +1698,8 @@
       "toolCalls": null,
       "streamBurst": null,
       "usageByModel": null,
+      "hourly": [],
+      "peakDrift": null,
       "connMs": null,
       "connOk": null,
       "modelCount": null,
@@ -1809,6 +1878,8 @@
       "toolCalls": null,
       "streamBurst": null,
       "usageByModel": null,
+      "hourly": [],
+      "peakDrift": null,
       "connMs": null,
       "connOk": null,
       "modelCount": null,
@@ -1987,6 +2058,8 @@
       "toolCalls": null,
       "streamBurst": null,
       "usageByModel": null,
+      "hourly": [],
+      "peakDrift": null,
       "connMs": null,
       "connOk": null,
       "modelCount": null,

@@ -195,7 +195,7 @@
 </div></section>
 
 <section id="stability"><div class="wrap">
-  <h2>稳定性<span class="anchor">每 6 小时拨测 · 每格一天 · 错误按性质分类：429 限流 ≠ 5xx 故障 ≠ 超时</span></h2>
+  <h2>稳定性<span class="anchor">每 6 小时拨测 · 错误按性质分类（429≠5xx≠超时）· 时段画像揭示高峰是否变慢</span></h2>
   <div class="stab-grid" id="stab-grid"></div>
 </div></section>
 
@@ -290,6 +290,8 @@ function adapt(raw){
     errors:g.errors ?? {}, authExcluded:g.authExcluded ?? 0,
     toolCalls:g.toolCalls ?? null,
     streamBurst:g.streamBurst ?? null,
+    hourly:g.hourly ?? [],
+    peakDrift:g.peakDrift ?? null,
     trust: adaptTrust(g.trust),
   }));
   const lastRuns = gateways.map(g=>raw.gateways.find(x=>x.id===g.id)?.lastRun).filter(Boolean).sort();
@@ -358,6 +360,10 @@ DEMO.gateways.forEach((g,gi)=>{
   g.daysArr = Array.from({length:30},()=>{ const r=rnd();
     return { s: r > (1 - (100-g.uptime)/100*6) ? (r>0.985?'b':'w') : 'g', d:null }; });
   g.trend = Array.from({length:30},()=> Math.round(g.ttft*(0.85+rnd()*0.4)));
+  // 演示：四个 cron 时段，傍晚(19h)明显变慢模拟高峰漂移
+  g.hourly = [1,7,13,19].map(h=>({ hour:h, ttftP50: Math.round(g.ttft*(h===19?1.8:0.9+rnd()*0.2)), okRate: h===19?96.5:100, n:6 }));
+  const slow=g.hourly.reduce((a,b)=>b.ttftP50>a.ttftP50?b:a), fast=g.hourly.reduce((a,b)=>b.ttftP50<a.ttftP50?b:a);
+  g.peakDrift = { ratio: Math.round(slow.ttftP50/fast.ttftP50*100)/100, slowHour:slow.hour, slowTtft:slow.ttftP50, fastHour:fast.hour, fastTtft:fast.ttftP50, worstOkRateHour:19, worstOkRate:96.5 };
 });
 
 // ============ 渲染 ============
@@ -396,6 +402,24 @@ function trendChart(vals,w=460,h=64){
 
 const ERR_META = { '429':{c:'var(--warn)',label:'429 限流'}, '5xx':{c:'var(--bad)',label:'5xx 故障'},
   timeout:{c:'#a371f7',label:'超时'}, other:{c:'var(--faint)',label:'其他'} };
+
+// 时段画像：按 UTC 小时的 TTFT 柱状图，最慢柱标红。括号注 UTC，下方给本地换算提示。
+function hourlyChart(hourly){
+  const pts = (hourly||[]).filter(h=>h.ttftP50!=null);
+  if(pts.length<2) return `<span class="muted" style="font-size:12px">时段数据积累中（${pts.length} 个时段，每天 4 个 cron 时段，需跨天填满）</span>`;
+  const max=Math.max(...pts.map(h=>h.ttftP50)), min=Math.min(...pts.map(h=>h.ttftP50));
+  const bw=18, gap=8, h=54, n=pts.length, w=n*(bw+gap)+30;
+  const bars = pts.map((p,i)=>{
+    const bh=Math.max(3, (p.ttftP50/max)*(h-18));
+    const isSlow=p.ttftP50===max, col=isSlow?'var(--bad)':'var(--accent)';
+    const x=i*(bw+gap)+2;
+    return `<rect x="${x}" y="${h-14-bh}" width="${bw}" height="${bh}" fill="${col}" rx="1"><title>${String(p.hour).padStart(2,'0')}:00 UTC · TTFT ${p.ttftP50}ms · 成功率 ${p.okRate==null?'—':p.okRate+'%'} · ${p.n} 采样</title></rect>`+
+      `<text class="axis" x="${x+bw/2}" y="${h-3}" text-anchor="middle">${String(p.hour).padStart(2,'0')}</text>`;
+  }).join('');
+  return `<svg width="${w}" height="${h}" style="max-width:100%">
+    <text class="axis" x="${w-26}" y="14">${max}ms</text>
+    <text class="axis" x="${w-26}" y="${h-16}">${min}ms</text>${bars}</svg>`;
+}
 
 function render(site, isDemo){
   const banner = $('#banner');
@@ -507,6 +531,8 @@ function render(site, isDemo){
       <div class="row"><span class="lbl"></span><span class="legend">${legend}</span></div>
       ${authNote}
       <div class="row"><span class="lbl">TTFT 趋势</span>${trendChart(g.trend)}</div>
+      <div class="row"><span class="lbl">时段画像</span>${hourlyChart(g.hourly)}</div>
+      ${g.peakDrift && g.peakDrift.ratio>=1.5 ? `<div class="row"><span class="lbl"></span><span class="legend"><span class="${g.peakDrift.ratio>=2?'bad':'warn'}">⚠ 高峰漂移 ${g.peakDrift.ratio}×</span>：${String(g.peakDrift.slowHour).padStart(2,'0')}:00 UTC 最慢 ${g.peakDrift.slowTtft}ms vs ${String(g.peakDrift.fastHour).padStart(2,'0')}:00 ${g.peakDrift.fastTtft}ms${g.peakDrift.worstOkRate!=null&&g.peakDrift.worstOkRate<99?`；成功率最低 ${String(g.peakDrift.worstOkRateHour).padStart(2,'0')}:00 = ${g.peakDrift.worstOkRate}%`:''}</span></div>` : g.peakDrift ? `<div class="row"><span class="lbl"></span><span class="legend good">各时段延迟平稳（漂移 ${g.peakDrift.ratio}×）</span></div>` : ''}
     </div>`;
   }).join('');
 

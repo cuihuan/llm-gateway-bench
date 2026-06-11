@@ -179,6 +179,35 @@ test('rollupGateway: runs without toolCall data yield toolCalls null', () => {
   assert.equal(r.toolCalls, null);
 });
 
+test('rollupGateway: hourly profile and peakDrift expose time-of-day slowdown', () => {
+  const mk = (ttft, ok, samples) => ({ model: 'a', samples, success: ok, ttftMs: { p50: ttft }, tokensPerSec: { avg: 60 }, errors: ok < samples ? ['timeout'] : [] });
+  const r = rollupGateway([
+    run('2026-06-10T07:00:00.000Z', [mk(500, 3, 3)]),   // 07 UTC: fast, healthy
+    run('2026-06-10T19:00:00.000Z', [mk(1500, 2, 3)]),  // 19 UTC: 3x slower, degraded
+    run('2026-06-09T19:00:00.000Z', [mk(1300, 3, 3)]),  // 19 UTC another day
+  ], '2026-06-10');
+  const h07 = r.hourly.find((h) => h.hour === 7);
+  const h19 = r.hourly.find((h) => h.hour === 19);
+  assert.equal(h07.ttftP50, 500);
+  assert.equal(h07.okRate, 100);
+  assert.equal(h19.ttftP50, 1400);      // median of [1500,1300]
+  assert.equal(h19.okRate, 83.3);       // 5/6 ok
+  assert.equal(r.peakDrift.ratio, 2.8);  // 1400/500
+  assert.equal(r.peakDrift.slowHour, 19);
+  assert.equal(r.peakDrift.fastHour, 7);
+  assert.equal(r.peakDrift.worstOkRateHour, 19);
+});
+
+test('rollupGateway: peakDrift null with fewer than 2 hours of TTFT data', () => {
+  const r = rollupGateway([
+    run('2026-06-10T07:00:00.000Z', [
+      { model: 'a', samples: 3, success: 3, ttftMs: { p50: 500 }, tokensPerSec: { avg: 60 }, errors: [] },
+    ]),
+  ], '2026-06-10');
+  assert.equal(r.peakDrift, null);
+  assert.equal(r.hourly.length, 1);
+});
+
 test('rollupGateway: empty input yields nulls, not NaN', () => {
   const r = rollupGateway([], '2026-06-10');
   assert.equal(r.uptimePct, null);
