@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>分析框架 · 知识库 · LLM Gateway Bench</title>
+<style>
+  :root {
+    --bg: #0d1117; --panel: #161b22; --panel2: #1c2128; --border: #30363d;
+    --text: #e6edf3; --muted: #8b949e; --faint: #6e7681; --accent: #58a6ff;
+    --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text);
+    font: 15px/1.7 -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; }
+  .wrap { max-width: 880px; margin: 0 auto; padding: 0 24px; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  nav { position: sticky; top: 0; z-index: 10; background: rgba(13,17,23,.92);
+    backdrop-filter: blur(6px); border-bottom: 1px solid var(--border); }
+  nav .wrap { display: flex; align-items: center; gap: 22px; height: 52px; max-width: 1240px; }
+  nav .logo { font-weight: 700; font-size: 15px; color: var(--text); }
+  nav a.lnk { color: var(--muted); font-size: 13.5px; }
+  nav a.lnk:hover { color: var(--text); text-decoration: none; }
+  nav .right { margin-left: auto; display: flex; gap: 16px; }
+  header { padding: 40px 0 20px; border-bottom: 1px solid var(--border); }
+  h1 { font-size: 26px; font-weight: 700; }
+  .lead { color: var(--muted); margin-top: 8px; max-width: 640px; }
+  .list { padding: 16px 0 8px; }
+  .item { display: flex; gap: 16px; padding: 20px 0; border-bottom: 1px solid #21262d; }
+  .item:last-child { border-bottom: none; }
+  .num { font-family: var(--mono); font-size: 22px; color: var(--faint); flex: none; width: 34px; padding-top: 2px; }
+  .body h2 { font-size: 17.5px; font-weight: 650; margin-bottom: 4px; }
+  .body h2 a { color: var(--text); }
+  .body h2 a:hover { color: var(--accent); }
+  .body p { color: var(--muted); font-size: 13.5px; }
+  .tags { margin-top: 8px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .tag { font-size: 11.5px; color: var(--muted); border: 1px solid var(--border);
+    background: var(--panel2); border-radius: 99px; padding: 1px 9px; }
+  .date { font-size: 11.5px; color: var(--faint); font-family: var(--mono); }
+  .err { color: var(--muted); padding: 50px 0; text-align: center; }
+  footer { margin-top: 40px; padding: 24px 0 44px; border-top: 1px solid var(--border);
+    color: var(--muted); font-size: 12.5px; }
+</style>
+</head>
+<body>
+<nav><div class="wrap">
+  <div class="logo">LLM Gateway Bench</div>
+  <a class="lnk" href="index.html#leaderboard">排行榜</a>
+  <a class="lnk" href="index.html#fingerprint">行为体检</a>
+  <a class="lnk" href="articles.html">分析框架</a>
+  <div class="right"><a class="lnk" href="index.html">← 返回平台</a></div>
+</div></nav>
+
+<header><div class="wrap">
+  <h1>分析框架 · 知识库</h1>
+  <p class="lead">怎么判断一个网关靠不靠谱——把拨测数据读懂的方法论。建议按顺序读：先建立选型总框架，再逐项深入。每篇都只引用平台真实测量的行为指纹，可用自己的 key 复现。</p>
+</div></header>
+
+<div class="wrap"><div class="list" id="list"><div class="err">加载中…</div></div></div>
+
+<footer><div class="wrap">
+  <p>文章与拨测数据均开源、可复现 · <a href="index.html">返回排行榜</a></p>
+</div></footer>
+
+<script>
+const esc = (s)=> String(s??'').replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+(async function(){
+  const el = document.getElementById('list');
+  try {
+    const list = await fetch('articles.json', {cache:'no-store'}).then(r=>{ if(!r.ok) throw 0; return r.json(); });
+    if(!list.length){ el.innerHTML='<div class="err">文章即将上线。</div>'; return; }
+    el.innerHTML = list.map((a,i)=>`<div class="item">
+      <div class="num">${String(i+1).padStart(2,'0')}</div>
+      <div class="body">
+        <h2><a href="article.html?slug=${encodeURIComponent(a.slug)}">${esc(a.title)}</a></h2>
+        <p>${esc(a.summary||'')}</p>
+        <div class="tags">${(a.tags||[]).map(t=>`<span class="tag">${esc(t)}</span>`).join('')}
+          ${a.date?`<span class="date">${esc(a.date)}</span>`:''}</div>
+      </div>
+    </div>`).join('');
+  } catch {
+    el.innerHTML='<div class="err">文章列表需起本地服务（npm run serve）后查看。<a href="index.html">返回平台</a></div>';
+  }
+})();
+</script>
+</body>
+</html>

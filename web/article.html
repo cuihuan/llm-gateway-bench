@@ -63,7 +63,7 @@
   <div class="logo">LLM Gateway Bench</div>
   <a class="lnk" href="index.html#leaderboard">排行榜</a>
   <a class="lnk" href="index.html#fingerprint">行为体检</a>
-  <a class="lnk" href="index.html#articles">分析框架</a>
+  <a class="lnk" href="articles.html">分析框架</a>
   <div class="right"><a class="lnk" href="index.html">← 返回平台</a></div>
 </div></nav>
 
@@ -111,7 +111,7 @@ function renderMd(md){
 (async function(){
   const slug = new URLSearchParams(location.search).get('slug') || '';
   const el = document.getElementById('art');
-  if(!/^[a-z0-9-]+$/.test(slug)){ el.innerHTML='<div class="err">文章不存在。<a href="index.html#articles">返回文章列表</a></div>'; return; }
+  if(!/^[a-z0-9-]+$/.test(slug)){ el.innerHTML='<div class="err">文章不存在。<a href="articles.html">返回文章列表</a></div>'; return; }
   try {
     const [md, manifest] = await Promise.all([
       fetch(`articles/${slug}.md`, {cache:'no-store'}).then(r=>{ if(!r.ok) throw 0; return r.text(); }),
@@ -122,14 +122,14 @@ function renderMd(md){
     const tags = (meta.tags||[]).map(t=>`<span class="a-tag">${esc(t)}</span>`).join('');
     const related = (manifest||[]).filter(a=>a.slug!==slug).slice(0,5)
       .map(a=>`<a href="article.html?slug=${encodeURIComponent(a.slug)}">${esc(a.title)} <span style="color:var(--faint)">— ${esc(a.summary||'')}</span></a>`).join('');
-    el.innerHTML = `<a class="back" href="index.html#articles">← 分析框架</a>
+    el.innerHTML = `<a class="back" href="articles.html">← 分析框架</a>
       <h1>${esc(meta.title||slug)}</h1>
       <div class="a-meta">${esc(meta.date||'')}</div>
       <div class="a-tags">${tags}</div>
       <div class="md">${renderMd(md)}</div>
       ${related?`<div class="related"><h3>继续阅读</h3>${related}</div>`:''}`;
   } catch {
-    el.innerHTML='<div class="err">文章加载失败（请用 npm run serve 起本地服务后访问）。<a href="index.html#articles">返回文章列表</a></div>';
+    el.innerHTML='<div class="err">文章加载失败（请用 npm run serve 起本地服务后访问）。<a href="articles.html">返回文章列表</a></div>';
   }
 })();
 </script>
