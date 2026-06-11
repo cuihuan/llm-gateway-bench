@@ -7,8 +7,10 @@
 
 挑一个大模型网关/中转 API 时，工程师真正关心的按优先级是：
 
-1. **信任与合规** —— 它信得过吗？是否直连官方上游（对拍验证，不看声明）、
-   prompt 是否被记录/用于训练（条款标注 + 证据链接）、主体资质与发票。
+1. **信任与合规** —— 它信得过吗？渠道来源不靠声明证明，靠**行为指纹组合**黑盒画像：
+   模型回显校验（揪偷换）、工具调用是否被剥离、假流式检测（逐 chunk 计时）、
+   CJK 输出完整性（量化降智 tell）、上下文截断 needle、usage 重算（揪虚报 token）；
+   prompt 留存/训练与主体资质走条款标注 + 证据链接。
 2. **价格** —— 它贵不贵？同模型网关价 ÷ 官方价 = 价格指数（官方价取 litellm 价格库）。
 3. **稳定性** —— 它最近稳不稳？7/30 天滚动成功率、错误画像（限流/故障/超时分开看）、
    延迟漂移、多地域网络可达（国内直连探针在 roadmap）。
@@ -17,6 +19,18 @@
 
 完整指标定义见 [docs/methodology.md](docs/methodology.md)；
 为什么做成这个形态、调研了哪些站点与工具，见 [docs/research.md](docs/research.md)。
+
+## 不只是榜单：分析框架
+
+平台不止给数字，还把"怎么判断一个网关靠不靠谱"沉淀成一套分析框架文章
+（`web/articles/`，随榜面增长）：从[选型总框架](web/articles/choosing-a-gateway.md)、
+[偷换模型与降智检测](web/articles/model-substitution.md)、
+[计费陷阱](web/articles/billing-traps.md)、[稳定性与跑路风险](web/articles/stability-and-exit-risk.md)、
+到[价格指数方法论](web/articles/price-index.md)与[OpenAI 兼容协议的坑](web/articles/openai-compat-pitfalls.md)。
+排行榜每一列都有"读懂这一维 →"深链直达对应文章——数据与框架是一个闭环。
+
+榜面维度：排行榜 · 行为体检（反欺诈指纹一表汇总）· 价格矩阵 · 稳定性时序（含高峰时段画像）·
+网关清单 · 分析框架 · 自测指南。
 
 ## 形态：无服务器，数据即仓库
 
