@@ -126,6 +126,7 @@
   <div class="logo">LLM Gateway Bench<span>大模型网关评测</span></div>
   <a class="lnk" href="#leaderboard">排行榜</a>
   <a class="lnk" href="#trust">信任与合规</a>
+  <a class="lnk" href="#fingerprint">行为体检</a>
   <a class="lnk" href="#price">价格</a>
   <a class="lnk" href="#stability">稳定性</a>
   <a class="lnk" href="#catalog">网关清单</a>
@@ -188,6 +189,18 @@
   </table></div>
 </div></section>
 
+<section id="fingerprint"><div class="wrap">
+  <h2>行为体检<span class="anchor">黑盒拨测出的"它给的是不是真东西"——不看声明，看实测</span></h2>
+  <p class="sub">每项都是固定脚本可复现的黑盒探测：<b>模型回显</b>响应 model 字段是否与请求一致（揪偷换）·<b>工具调用</b>是否被剥离 ·<b>流式真实</b>是否憋完再吐装流式 ·<b>CJK 完整</b>中文输出是否损坏（量化降智 tell）·<b>上下文</b>长文本里的标记是否被悄悄截断。绿=全部探测模型通过，红=有模型未通过，—=暂无可判定数据。</p>
+  <div class="tablebox"><table id="fp-tbl">
+    <thead><tr>
+      <th>网关</th><th>模型回显</th><th>工具调用</th><th>流式真实</th><th>CJK 完整</th><th>上下文</th><th>usage 指纹</th>
+    </tr></thead>
+    <tbody></tbody>
+  </table></div>
+  <p class="fn">这些信号<b>不构成有罪推定</b>：单次失败可能是网络抖动或模型本身能力所限，看的是<b>持续多次</b>的稳定表现。<b>usage 指纹</b>列给"每 token 字符数"，同一模型跨网关该值异常偏低=疑似虚报 token，需对照官方基线（基线对齐后点亮比对）。</p>
+</div></section>
+
 <section id="price"><div class="wrap">
   <h2>价格<span class="anchor">USD / 1M tokens（输入 / 输出）· 倍率 = 网关价 ÷ 官方价 · 官方价源自 litellm 开放价格库</span></h2>
   <div class="tablebox"><table id="price-tbl"><thead></thead><tbody></tbody></table></div>
@@ -203,7 +216,7 @@
   <h2>网关清单<span class="anchor">新网关：PR 提交 data/gateways.json 即可进入拨测</span></h2>
   <div class="tablebox"><table id="cat-tbl">
     <thead><tr>
-      <th>网关</th><th>协议</th><th class="r">模型数</th><th>探测模型</th><th>工具调用</th><th>流式真实性</th><th>价格透明度</th><th class="r">直连延迟</th>
+      <th>网关</th><th>协议</th><th class="r">模型数</th><th>探测模型</th><th>价格透明度</th><th class="r">直连延迟</th>
     </tr></thead>
     <tbody></tbody>
   </table></div>
@@ -290,6 +303,8 @@ function adapt(raw){
     errors:g.errors ?? {}, authExcluded:g.authExcluded ?? 0,
     toolCalls:g.toolCalls ?? null,
     streamBurst:g.streamBurst ?? null,
+    integrity:g.integrity ?? null,
+    usageByModel:g.usageByModel ?? [],
     hourly:g.hourly ?? [],
     peakDrift:g.peakDrift ?? null,
     trust: adaptTrust(g.trust),
@@ -356,6 +371,10 @@ DEMO.gateways.forEach((g,gi)=>{
   g.uptime7 = g.uptime;
   g.toolCalls = { ok: g.probeModels.length, total: g.probeModels.length, nonStreamMs: g.ttft*2 };
   g.streamBurst = { suspect: 0, total: g.probeModels.length };
+  const n = g.probeModels.length;
+  // 演示：aihubmix 故意展示 CJK 不通过（量化降智）以示意红态
+  g.integrity = { modelEcho:{ok:n,total:n}, cjk:{ok: gi===2?n-1:n, total:n}, needle:{ok:n,total:n} };
+  g.usageByModel = g.probeModels.map(m=>({ model:m.split('/').pop(), charsPerToken: 3.5+(gi*0.3)%1.5, promptTokens: 30+gi }));
   const rnd = seeded(gi*7+3);
   g.daysArr = Array.from({length:30},()=>{ const r=rnd();
     return { s: r > (1 - (100-g.uptime)/100*6) ? (r>0.985?'b':'w') : 'g', d:null }; });
@@ -486,6 +505,23 @@ function render(site, isDemo){
     $('#trust .tablebox').after(el);
   }
 
+  // ---- 行为体检 ----
+  const fpCell = (s)=> s==null ? '<td class="muted">—</td>'
+    : `<td><span class="num ${s.ok===s.total?'good':s.ok>0?'warn':'bad'}">${s.ok}/${s.total}</span></td>`;
+  $('#fp-tbl tbody').innerHTML = site.gateways.map(g=>{
+    const it=g.integrity, cpt=(g.usageByModel||[]).map(u=>u.charsPerToken).filter(v=>v!=null);
+    const cptCell = cpt.length ? `<td class="num muted">${(cpt.reduce((a,b)=>a+b,0)/cpt.length).toFixed(2)} 字/tok</td>` : '<td class="muted">—</td>';
+    return `<tr>
+      <td><div class="gw-name">${esc(g.name)}</div><div class="gw-sub">${esc(g.host)}</div></td>
+      ${fpCell(it?.modelEcho)}
+      ${fpCell(g.toolCalls)}
+      ${g.streamBurst==null?'<td class="muted">—</td>':`<td><span class="num ${g.streamBurst.suspect===0?'good':'bad'}">${g.streamBurst.total-g.streamBurst.suspect}/${g.streamBurst.total}</span></td>`}
+      ${fpCell(it?.cjk)}
+      ${fpCell(it?.needle)}
+      ${cptCell}
+    </tr>`;
+  }).join('');
+
   // ---- 价格矩阵（只列出现在价格快照里的网关） ----
   const priceGwIds = [...new Set(site.priceModels.flatMap(m=>Object.keys(m.cells??{})))];
   const priceGws = site.gateways.filter(g=>priceGwIds.includes(g.id));
@@ -543,8 +579,6 @@ function render(site, isDemo){
     <td>${esc(g.protocols)}</td>
     <td class="r num">${fmt(g.models)}</td>
     <td><code>${esc((g.probeModels??[]).join(' · '))||'—'}</code></td>
-    <td>${g.toolCalls==null?'<span class="muted">—</span>':`<span class="num ${g.toolCalls.ok===g.toolCalls.total?'good':g.toolCalls.ok>0?'warn':'bad'}">${g.toolCalls.ok}/${g.toolCalls.total} 模型通过</span>`}</td>
-    <td>${g.streamBurst==null?'<span class="muted">—</span>':g.streamBurst.suspect===0?`<span class="good">真流式 ${g.streamBurst.total}/${g.streamBurst.total}</span>`:`<span class="bad">疑似假流式 ${g.streamBurst.suspect}/${g.streamBurst.total}</span>`}</td>
     <td>${safeUrl(g.pricing)?`<a href="${safeUrl(g.pricing)}" target="_blank" rel="noopener">价格页</a>`:esc(g.pricing??'—')}</td>
     <td class="r num">${g.connMs==null?'—':fmt(g.connMs)+' ms'}</td>
   </tr>`).join('');

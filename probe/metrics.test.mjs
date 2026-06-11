@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { percentile, summarize, stabilityOverTime, evalToolCall, isBurstStream } from './metrics.mjs';
+import { percentile, summarize, stabilityOverTime, evalToolCall, isBurstStream, evalModelEcho, evalCjkIntegrity, evalNeedle } from './metrics.mjs';
 
 test('percentile: empty and basic cases', () => {
   assert.equal(percentile([], 50), null);
@@ -64,6 +64,17 @@ test('isBurstStream: fake-stream fingerprint vs legit fast/slow streaming', () =
   assert.equal(isBurstStream({ chunks: 8, ttftMs: undefined, streamWindowMs: 10 }), null);
 });
 
+test('summarize: modelEchoRate over judgeable samples only', () => {
+  const s = summarize([
+    { ok: true, ttftMs: 1, modelEcho: { ok: true } },
+    { ok: true, ttftMs: 1, modelEcho: { ok: false } },
+    { ok: true, ttftMs: 1, modelEcho: null },        // 无回显，不计
+    { ok: false, error: 'x' },
+  ]);
+  assert.equal(s.modelEchoRate, 0.5);
+  assert.equal(summarize([{ ok: true, ttftMs: 1 }]).modelEchoRate, null);
+});
+
 test('summarize: usage fingerprint — median promptTokens and charsPerToken', () => {
   const s = summarize([
     { ok: true, ttftMs: 100, promptTokens: 30, completionTokens: 50, outputChars: 200 }, // 4.0 cpt
@@ -100,6 +111,30 @@ test('evalToolCall: valid call passes, wrong tool / bad args / missing rejected'
   assert.equal(evalToolCall(body(null), 'get_time').ok, false);
   assert.equal(evalToolCall(undefined, 'get_time').ok, false);
   assert.equal(evalToolCall({ choices: [{ message: { content: 'plain text answer' } }] }, 'get_time').ok, false);
+});
+
+test('evalModelEcho: matches normalized, flags family mismatch, null on missing', () => {
+  assert.equal(evalModelEcho('deepseek-v4-flash', 'deepseek-v4-flash').ok, true);
+  assert.equal(evalModelEcho('deepseek/deepseek-v4-flash', 'deepseek-v4-flash').ok, true); // 供应商前缀
+  assert.equal(evalModelEcho('deepseek-v4-flash-0528', 'deepseek-v4-flash').ok, true);     // 版本后缀
+  assert.equal(evalModelEcho('gpt-4o-mini', 'deepseek-v4-flash').ok, false);               // 偷换
+  assert.equal(evalModelEcho(null, 'deepseek-v4-flash'), null);                            // 无回显
+  assert.equal(evalModelEcho('', 'x'), null);
+});
+
+test('evalCjkIntegrity: real Chinese passes, corruption/escapes/no-CJK fail', () => {
+  assert.equal(evalCjkIntegrity('今天天气晴朗，适合出门。').ok, true);
+  assert.equal(evalCjkIntegrity('today the weather is nice').ok, false);          // 无中文
+  assert.equal(evalCjkIntegrity('\\u4eca\\u5929\\u5929\\u6c14').ok, false);       // 字面量转义
+  assert.equal(evalCjkIntegrity('今�天�气�').ok, false);                          // 替换符
+  assert.equal(evalCjkIntegrity('').ok, false);
+});
+
+test('evalNeedle: finds embedded needle, flags truncation', () => {
+  assert.equal(evalNeedle('The code is ABC-12345-XYZ as requested.', 'ABC-12345-XYZ').ok, true);
+  assert.equal(evalNeedle('the code is abc-12345-xyz', 'ABC-12345-XYZ').ok, true); // 大小写无关
+  assert.equal(evalNeedle('I could not find any code.', 'ABC-12345-XYZ').ok, false);
+  assert.equal(evalNeedle('x', '').ok, false);
 });
 
 test('stabilityOverTime: averages daily success rates equally', () => {

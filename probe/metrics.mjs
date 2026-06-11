@@ -49,6 +49,11 @@ export function summarize(samples) {
       const verdicts = okSamples.map((s) => isBurstStream(s)).filter((v) => v !== null);
       return verdicts.length ? round(verdicts.filter(Boolean).length / verdicts.length, 2) : null;
     })(),
+    // 模型回显命中率（仅统计可判定样本）：<1 表示有样本回显的 model 与请求不符。
+    modelEchoRate: (() => {
+      const verdicts = okSamples.map((s) => s.modelEcho).filter((v) => v != null);
+      return verdicts.length ? round(verdicts.filter((v) => v.ok).length / verdicts.length, 2) : null;
+    })(),
     // usage 重算指纹：固定 prompt 下上报的 prompt_tokens 中位数 + 实收正文每 token
     // 字符数中位数。供跨网关/对官方基线比对——揪虚报 token 与隐藏注入。
     usage: (() => {
@@ -98,6 +103,50 @@ export function evalToolCall(body, expectedTool) {
     return { ok: false, reason: 'tool arguments are not valid JSON' };
   }
   return { ok: true };
+}
+
+const normModel = (s) => String(s ?? '').toLowerCase().replace(/[^a-z0-9]/g, '');
+
+/**
+ * 模型回显校验（偷换模型的零成本硬信号）：把响应里的 `model` 字段与请求的
+ * model 比对。请求 deepseek-v4-flash 却回显成别的家族 = 直接证据。归一化去掉
+ * 大小写/分隔符/供应商前缀，互为子串即视为一致（容忍 -0528 之类版本后缀）。
+ * 回显缺失 → null（无法判定，不算证据）。
+ */
+export function evalModelEcho(reported, requested) {
+  if (reported == null || reported === '') return null;
+  const a = normModel(reported), b = normModel(requested);
+  if (!a || !b) return null;
+  const ok = a.includes(b) || b.includes(a);
+  return ok ? { ok: true, reported } : { ok: false, reported, reason: `回显 ${reported} ≠ 请求 ${requested}` };
+}
+
+/**
+ * CJK 输出完整性（量化降智的常见 tell）：要求模型输出中文，检查是否真给出
+ * 中文且未损坏。Int4/FP4 量化在 CJK 上常退化为乱码/原始 unicode 转义/替换符。
+ * 不达标 = 疑似量化或非原生权重。需要一段应为中文的文本。
+ */
+export function evalCjkIntegrity(text) {
+  const s = String(text ?? '');
+  if (!s.trim()) return { ok: false, reason: '空响应' };
+  const cjk = (s.match(/[一-鿿]/g) || []).length;
+  const replacement = (s.match(/�/g) || []).length;             //
+  const literalEscapes = (s.match(/\\u[0-9a-fA-F]{4}/g) || []).length; // 字面量 \uXXXX 泄漏
+  if (replacement > 0) return { ok: false, reason: `含 ${replacement} 个替换符（编码损坏）` };
+  if (literalEscapes >= 3) return { ok: false, reason: `含 ${literalEscapes} 处字面量 \\u 转义（未正确解码）` };
+  if (cjk < 2) return { ok: false, reason: '响应中几乎无中文字符' };
+  return { ok: true, cjkChars: cjk };
+}
+
+/**
+ * needle 上下文截断检测：在长填充文本里埋一个唯一标记，要求模型原样回读。
+ * 网关若为省上游成本悄悄截断上下文，标记落在切点前就会确定性丢失。
+ * ok ⇔ 回答里包含该 needle（忽略大小写）。
+ */
+export function evalNeedle(text, needle) {
+  if (!needle) return { ok: false, reason: 'no needle' };
+  const found = String(text ?? '').toLowerCase().includes(String(needle).toLowerCase());
+  return found ? { ok: true } : { ok: false, reason: 'needle 未在回答中出现（疑似截断）' };
 }
 
 /**

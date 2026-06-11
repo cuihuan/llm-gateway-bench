@@ -179,6 +179,31 @@ test('rollupGateway: runs without toolCall data yield toolCalls null', () => {
   assert.equal(r.toolCalls, null);
 });
 
+test('rollupGateway: integrity snapshot counts pass/total per check from latest run', () => {
+  const r = rollupGateway([
+    run('2026-06-10T06:00:00.000Z', [
+      { model: 'a', samples: 1, success: 1, ttftMs: { p50: 600 }, tokensPerSec: { avg: 70 }, errors: [],
+        modelEchoRate: 1, cjk: { ok: true }, needle: { ok: true } },
+      { model: 'b', samples: 1, success: 1, ttftMs: { p50: 650 }, tokensPerSec: { avg: 65 }, errors: [],
+        modelEchoRate: 0, cjk: { ok: false }, needle: { ok: true } },
+    ]),
+  ], '2026-06-10');
+  assert.deepEqual(r.integrity.modelEcho, { ok: 1, total: 2 });
+  assert.deepEqual(r.integrity.cjk, { ok: 1, total: 2 });
+  assert.deepEqual(r.integrity.needle, { ok: 2, total: 2 });
+});
+
+test('rollupGateway: integrity checks null when no judgeable models', () => {
+  const r = rollupGateway([
+    run('2026-06-10T06:00:00.000Z', [
+      { model: 'a', samples: 1, success: 1, ttftMs: { p50: 600 }, tokensPerSec: { avg: 70 }, errors: [] },
+    ]),
+  ], '2026-06-10');
+  assert.equal(r.integrity.modelEcho, null);
+  assert.equal(r.integrity.cjk, null);
+  assert.equal(r.integrity.needle, null);
+});
+
 test('rollupGateway: hourly profile and peakDrift expose time-of-day slowdown', () => {
   const mk = (ttft, ok, samples) => ({ model: 'a', samples, success: ok, ttftMs: { p50: ttft }, tokensPerSec: { avg: 60 }, errors: ok < samples ? ['timeout'] : [] });
   const r = rollupGateway([

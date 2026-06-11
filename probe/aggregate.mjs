@@ -155,6 +155,18 @@ export function rollupGateway(runEntries, today) {
     }
   }
 
+  // 完整性快照（最近一次运行）：模型回显/CJK 输出/上下文截断三项可判定模型里
+  // 各有几个通过。任一 <total 即出现疑似偷换/量化/截断。无可判定模型则该项 null。
+  const snap = (pred, has) => {
+    const rows = (latest?.models ?? []).filter(has);
+    return rows.length ? { ok: rows.filter(pred).length, total: rows.length } : null;
+  };
+  const integrity = latest ? {
+    modelEcho: snap((m) => m.modelEchoRate === 1, (m) => typeof m.modelEchoRate === 'number'),
+    cjk: snap((m) => m.cjk?.ok, (m) => m.cjk),
+    needle: snap((m) => m.needle?.ok, (m) => m.needle),
+  } : null;
+
   let ttftP50 = null, ttftP95 = null, tps = null;
   if (latestOk) {
     const rows = (latestOk.models ?? []).filter((m) => m.success > 0);
@@ -177,6 +189,7 @@ export function rollupGateway(runEntries, today) {
     toolCalls,
     streamBurst,
     usageByModel,
+    integrity,
     hourly,
     peakDrift,
     connMs: latest?.connectivity?.latencyMs ?? null,

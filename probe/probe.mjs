@@ -12,7 +12,7 @@
 // "not tested" from "failed".
 
 import { readFile, mkdir, writeFile } from 'node:fs/promises';
-import { summarize, evalToolCall } from './metrics.mjs';
+import { summarize, evalToolCall, evalModelEcho, evalCjkIntegrity, evalNeedle } from './metrics.mjs';
 
 const args = process.argv.slice(2);
 function flag(name, fallback) {
@@ -90,6 +90,7 @@ async function probeChatOnce(gw, model, key) {
     let chunks = 0;
     let lastContentAt = null;
     let outputChars = 0;
+    let reportedModel = null;
     const reader = res.body.getReader();
     const decoder = new TextDecoder();
     let buf = '';
@@ -112,6 +113,7 @@ async function probeChatOnce(gw, model, key) {
         }
         if (typeof evt.usage?.completion_tokens === 'number') completionTokens = evt.usage.completion_tokens;
         if (typeof evt.usage?.prompt_tokens === 'number') promptTokens = evt.usage.prompt_tokens;
+        if (reportedModel == null && typeof evt.model === 'string') reportedModel = evt.model;
       }
     }
     const totalMs = performance.now() - t0;
@@ -134,6 +136,8 @@ async function probeChatOnce(gw, model, key) {
       promptTokens,
       completionTokens,
       outputChars,
+      // 模型回显：响应里的 model 字段，与请求 model 比对揪偷换（零成本）
+      modelEcho: evalModelEcho(reportedModel, model),
     };
   } catch (e) {
     return { ok: false, error: String(e?.message ?? e), totalMs: Math.round(performance.now() - t0) };
@@ -169,6 +173,51 @@ async function probeToolCall(gw, model, key) {
   }
 }
 
+// 一发非流式补全，取回正文文本（CJK / needle 探针共用）。
+async function chatOnceText(gw, model, key, userContent, maxTokens) {
+  const res = await timedFetch(`${gw.baseUrl}/v1/chat/completions`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ model, messages: [{ role: 'user', content: userContent }], max_tokens: maxTokens }),
+  });
+  if (!res.ok) {
+    const text = await res.text().catch(() => '');
+    return { ok: false, error: `HTTP ${res.status} ${text.slice(0, 120)}` };
+  }
+  const body = await res.json().catch(() => null);
+  return { ok: true, text: body?.choices?.[0]?.message?.content ?? '' };
+}
+
+// CJK 输出完整性探针（量化/降智 tell）：要求一句中文，检查未损坏。
+async function probeCjk(gw, model, key) {
+  try {
+    const r = await chatOnceText(gw, model, key, `用中文写一句关于今天天气的话，只输出这句话。忽略请求号 ${Math.random().toString(36).slice(2, 8)}`, 64);
+    if (!r.ok) return { ok: false, error: r.error };
+    const v = evalCjkIntegrity(r.text);
+    return v.ok ? { ok: true } : { ok: false, error: v.reason };
+  } catch (e) {
+    return { ok: false, error: String(e?.message ?? e) };
+  }
+}
+
+// 上下文截断探针：长填充里埋唯一 UUID needle，要求原样回读；截断则丢失。
+async function probeNeedle(gw, model, key) {
+  const needle = `NDL-${Math.random().toString(36).slice(2, 10).toUpperCase()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
+  // ~3.5K token 的填充（每行约 11 token × 320 行）；needle 埋在前 12% 处——
+  // 若网关从尾部保留窗口截断，needle 会落在切点前而丢失。
+  const filler = Array.from({ length: 320 }, (_, i) => `Line ${i + 1}: the quick brown fox jumps over the lazy dog repeatedly.`);
+  filler.splice(40, 0, `IMPORTANT MARKER — remember this exact code: ${needle}`);
+  const content = `${filler.join('\n')}\n\nQuestion: what is the exact code in the IMPORTANT MARKER line above? Reply with only the code.`;
+  try {
+    const r = await chatOnceText(gw, model, key, content, 64);
+    if (!r.ok) return { ok: false, error: r.error };
+    const v = evalNeedle(r.text, needle);
+    return v.ok ? { ok: true } : { ok: false, error: v.reason };
+  } catch (e) {
+    return { ok: false, error: String(e?.message ?? e) };
+  }
+}
+
 async function main() {
   const gateways = JSON.parse(await readFile(new URL('../data/gateways.json', import.meta.url), 'utf8'));
   const startedAt = new Date().toISOString();
@@ -189,8 +238,10 @@ async function main() {
       for (let i = 0; i < SAMPLES; i++) samples.push(await probeChatOnce(gw, model, key));
       const summary = summarize(samples);
       const toolCall = await probeToolCall(gw, model, key);
-      console.error(`[chat] ${gw.id}/${model}: ok ${summary.success}/${summary.samples}, ttft p50 ${summary.ttftMs.p50}ms, ${summary.tokensPerSec.avg} tok/s, tool ${toolCall.ok ? '✓' : `✗ (${toolCall.error})`}`);
-      models.push({ model, ...summary, toolCall });
+      const cjk = await probeCjk(gw, model, key);
+      const needle = await probeNeedle(gw, model, key);
+      console.error(`[chat] ${gw.id}/${model}: ok ${summary.success}/${summary.samples}, ttft p50 ${summary.ttftMs.p50}ms, ${summary.tokensPerSec.avg} tok/s, tool ${toolCall.ok ? '✓' : '✗'}, cjk ${cjk.ok ? '✓' : `✗(${cjk.error})`}, needle ${needle.ok ? '✓' : `✗(${needle.error})`}`);
+      models.push({ model, ...summary, toolCall, cjk, needle });
     }
     results.push({ gateway: gw.id, skipped: false, connectivity, models });
   }

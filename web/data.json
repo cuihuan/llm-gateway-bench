@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-11T05:40:43.513Z",
+  "generatedAt": "2026-06-11T06:15:17.414Z",
   "demo": false,
   "windowDays": 30,
   "regions": [
@@ -205,6 +205,11 @@
           "promptTokens": 33
         }
       ],
+      "integrity": {
+        "modelEcho": null,
+        "cjk": null,
+        "needle": null
+      },
       "hourly": [
         {
           "hour": 1,
@@ -437,6 +442,7 @@
       "toolCalls": null,
       "streamBurst": null,
       "usageByModel": null,
+      "integrity": null,
       "hourly": [],
       "peakDrift": null,
       "connMs": null,
@@ -618,6 +624,7 @@
       "toolCalls": null,
       "streamBurst": null,
       "usageByModel": null,
+      "integrity": null,
       "hourly": [],
       "peakDrift": null,
       "connMs": null,
@@ -798,6 +805,7 @@
       "toolCalls": null,
       "streamBurst": null,
       "usageByModel": null,
+      "integrity": null,
       "hourly": [],
       "peakDrift": null,
       "connMs": null,
@@ -978,6 +986,7 @@
       "toolCalls": null,
       "streamBurst": null,
       "usageByModel": null,
+      "integrity": null,
       "hourly": [],
       "peakDrift": null,
       "connMs": null,
@@ -1158,6 +1167,7 @@
       "toolCalls": null,
       "streamBurst": null,
       "usageByModel": null,
+      "integrity": null,
       "hourly": [],
       "peakDrift": null,
       "connMs": null,
@@ -1338,6 +1348,7 @@
       "toolCalls": null,
       "streamBurst": null,
       "usageByModel": null,
+      "integrity": null,
       "hourly": [],
       "peakDrift": null,
       "connMs": null,
@@ -1518,6 +1529,7 @@
       "toolCalls": null,
       "streamBurst": null,
       "usageByModel": null,
+      "integrity": null,
       "hourly": [],
       "peakDrift": null,
       "connMs": null,
@@ -1698,6 +1710,7 @@
       "toolCalls": null,
       "streamBurst": null,
       "usageByModel": null,
+      "integrity": null,
       "hourly": [],
       "peakDrift": null,
       "connMs": null,
@@ -1878,6 +1891,7 @@
       "toolCalls": null,
       "streamBurst": null,
       "usageByModel": null,
+      "integrity": null,
       "hourly": [],
       "peakDrift": null,
       "connMs": null,
@@ -2058,6 +2072,7 @@
       "toolCalls": null,
       "streamBurst": null,
       "usageByModel": null,
+      "integrity": null,
       "hourly": [],
       "peakDrift": null,
       "connMs": null,
