@@ -130,6 +130,7 @@
   <a class="lnk" href="#price">价格</a>
   <a class="lnk" href="#stability">稳定性</a>
   <a class="lnk" href="#catalog">网关清单</a>
+  <a class="lnk" href="#articles">分析框架</a>
   <a class="lnk" href="#selftest">自测指南</a>
   <div class="right">
     <a class="lnk" href="https://github.com/cuihuan/llm-gateway-bench/blob/main/docs/methodology.md">方法论</a>
@@ -220,6 +221,12 @@
     </tr></thead>
     <tbody></tbody>
   </table></div>
+</div></section>
+
+<section id="articles"><div class="wrap">
+  <h2>分析框架<span class="anchor">怎么判断一个网关靠不靠谱——把拨测数据读懂的方法论文章</span></h2>
+  <p class="sub">榜面上的每一列背后都有一套判断逻辑。这些文章把"它给的是不是真模型、有没有多收钱、稳不稳会不会跑路"拆成可操作的分析框架，并解释平台怎么测、你怎么读。</p>
+  <div class="pains" id="article-list"><div class="pain"><p class="muted">文章加载中…</p></div></div>
 </div></section>
 
 <section id="selftest"><div class="wrap">
@@ -591,6 +598,22 @@ function render(site, isDemo){
     render(adapt(await r.json()), false);
   } catch (e) {
     render(DEMO, true);
+  }
+})();
+
+// 文章列表（独立加载，失败不影响主榜）
+(async function articles(){
+  const box = $('#article-list'); if(!box) return;
+  try {
+    const list = await fetch('articles.json', {cache:'no-store'}).then(r=>r.ok?r.json():[]);
+    if(!list.length){ box.innerHTML = '<div class="pain"><p class="muted">文章即将上线。</p></div>'; return; }
+    box.innerHTML = list.map(a=>`<div class="pain">
+      <h3><a href="article.html?slug=${encodeURIComponent(a.slug)}">${esc(a.title)}</a></h3>
+      <p>${esc(a.summary||'')}</p>
+      <p>${(a.tags||[]).map(t=>`<span class="muted" style="font-size:11.5px">#${esc(t)}</span>`).join(' ')}</p>
+    </div>`).join('');
+  } catch {
+    box.innerHTML = '<div class="pain"><p class="muted">文章列表需起本地服务（npm run serve）后查看。</p></div>';
   }
 })();
 </script>

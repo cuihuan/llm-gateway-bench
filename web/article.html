@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>分析框架 · LLM Gateway Bench</title>
+<style>
+  :root {
+    --bg: #0d1117; --panel: #161b22; --panel2: #1c2128; --border: #30363d;
+    --text: #e6edf3; --muted: #8b949e; --faint: #6e7681;
+    --accent: #58a6ff; --good: #3fb950; --warn: #d29922; --bad: #f85149;
+    --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text);
+    font: 16px/1.75 -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; }
+  .wrap { max-width: 760px; margin: 0 auto; padding: 0 24px; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  nav { position: sticky; top: 0; z-index: 10; background: rgba(13,17,23,.92);
+    backdrop-filter: blur(6px); border-bottom: 1px solid var(--border); }
+  nav .wrap { display: flex; align-items: center; gap: 22px; height: 52px; max-width: 1240px; }
+  nav .logo { font-weight: 700; font-size: 15px; color: var(--text); }
+  nav a.lnk { color: var(--muted); font-size: 13.5px; }
+  nav a.lnk:hover { color: var(--text); text-decoration: none; }
+  nav .right { margin-left: auto; display: flex; gap: 16px; }
+
+  article { padding: 40px 0 24px; }
+  .back { font-size: 13px; color: var(--muted); }
+  h1 { font-size: 30px; font-weight: 700; line-height: 1.3; margin: 14px 0 6px; }
+  .a-meta { color: var(--faint); font-size: 13px; font-family: var(--mono); margin-bottom: 8px; }
+  .a-tags { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 28px; }
+  .a-tag { font-size: 12px; color: var(--muted); border: 1px solid var(--border);
+    background: var(--panel2); border-radius: 99px; padding: 2px 10px; }
+
+  .md h2 { font-size: 21px; font-weight: 700; margin: 34px 0 12px; padding-top: 8px; border-top: 1px solid var(--border); }
+  .md h3 { font-size: 17px; font-weight: 600; margin: 24px 0 8px; }
+  .md p { margin: 14px 0; }
+  .md ul, .md ol { margin: 14px 0 14px 24px; }
+  .md li { margin: 6px 0; }
+  .md strong { color: #fff; font-weight: 650; }
+  .md code { font-family: var(--mono); font-size: 13.5px; background: var(--panel2);
+    border: 1px solid var(--border); border-radius: 4px; padding: 1px 5px; }
+  .md pre { background: var(--panel); border: 1px solid var(--border); border-radius: 8px;
+    padding: 14px 16px; overflow-x: auto; margin: 16px 0; }
+  .md pre code { background: none; border: none; padding: 0; font-size: 13px; line-height: 1.6; }
+  .md blockquote { border-left: 3px solid var(--accent); background: var(--panel2);
+    padding: 8px 16px; margin: 16px 0; color: var(--muted); border-radius: 0 6px 6px 0; }
+  .md blockquote p { margin: 4px 0; }
+  .md a { border-bottom: 1px solid transparent; }
+  .md hr { border: none; border-top: 1px solid var(--border); margin: 28px 0; }
+
+  .related { margin: 40px 0 0; padding: 20px 0 0; border-top: 1px solid var(--border); }
+  .related h3 { font-size: 14px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 12px; }
+  .related a { display: block; padding: 4px 0; }
+  .err { color: var(--muted); padding: 60px 0; text-align: center; }
+  footer { margin-top: 44px; padding: 24px 0 44px; border-top: 1px solid var(--border);
+    color: var(--muted); font-size: 12.5px; }
+</style>
+</head>
+<body>
+<nav><div class="wrap">
+  <div class="logo">LLM Gateway Bench</div>
+  <a class="lnk" href="index.html#leaderboard">排行榜</a>
+  <a class="lnk" href="index.html#fingerprint">行为体检</a>
+  <a class="lnk" href="index.html#articles">分析框架</a>
+  <div class="right"><a class="lnk" href="index.html">← 返回平台</a></div>
+</div></nav>
+
+<div class="wrap"><article id="art"><div class="err">加载中…</div></article></div>
+
+<footer><div class="wrap">
+  <p>MIT License · 文章与拨测数据均开源，可用自己的 key 复现 · <a href="index.html">返回排行榜</a></p>
+</div></footer>
+
+<script>
+// 极简 Markdown 渲染器（文章为仓库内一手内容；仍先转义 HTML 再渲染受控子集）
+const esc = (s)=> String(s).replace(/[&<>]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+function inline(s){
+  return esc(s)
+    .replace(/`([^`]+)`/g, (_,c)=>`<code>${c}</code>`)
+    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_,t,u)=>{
+      const safe = /^https?:\/\//.test(u) ? u : /^[a-z0-9-]+$/.test(u) ? `article.html?slug=${u}` : '#';
+      const ext = /^https?:/.test(u) ? ' target="_blank" rel="noopener"' : '';
+      return `<a href="${safe}"${ext}>${t}</a>`;
+    });
+}
+function renderMd(md){
+  const lines = md.replace(/\r/g,'').split('\n');
+  let html='', i=0, list=null;
+  const closeList=()=>{ if(list){ html+=`</${list}>`; list=null; } };
+  while(i<lines.length){
+    let ln = lines[i];
+    if(ln.startsWith('```')){ closeList(); let code=''; i++;
+      while(i<lines.length && !lines[i].startsWith('```')){ code+=lines[i]+'\n'; i++; }
+      html+=`<pre><code>${esc(code.replace(/\n$/,''))}</code></pre>`; i++; continue; }
+    if(/^#{1,3}\s/.test(ln)){ closeList(); const lvl=ln.match(/^#+/)[0].length;
+      const t=ln.replace(/^#+\s/,''); html+= lvl===1?`<h2>${inline(t)}</h2>`:`<h${lvl}>${inline(t)}</h${lvl}>`; i++; continue; }
+    if(/^>\s?/.test(ln)){ closeList(); let q=''; while(i<lines.length && /^>\s?/.test(lines[i])){ q+=lines[i].replace(/^>\s?/,'')+' '; i++; }
+      html+=`<blockquote><p>${inline(q.trim())}</p></blockquote>`; continue; }
+    if(/^[-*]\s/.test(ln)){ if(list!=='ul'){ closeList(); list='ul'; html+='<ul>'; } html+=`<li>${inline(ln.replace(/^[-*]\s/,''))}</li>`; i++; continue; }
+    if(/^\d+\.\s/.test(ln)){ if(list!=='ol'){ closeList(); list='ol'; html+='<ol>'; } html+=`<li>${inline(ln.replace(/^\d+\.\s/,''))}</li>`; i++; continue; }
+    if(/^(---|\*\*\*)\s*$/.test(ln)){ closeList(); html+='<hr>'; i++; continue; }
+    if(ln.trim()===''){ closeList(); i++; continue; }
+    closeList(); html+=`<p>${inline(ln)}</p>`; i++;
+  }
+  closeList(); return html;
+}
+
+(async function(){
+  const slug = new URLSearchParams(location.search).get('slug') || '';
+  const el = document.getElementById('art');
+  if(!/^[a-z0-9-]+$/.test(slug)){ el.innerHTML='<div class="err">文章不存在。<a href="index.html#articles">返回文章列表</a></div>'; return; }
+  try {
+    const [md, manifest] = await Promise.all([
+      fetch(`articles/${slug}.md`, {cache:'no-store'}).then(r=>{ if(!r.ok) throw 0; return r.text(); }),
+      fetch('articles.json', {cache:'no-store'}).then(r=>r.ok?r.json():[]).catch(()=>[]),
+    ]);
+    const meta = (manifest||[]).find(a=>a.slug===slug) || {};
+    document.title = (meta.title||slug) + ' · LLM Gateway Bench';
+    const tags = (meta.tags||[]).map(t=>`<span class="a-tag">${esc(t)}</span>`).join('');
+    const related = (manifest||[]).filter(a=>a.slug!==slug).slice(0,5)
+      .map(a=>`<a href="article.html?slug=${encodeURIComponent(a.slug)}">${esc(a.title)} <span style="color:var(--faint)">— ${esc(a.summary||'')}</span></a>`).join('');
+    el.innerHTML = `<a class="back" href="index.html#articles">← 分析框架</a>
+      <h1>${esc(meta.title||slug)}</h1>
+      <div class="a-meta">${esc(meta.date||'')}</div>
+      <div class="a-tags">${tags}</div>
+      <div class="md">${renderMd(md)}</div>
+      ${related?`<div class="related"><h3>继续阅读</h3>${related}</div>`:''}`;
+  } catch {
+    el.innerHTML='<div class="err">文章加载失败（请用 npm run serve 起本地服务后访问）。<a href="index.html#articles">返回文章列表</a></div>';
+  }
+})();
+</script>
+</body>
+</html>
