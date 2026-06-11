@@ -49,6 +49,18 @@ export function summarize(samples) {
       const verdicts = okSamples.map((s) => isBurstStream(s)).filter((v) => v !== null);
       return verdicts.length ? round(verdicts.filter(Boolean).length / verdicts.length, 2) : null;
     })(),
+    // usage 重算指纹：固定 prompt 下上报的 prompt_tokens 中位数 + 实收正文每 token
+    // 字符数中位数。供跨网关/对官方基线比对——揪虚报 token 与隐藏注入。
+    usage: (() => {
+      const promptToks = okSamples.map((s) => s.promptTokens).filter((v) => typeof v === 'number');
+      const cpt = okSamples
+        .filter((s) => typeof s.completionTokens === 'number' && s.completionTokens > 0 && typeof s.outputChars === 'number')
+        .map((s) => s.outputChars / s.completionTokens);
+      return {
+        promptTokens: round(percentile(promptToks, 50)),
+        charsPerToken: cpt.length ? round(percentile(cpt, 50), 2) : null,
+      };
+    })(),
     errors: samples.filter((s) => !s.ok).map((s) => s.error ?? 'unknown').slice(0, 5),
   };
 }

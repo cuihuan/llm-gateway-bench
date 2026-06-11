@@ -86,8 +86,10 @@ async function probeChatOnce(gw, model, key) {
     }
     let ttftMs = null;
     let completionTokens = null;
+    let promptTokens = null;
     let chunks = 0;
     let lastContentAt = null;
+    let outputChars = 0;
     const reader = res.body.getReader();
     const decoder = new TextDecoder();
     let buf = '';
@@ -101,12 +103,15 @@ async function probeChatOnce(gw, model, key) {
         if (!line.startsWith('data: ') || line.includes('[DONE]')) continue;
         let evt;
         try { evt = JSON.parse(line.slice(6)); } catch { continue; }
-        if (evt.choices?.[0]?.delta?.content) {
+        const delta = evt.choices?.[0]?.delta?.content;
+        if (delta) {
           chunks++;
+          outputChars += delta.length;
           lastContentAt = performance.now();
           if (ttftMs === null) ttftMs = lastContentAt - t0;
         }
-        if (evt.usage?.completion_tokens) completionTokens = evt.usage.completion_tokens;
+        if (typeof evt.usage?.completion_tokens === 'number') completionTokens = evt.usage.completion_tokens;
+        if (typeof evt.usage?.prompt_tokens === 'number') promptTokens = evt.usage.prompt_tokens;
       }
     }
     const totalMs = performance.now() - t0;
@@ -123,6 +128,12 @@ async function probeChatOnce(gw, model, key) {
       chunks,
       // 首个内容 chunk 到末个内容 chunk 的时间窗——假流式检测的核心指纹
       streamWindowMs: Math.round(lastContentAt - (t0 + ttftMs)),
+      // usage 重算指纹：固定 prompt 下网关上报的 token 数 + 实收正文字符数。
+      // 同模型若某网关 charsPerToken 异常偏低 = 虚报 token；promptTokens 远超
+      // 同模型基线 = 隐藏 system prompt 注入。需基线对照，先把原始信号沉淀进数据。
+      promptTokens,
+      completionTokens,
+      outputChars,
     };
   } catch (e) {
     return { ok: false, error: String(e?.message ?? e), totalMs: Math.round(performance.now() - t0) };

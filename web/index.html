@@ -129,6 +129,7 @@
   <a class="lnk" href="#price">价格</a>
   <a class="lnk" href="#stability">稳定性</a>
   <a class="lnk" href="#catalog">网关清单</a>
+  <a class="lnk" href="#selftest">自测指南</a>
   <div class="right">
     <a class="lnk" href="https://github.com/cuihuan/llm-gateway-bench/blob/main/docs/methodology.md">方法论</a>
     <a class="lnk" href="https://github.com/cuihuan/llm-gateway-bench">GitHub</a>
@@ -137,7 +138,7 @@
 
 <header><div class="wrap">
   <h1>大模型网关评测</h1>
-  <p class="tagline">从工程师视角持续评测大模型 API 网关。三个核心问题：<b>信得过吗（直连官转 · 数据留存）· 贵不贵（对标官方价）· 稳不稳（30 天拨测数据）</b>。拨测脚本、原始数据、聚合逻辑全部开源，可用自己的 key 复现。</p>
+  <p class="tagline">选中转 API / 网关最怕什么：<b>偷换模型降智、虚报 token、假流式、跑路、高峰卡死</b>。这些<b>不靠网关自己声明</b>，靠持续拨测出的<b>行为指纹</b>来判。脚本、原始数据、聚合逻辑全开源，你也能用自己的 key 复现去测自己的网关。</p>
   <div class="meta-row">
     <div class="meta-item"><div class="k">最近拨测</div><div class="v" id="m-last">—</div></div>
     <div class="meta-item"><div class="k">拨测频率</div><div class="v">6h / 次</div></div>
@@ -146,12 +147,12 @@
     <div class="meta-item"><div class="k">探测地域</div><div class="v" id="m-region">—</div></div>
   </div>
   <div class="pains">
-    <div class="pain"><div class="no">PAIN #1</div><h3>信得过吗？</h3>
-      <p>是不是直连官方上游、prompt 有没有被记录、主体能不能开发票。声明不算数，看<a href="#trust">对拍验证与证据链接 ↓</a></p></div>
-    <div class="pain"><div class="no">PAIN #2</div><h3>贵不贵？</h3>
-      <p>同一个模型，网关价对标官方价是几折，有没有隐藏倍率。<a href="#price">价格矩阵 ↓</a></p></div>
-    <div class="pain"><div class="no">PAIN #3</div><h3>稳不稳？</h3>
-      <p>最近 30 天成功率、错误是限流还是故障、高峰期会不会变慢。<a href="#stability">拨测时序 ↓</a></p></div>
+    <div class="pain"><div class="no">怕被坑 #1</div><h3>它给的是真模型吗？</h3>
+      <p>偷换成便宜模型、悄悄量化降智、工具调用被剥离、假流式（憋完再吐装流式）。看<a href="#catalog">工具调用 / 流式真实性 ↓</a>与<a href="#trust">行为指纹 ↓</a></p></div>
+    <div class="pain"><div class="no">怕被坑 #2</div><h3>它有没有多收钱？</h3>
+      <p>虚报 token 倍率、隐藏 system prompt 注入、缓存按全价计、便宜得反常的逆向渠道。看<a href="#price">价格矩阵 ↓</a>与 usage 重算指纹</p></div>
+    <div class="pain"><div class="no">怕被坑 #3</div><h3>它会不会崩 / 跑路？</h3>
+      <p>高峰限速卡死、封号波及断流、低价引流后涨价跑路。看<a href="#stability">30 天成功率时序 ↓</a>——跑得越久越能看出端倪</p></div>
   </div>
   <div class="mock-banner" id="banner" hidden></div>
 </div></header>
@@ -176,8 +177,8 @@
 </div></section>
 
 <section id="trust"><div class="wrap">
-  <h2>信任与合规<span class="anchor">声明不算数，每个结论都要挂证据链接，接受 PR 纠错</span></h2>
-  <p class="sub">渠道来源用「对拍验证」出硬证据：固定请求集（含工具调用与采样敏感用例）同时打到网关与官方 API，比对工具调用合法率、tokenizer 行为与延迟特征（K2 Vendor Verifier 方法）。数据留存与主体资质来自条款原文的人工标注，附标注日期。</p>
+  <h2>信任与合规<span class="anchor">不看声明，看行为指纹；政策类结论挂证据链接，接受 PR 纠错</span></h2>
+  <p class="sub">渠道来源难以直接"证明"，本评测的立场是<b>行为指纹组合</b>：工具调用是否被剥离、流式是否真实（逐 chunk 计时）、usage 是否被虚报（本地重算比对）、延迟特征是否与官方一致——多个黑盒可测信号共同画像，而非采信网关自我声明。条件具备时再做 K2 式与官方 API 对拍（固定请求集比对 finish_reason F1 与 schema 合法率）。数据留存与主体资质来自条款原文人工标注，附标注日期。</p>
   <div class="tablebox"><table id="trust-tbl">
     <thead><tr>
       <th>网关</th><th>渠道来源</th><th>对拍验证</th>
@@ -206,6 +207,29 @@
     </tr></thead>
     <tbody></tbody>
   </table></div>
+</div></section>
+
+<section id="selftest"><div class="wrap">
+  <h2>自测指南<span class="anchor">用你自己的 key，三分钟拨测任意一个网关</span></h2>
+  <p class="sub">榜单上没有你在用的网关？或者想亲自验一下它给的是不是真模型？把它加进 <code>data/gateways.json</code>，用你的 key 在本地跑同一套拨测脚本——和榜单完全一致、可复现。</p>
+  <div class="tablebox" style="padding:16px 18px">
+    <pre style="margin:0;overflow-x:auto;font-family:var(--mono);font-size:12.5px;line-height:1.7;color:var(--text)"><span class="muted"># Node ≥ 20，零依赖。克隆后：</span>
+git clone https://github.com/cuihuan/llm-gateway-bench &amp;&amp; cd llm-gateway-bench
+
+<span class="muted"># 一次性拨测某个网关（OpenAI 兼容端点），看它的真实表现：</span>
+YOUR_KEY=sk-... node probe/probe.mjs --samples 3 --gateway &lt;id&gt; --out data/results
+
+<span class="muted"># 聚合并本地起看板：</span>
+npm run aggregate &amp;&amp; npm run serve   <span class="muted"># → http://localhost:8080</span></pre>
+  </div>
+  <div class="pains" style="margin-top:14px">
+    <div class="pain"><h3>它测出来的"行为指纹"</h3>
+      <p><b>工具调用</b>是否被剥离 · <b>流式真实性</b>（假流式 = TTFT≈总延迟后一次性吐）· <b>usage 重算</b>（每 token 字符数异常偏低 = 疑似虚报）· <b>TTFT/吞吐</b>实测分位数。</p></div>
+    <div class="pain"><h3>为什么可信</h3>
+      <p>探测 prompt、采样数、判定阈值全写在脚本里，带随机串防缓存；原始结果逐次 commit 进 <code>data/results/</code>，任何人可用自己的 key 复现同一结论。不做黑箱加权总分。</p></div>
+    <div class="pain"><h3>把你的网关加进榜单</h3>
+      <p>PR 修改 <code>data/gateways.json</code>（填 baseUrl / authEnv / probeModels），维护者在 Secrets 配 key 后自动进入每 6 小时拨测，数据随时间积累。</p></div>
+  </div>
 </div></section>
 
 <footer><div class="wrap">

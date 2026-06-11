@@ -136,6 +136,29 @@ test('rollupGateway: tool-call capability snapshot from the latest run', () => {
   assert.deepEqual(r.toolCalls, { ok: 1, total: 2, nonStreamMs: 1000 }); // latest run only, p50 of [800,1200]
 });
 
+test('rollupGateway: usageByModel from latest run carries per-model fingerprint', () => {
+  const r = rollupGateway([
+    run('2026-06-10T06:00:00.000Z', [
+      { model: 'a', samples: 1, success: 1, ttftMs: { p50: 600 }, tokensPerSec: { avg: 70 }, errors: [], usage: { promptTokens: 30, charsPerToken: 3.8 } },
+      { model: 'b', samples: 1, success: 1, ttftMs: { p50: 650 }, tokensPerSec: { avg: 65 }, errors: [], usage: { promptTokens: 31, charsPerToken: null } },
+      { model: 'c', samples: 1, success: 0, ttftMs: {}, tokensPerSec: {}, errors: ['HTTP 502'] }, // no usage
+    ]),
+  ], '2026-06-10');
+  assert.deepEqual(r.usageByModel, [
+    { model: 'a', charsPerToken: 3.8, promptTokens: 30 },
+    { model: 'b', charsPerToken: null, promptTokens: 31 },
+  ]);
+});
+
+test('rollupGateway: usageByModel null when no usage data', () => {
+  const r = rollupGateway([
+    run('2026-06-10T06:00:00.000Z', [
+      { model: 'a', samples: 1, success: 1, ttftMs: { p50: 600 }, tokensPerSec: { avg: 70 }, errors: [] },
+    ]),
+  ], '2026-06-10');
+  assert.equal(r.usageByModel, null);
+});
+
 test('rollupGateway: stream-burst snapshot counts suspect models from latest run', () => {
   const r = rollupGateway([
     run('2026-06-10T06:00:00.000Z', [

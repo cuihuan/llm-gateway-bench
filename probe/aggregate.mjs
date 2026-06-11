@@ -101,6 +101,16 @@ export function rollupGateway(runEntries, today) {
     }
   }
 
+  // usage 重算指纹（按模型，取最近一次运行）：charsPerToken 偏低=疑似虚报 token。
+  // 跨网关同模型比对的依据——comparison 在 main() 里跨网关做。
+  let usageByModel = null;
+  if (latest) {
+    const rows = (latest.models ?? []).filter((m) => m.usage && (m.usage.charsPerToken != null || m.usage.promptTokens != null));
+    if (rows.length) {
+      usageByModel = rows.map((m) => ({ model: m.model, charsPerToken: m.usage.charsPerToken ?? null, promptTokens: m.usage.promptTokens ?? null }));
+    }
+  }
+
   // tool-call capability snapshot from the most recent run that attempted it
   let toolCalls = null;
   if (latest) {
@@ -135,6 +145,7 @@ export function rollupGateway(runEntries, today) {
     speed: { ttftP50, ttftP95, tps, trend },
     toolCalls,
     streamBurst,
+    usageByModel,
     connMs: latest?.connectivity?.latencyMs ?? null,
     connOk: latest?.connectivity?.ok ?? null,
     modelCount: latest?.connectivity?.modelCount ?? null,

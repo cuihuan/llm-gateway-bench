@@ -64,6 +64,23 @@ test('isBurstStream: fake-stream fingerprint vs legit fast/slow streaming', () =
   assert.equal(isBurstStream({ chunks: 8, ttftMs: undefined, streamWindowMs: 10 }), null);
 });
 
+test('summarize: usage fingerprint — median promptTokens and charsPerToken', () => {
+  const s = summarize([
+    { ok: true, ttftMs: 100, promptTokens: 30, completionTokens: 50, outputChars: 200 }, // 4.0 cpt
+    { ok: true, ttftMs: 100, promptTokens: 32, completionTokens: 40, outputChars: 120 }, // 3.0 cpt
+    { ok: true, ttftMs: 100, promptTokens: 31, completionTokens: 0, outputChars: 10 },   // cpt skipped (0 tokens)
+    { ok: false, error: 'x' },
+  ]);
+  assert.equal(s.usage.promptTokens, 31);          // median of [30,32,31]
+  assert.equal(s.usage.charsPerToken, 3.5);        // median of [4.0, 3.0]
+});
+
+test('summarize: usage fingerprint null when no usage reported', () => {
+  const s = summarize([{ ok: true, ttftMs: 100, chunks: 5 }]);
+  assert.equal(s.usage.promptTokens, null);
+  assert.equal(s.usage.charsPerToken, null);
+});
+
 test('summarize: burstStreamRate over judgeable ok samples only', () => {
   const s = summarize([
     { ok: true, ttftMs: 3000, chunks: 20, streamWindowMs: 40 },   // 假流式
