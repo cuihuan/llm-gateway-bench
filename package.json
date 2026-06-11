@@ -11,6 +11,7 @@
     "prices": "node probe/prices.mjs",
     "aggregate": "node probe/aggregate.mjs",
     "record": "./scripts/record.sh",
-    "record:loop": "while true; do ./scripts/record.sh || true; sleep 600; done"
+    "record:loop": "while true; do ./scripts/record.sh || true; sleep 600; done",
+    "serve": "python3 -m http.server -d web 8080"
   }
 }
