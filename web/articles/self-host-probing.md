@@ -8,14 +8,19 @@
 
 ## 三分钟跑一轮
 
+最快的方式——`--url` 直接拨测任意 OpenAI 兼容端点，**不用改任何文件、不用提交**：
+
 ```
 git clone https://github.com/cuihuan/llm-gateway-bench && cd llm-gateway-bench
 
-# 把你的网关加进 data/gateways.json（填 baseUrl / authEnv / probeModels），然后：
-YOUR_KEY=sk-... node probe/probe.mjs --samples 3 --gateway <id> --out data/results
-
-npm run aggregate && npm run serve   # → http://localhost:8080
+# key 从环境变量读（默认 PROBE_KEY），不走命令行避免泄露：
+PROBE_KEY=sk-... node probe/probe.mjs \
+  --url https://your-gateway.com --model gpt-4o-mini --samples 3
 ```
+
+结果（含全套行为指纹）直接打到 stdout，不落盘、不污染仓库数据。想一次测多个模型就 `--model a,b,c`。
+
+要把它纳入榜单和本地看板，再走完整流程：把网关加进 `data/gateways.json`，然后 `node probe/probe.mjs --gateway <id> --out data/results`，最后 `npm run aggregate && npm run serve`（→ http://localhost:8080）。
 
 需要的只是 Node ≥ 20，没有任何第三方依赖。`--samples 3` 表示每个模型拨测三次取分位数；想测高峰漂移就挂个定时任务（仓库里有 10 分钟一次的本地记录器 `scripts/record.sh` 可直接用）。
 

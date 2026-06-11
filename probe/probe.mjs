@@ -22,6 +22,25 @@ function flag(name, fallback) {
 const SAMPLES = Number(flag('samples', 3));
 const OUT_DIR = flag('out', 'out');
 const ONLY_GATEWAY = flag('gateway', null);
+
+/**
+ * 临时网关：用 --url 直接拨测任意 OpenAI 兼容端点，免改 data/gateways.json。
+ * key 从环境变量读（默认 PROBE_KEY，可用 --auth-env 指定），不走命令行避免泄露。
+ * 返回 gateway 对象，或 url 缺失时 null。
+ */
+export function adhocGateway({ url, model, name, authEnv } = {}) {
+  if (!url) return null;
+  const models = String(model ?? '')
+    .split(',').map((s) => s.trim()).filter(Boolean);
+  return {
+    id: 'adhoc',
+    name: name || new URL(url).host,
+    baseUrl: url.replace(/\/+$/, ''),
+    authEnv: authEnv || 'PROBE_KEY',
+    probeModels: models,
+    tags: [],
+  };
+}
 const TIMEOUT_MS = 60_000;
 // llmperf 惯例：让模型生成到 max_tokens 上限的固定任务，而不是一句 "pong"——
 // 否则输出只有 2-3 个 chunk，tok/s 是除以几毫秒的噪声，假流式检测也凑不够样本。
@@ -219,7 +238,14 @@ async function probeNeedle(gw, model, key) {
 }
 
 async function main() {
-  const gateways = JSON.parse(await readFile(new URL('../data/gateways.json', import.meta.url), 'utf8'));
+  const adhoc = adhocGateway({ url: flag('url', null), model: flag('model', null), name: flag('name', null), authEnv: flag('auth-env', null) });
+  if (adhoc && !adhoc.probeModels.length) {
+    console.error('[probe] --url 需要配合 --model <id[,id2]>（要拨测哪个模型）');
+    process.exit(1);
+  }
+  const gateways = adhoc
+    ? [adhoc]
+    : JSON.parse(await readFile(new URL('../data/gateways.json', import.meta.url), 'utf8'));
   const startedAt = new Date().toISOString();
   const results = [];
   for (const gw of gateways) {
@@ -258,13 +284,21 @@ async function main() {
     samplesPerModel: SAMPLES,
     results,
   };
+  // 临时拨测（--url）只打印结果，不污染 data/results；显式 --out 仍会落盘。
+  if (adhoc && flag('out', null) === null) {
+    console.log(JSON.stringify(run, null, 2));
+    return;
+  }
   await mkdir(OUT_DIR, { recursive: true });
   const file = `${OUT_DIR}/${startedAt.slice(0, 10)}T${startedAt.slice(11, 19).replaceAll(':', '')}-${run.region}.json`;
   await writeFile(file, JSON.stringify(run, null, 2));
   console.log(file);
 }
 
-main().catch((e) => {
-  console.error(e);
-  process.exit(1);
-});
+// 仅作为脚本直接运行时执行 main；被 import（如单测）时不自动跑。
+if (process.argv[1] && import.meta.url.endsWith(process.argv[1].split('/').pop())) {
+  main().catch((e) => {
+    console.error(e);
+    process.exit(1);
+  });
+}

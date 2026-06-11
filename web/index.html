@@ -236,11 +236,11 @@
     <pre style="margin:0;overflow-x:auto;font-family:var(--mono);font-size:12.5px;line-height:1.7;color:var(--text)"><span class="muted"># Node ≥ 20，零依赖。克隆后：</span>
 git clone https://github.com/cuihuan/llm-gateway-bench &amp;&amp; cd llm-gateway-bench
 
-<span class="muted"># 一次性拨测某个网关（OpenAI 兼容端点），看它的真实表现：</span>
-YOUR_KEY=sk-... node probe/probe.mjs --samples 3 --gateway &lt;id&gt; --out data/results
+<span class="muted"># 最快：--url 直接拨测任意 OpenAI 兼容端点，免改文件、结果打到 stdout：</span>
+PROBE_KEY=sk-... node probe/probe.mjs --url https://your-gateway.com --model gpt-4o-mini --samples 3
 
-<span class="muted"># 聚合并本地起看板：</span>
-npm run aggregate &amp;&amp; npm run serve   <span class="muted"># → http://localhost:8080</span></pre>
+<span class="muted"># 纳入榜单+本地看板：加进 data/gateways.json 后</span>
+node probe/probe.mjs --gateway &lt;id&gt; --out data/results &amp;&amp; npm run aggregate &amp;&amp; npm run serve
   </div>
   <div class="pains" style="margin-top:14px">
     <div class="pain"><h3>它测出来的"行为指纹"</h3>

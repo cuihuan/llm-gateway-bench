@@ -1,0 +1,25 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { adhocGateway } from './probe.mjs';
+
+test('adhocGateway: builds gateway from --url + --model', () => {
+  const gw = adhocGateway({ url: 'https://api.example.com/', model: 'gpt-4o-mini' });
+  assert.equal(gw.id, 'adhoc');
+  assert.equal(gw.baseUrl, 'https://api.example.com'); // 去尾部斜杠
+  assert.equal(gw.name, 'api.example.com');            // 默认取 host
+  assert.equal(gw.authEnv, 'PROBE_KEY');               // 默认 key 环境变量
+  assert.deepEqual(gw.probeModels, ['gpt-4o-mini']);
+});
+
+test('adhocGateway: comma-separated models, custom name and auth-env', () => {
+  const gw = adhocGateway({ url: 'https://x.io', model: 'a, b ,c', name: 'MyGW', authEnv: 'MY_KEY' });
+  assert.deepEqual(gw.probeModels, ['a', 'b', 'c']);   // 拆分去空白
+  assert.equal(gw.name, 'MyGW');
+  assert.equal(gw.authEnv, 'MY_KEY');
+});
+
+test('adhocGateway: no url → null; no model → empty probeModels', () => {
+  assert.equal(adhocGateway({}), null);
+  assert.equal(adhocGateway({ model: 'x' }), null);
+  assert.deepEqual(adhocGateway({ url: 'https://x.io' }).probeModels, []);
+});
