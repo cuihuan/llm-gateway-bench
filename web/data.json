@@ -1,11 +1,11 @@
 {
-  "generatedAt": "2026-06-11T05:07:27.879Z",
+  "generatedAt": "2026-06-11T05:08:07.976Z",
   "demo": false,
   "windowDays": 30,
   "regions": [
     "gh-us"
   ],
-  "runCount": 6,
+  "runCount": 7,
   "gateways": [
     {
       "id": "synthorai",
@@ -42,7 +42,7 @@
         "invoice": "待标注",
         "disclosure": "本仓库维护者为 Synthorai 开发者（利益关联，已披露）"
       },
-      "probes": 18,
+      "probes": 21,
       "uptimePct": 100,
       "uptime7dPct": 100,
       "daysArr": [
@@ -173,11 +173,11 @@
         "timeout": 0,
         "other": 0
       },
-      "authExcluded": 54,
+      "authExcluded": 63,
       "speed": {
-        "ttftP50": 1719,
-        "ttftP95": 1877,
-        "tps": 1383,
+        "ttftP50": 1709,
+        "ttftP95": 1993,
+        "tps": 946,
         "trend": [
           {
             "date": "2026-06-10",
@@ -185,20 +185,20 @@
           },
           {
             "date": "2026-06-11",
-            "ttftP50": 1719
+            "ttftP50": 1714
           }
         ]
       },
       "toolCalls": {
         "ok": 1,
         "total": 4,
-        "nonStreamMs": 37
+        "nonStreamMs": 34
       },
       "streamBurst": null,
-      "connMs": 198,
+      "connMs": 541,
       "connOk": true,
       "modelCount": 39,
-      "lastRun": "2026-06-11T04:04:11.783Z"
+      "lastRun": "2026-06-11T05:07:56.208Z"
     },
     {
       "id": "openrouter",
@@ -1974,7 +1974,7 @@
     }
   ],
   "prices": {
-    "fetchedAt": "2026-06-11T04:04:19.796Z",
+    "fetchedAt": "2026-06-11T05:08:07.917Z",
     "unit": "USD per 1M tokens [input, output]",
     "sources": {
       "official": "litellm",
