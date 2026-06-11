@@ -23,8 +23,10 @@ const SAMPLES = Number(flag('samples', 3));
 const OUT_DIR = flag('out', 'out');
 const ONLY_GATEWAY = flag('gateway', null);
 const TIMEOUT_MS = 60_000;
-// 每次采样带随机串防网关侧缓存（docs/research.md 工程红线）
-const probePrompt = () => `Reply with the single word: pong. Ignore this request id: ${Math.random().toString(36).slice(2, 8)}`;
+// llmperf 惯例：让模型生成到 max_tokens 上限的固定任务，而不是一句 "pong"——
+// 否则输出只有 2-3 个 chunk，tok/s 是除以几毫秒的噪声，假流式检测也凑不够样本。
+// 随机串防网关侧缓存（docs/research.md 工程红线）。
+const probePrompt = () => `List the numbers from one to fifty as English words, comma separated, no other text. Ignore this request id: ${Math.random().toString(36).slice(2, 8)}`;
 const MAX_TOKENS = 64;
 
 const PROBE_TOOL = {
