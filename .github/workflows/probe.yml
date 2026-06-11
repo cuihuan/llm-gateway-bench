@@ -2,6 +2,8 @@
 # Keys live ONLY in repo secrets (Settings → Secrets → Actions). A gateway whose
 # secret is absent is skipped, never failed.
 name: probe
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true # checkout/setup-node v4 默认 Node20，2026-06-16 起弃用
 on:
   schedule:
     - cron: '17 */6 * * *' # every 6 hours

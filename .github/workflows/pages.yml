@@ -1,6 +1,8 @@
 # Deploys web/ to GitHub Pages on every push that touches it.
 # Pages source must be set to "GitHub Actions" (Settings → Pages, or enabled via API).
 name: pages
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true # checkout v4 默认 Node20，2026-06-16 起弃用
 on:
   push:
     branches: [main]
