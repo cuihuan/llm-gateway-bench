@@ -160,7 +160,7 @@
 </div></header>
 
 <section id="leaderboard"><div class="wrap">
-  <h2>排行榜<span class="anchor">默认按 30 天稳定性排序 · 点击表头切换 · 不做黑箱总分</span></h2>
+  <h2>排行榜<span class="anchor">默认按 30 天稳定性排序 · 点击表头切换 · 不做黑箱总分 · <a href="article.html?slug=choosing-a-gateway">读懂这一维 →</a></span></h2>
   <div class="tablebox"><table id="lb">
     <thead><tr>
       <th>网关</th>
@@ -179,7 +179,7 @@
 </div></section>
 
 <section id="trust"><div class="wrap">
-  <h2>信任与合规<span class="anchor">不看声明，看行为指纹；政策类结论挂证据链接，接受 PR 纠错</span></h2>
+  <h2>信任与合规<span class="anchor">不看声明，看行为指纹；政策类结论挂证据链接，接受 PR 纠错 · <a href="article.html?slug=methodology-trust">读懂这一维 →</a></span></h2>
   <p class="sub">渠道来源难以直接"证明"，本评测的立场是<b>行为指纹组合</b>：工具调用是否被剥离、流式是否真实（逐 chunk 计时）、usage 是否被虚报（本地重算比对）、延迟特征是否与官方一致——多个黑盒可测信号共同画像，而非采信网关自我声明。条件具备时再做 K2 式与官方 API 对拍（固定请求集比对 finish_reason F1 与 schema 合法率）。数据留存与主体资质来自条款原文人工标注，附标注日期。</p>
   <div class="tablebox"><table id="trust-tbl">
     <thead><tr>
@@ -191,7 +191,7 @@
 </div></section>
 
 <section id="fingerprint"><div class="wrap">
-  <h2>行为体检<span class="anchor">黑盒拨测出的"它给的是不是真东西"——不看声明，看实测</span></h2>
+  <h2>行为体检<span class="anchor">黑盒拨测出的"它给的是不是真东西"——不看声明，看实测 · <a href="article.html?slug=model-substitution">读懂这一维 →</a></span></h2>
   <p class="sub">每项都是固定脚本可复现的黑盒探测：<b>模型回显</b>响应 model 字段是否与请求一致（揪偷换）·<b>工具调用</b>是否被剥离 ·<b>流式真实</b>是否憋完再吐装流式 ·<b>CJK 完整</b>中文输出是否损坏（量化降智 tell）·<b>上下文</b>长文本里的标记是否被悄悄截断。绿=全部探测模型通过，红=有模型未通过，—=暂无可判定数据。</p>
   <div class="tablebox"><table id="fp-tbl">
     <thead><tr>
@@ -203,18 +203,18 @@
 </div></section>
 
 <section id="price"><div class="wrap">
-  <h2>价格<span class="anchor">USD / 1M tokens（输入 / 输出）· 倍率 = 网关价 ÷ 官方价 · 官方价源自 litellm 开放价格库</span></h2>
+  <h2>价格<span class="anchor">USD / 1M tokens（输入 / 输出）· 倍率 = 网关价 ÷ 官方价 · 官方价源自 litellm · <a href="article.html?slug=price-index">读懂这一维 →</a></span></h2>
   <div class="tablebox"><table id="price-tbl"><thead></thead><tbody></tbody></table></div>
   <p class="fn"><b>价格指数</b> = 该网关全部可比模型倍率的几何平均：<span class="num good">&lt;1.00</span> 比官方便宜，<span class="num bad">&gt;1.00</span> 比官方贵。便宜得反常（&lt;0.5×）通常意味着逆向渠道，请对照信任评级一起看。</p>
 </div></section>
 
 <section id="stability"><div class="wrap">
-  <h2>稳定性<span class="anchor">每 6 小时拨测 · 错误按性质分类（429≠5xx≠超时）· 时段画像揭示高峰是否变慢</span></h2>
+  <h2>稳定性<span class="anchor">每 6 小时拨测 · 错误按性质分类（429≠5xx≠超时）· 时段画像揭示高峰是否变慢 · <a href="article.html?slug=stability-and-exit-risk">读懂这一维 →</a></span></h2>
   <div class="stab-grid" id="stab-grid"></div>
 </div></section>
 
 <section id="catalog"><div class="wrap">
-  <h2>网关清单<span class="anchor">新网关：PR 提交 data/gateways.json 即可进入拨测</span></h2>
+  <h2>网关清单<span class="anchor">新网关：PR 提交 data/gateways.json 即可进入拨测 · <a href="article.html?slug=choosing-a-gateway">读懂这一维 →</a></span></h2>
   <div class="tablebox"><table id="cat-tbl">
     <thead><tr>
       <th>网关</th><th>协议</th><th class="r">模型数</th><th>探测模型</th><th>价格透明度</th><th class="r">直连延迟</th>
@@ -230,7 +230,7 @@
 </div></section>
 
 <section id="selftest"><div class="wrap">
-  <h2>自测指南<span class="anchor">用你自己的 key，三分钟拨测任意一个网关</span></h2>
+  <h2>自测指南<span class="anchor">用你自己的 key，三分钟拨测任意一个网关 · <a href="article.html?slug=methodology-trust">读懂这一维 →</a></span></h2>
   <p class="sub">榜单上没有你在用的网关？或者想亲自验一下它给的是不是真模型？把它加进 <code>data/gateways.json</code>，用你的 key 在本地跑同一套拨测脚本——和榜单完全一致、可复现。</p>
   <div class="tablebox" style="padding:16px 18px">
     <pre style="margin:0;overflow-x:auto;font-family:var(--mono);font-size:12.5px;line-height:1.7;color:var(--text)"><span class="muted"># Node ≥ 20，零依赖。克隆后：</span>
