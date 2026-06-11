@@ -75,5 +75,16 @@
       "可复现"
     ],
     "date": "2026-06-11"
+  },
+  {
+    "slug": "openai-compat-pitfalls",
+    "title": "OpenAI 兼容 ≠ 行为一致：协议层的坑",
+    "summary": "tool_calls 剥离、usage 缺失、假流式、model 回显——兼容接口不等于行为一致。",
+    "tags": [
+      "协议兼容",
+      "工具调用",
+      "行为指纹"
+    ],
+    "date": "2026-06-11"
   }
 ]
