@@ -44,8 +44,27 @@ export function summarize(samples) {
     usageReportedRate: okSamples.length
       ? round(okSamples.filter((s) => s.usageReported === true).length / okSamples.length, 2)
       : null,
+    // 疑似假流式占比（仅统计可判定样本；无可判定样本时为 null）
+    burstStreamRate: (() => {
+      const verdicts = okSamples.map((s) => isBurstStream(s)).filter((v) => v !== null);
+      return verdicts.length ? round(verdicts.filter(Boolean).length / verdicts.length, 2) : null;
+    })(),
     errors: samples.filter((s) => !s.ok).map((s) => s.error ?? 'unknown').slice(0, 5),
   };
+}
+
+/**
+ * 假流式（fake streaming）启发式判定：服务端憋完整个回复后一次性 dump 所有
+ * chunk 伪装流式。行为指纹 = 首 token 等了很久（ttft 大）+ 全部内容在极小的
+ * 时间窗（streamWindowMs = 末 chunk 到达时刻 - 首 chunk 到达时刻）内到达。
+ * 阈值经验值：≥5 个 chunk、窗口 ≤250ms、ttft ≥800ms 且 ≥4 倍窗口。
+ * 快但真流式的服务（如 LPU 推理）ttft 很小，不会误伤；慢但真流式的窗口大，
+ * 也不会误伤。返回 null 表示样本不足以判定（chunk 太少）。
+ */
+export function isBurstStream({ chunks, ttftMs, streamWindowMs }) {
+  if (typeof chunks !== 'number' || chunks < 5) return null;
+  if (typeof ttftMs !== 'number' || typeof streamWindowMs !== 'number') return null;
+  return streamWindowMs <= 250 && ttftMs >= 800 && ttftMs >= 4 * Math.max(streamWindowMs, 1);
 }
 
 /**

@@ -136,6 +136,17 @@ test('rollupGateway: tool-call capability snapshot from the latest run', () => {
   assert.deepEqual(r.toolCalls, { ok: 1, total: 2, nonStreamMs: 1000 }); // latest run only, p50 of [800,1200]
 });
 
+test('rollupGateway: stream-burst snapshot counts suspect models from latest run', () => {
+  const r = rollupGateway([
+    run('2026-06-10T06:00:00.000Z', [
+      { model: 'a', samples: 1, success: 1, ttftMs: { p50: 600 }, tokensPerSec: { avg: 70 }, errors: [], burstStreamRate: 1 },
+      { model: 'b', samples: 1, success: 1, ttftMs: { p50: 650 }, tokensPerSec: { avg: 65 }, errors: [], burstStreamRate: 0 },
+      { model: 'c', samples: 1, success: 1, ttftMs: { p50: 650 }, tokensPerSec: { avg: 65 }, errors: [] }, // 不可判定
+    ]),
+  ], '2026-06-10');
+  assert.deepEqual(r.streamBurst, { suspect: 1, total: 2 });
+});
+
 test('rollupGateway: runs without toolCall data yield toolCalls null', () => {
   const r = rollupGateway([
     run('2026-06-10T06:00:00.000Z', [

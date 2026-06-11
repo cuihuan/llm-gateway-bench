@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { percentile, summarize, stabilityOverTime, evalToolCall } from './metrics.mjs';
+import { percentile, summarize, stabilityOverTime, evalToolCall, isBurstStream } from './metrics.mjs';
 
 test('percentile: empty and basic cases', () => {
   assert.equal(percentile([], 50), null);
@@ -48,6 +48,31 @@ test('summarize: usageReportedRate over successful samples only', () => {
   ]);
   assert.equal(s.usageReportedRate, 0.5);
   assert.equal(summarize([{ ok: false, error: 'x' }]).usageReportedRate, null);
+});
+
+test('isBurstStream: fake-stream fingerprint vs legit fast/slow streaming', () => {
+  // 假流式：等 3s 才出首 token，然后 30 个 chunk 在 50ms 内 dump 完
+  assert.equal(isBurstStream({ chunks: 30, ttftMs: 3000, streamWindowMs: 50 }), true);
+  // 快但真流式（LPU 类）：ttft 很小 → 不误伤
+  assert.equal(isBurstStream({ chunks: 30, ttftMs: 90, streamWindowMs: 60 }), false);
+  // 慢但真流式：窗口大 → 不误伤
+  assert.equal(isBurstStream({ chunks: 30, ttftMs: 1500, streamWindowMs: 2400 }), false);
+  // 窗口在阈值内但 ttft 不足窗口 4 倍（900 < 960）→ 证据不足，不判假
+  assert.equal(isBurstStream({ chunks: 10, ttftMs: 900, streamWindowMs: 240 }), false);
+  // chunk 太少不可判定
+  assert.equal(isBurstStream({ chunks: 3, ttftMs: 3000, streamWindowMs: 10 }), null);
+  assert.equal(isBurstStream({ chunks: 8, ttftMs: undefined, streamWindowMs: 10 }), null);
+});
+
+test('summarize: burstStreamRate over judgeable ok samples only', () => {
+  const s = summarize([
+    { ok: true, ttftMs: 3000, chunks: 20, streamWindowMs: 40 },   // 假流式
+    { ok: true, ttftMs: 200, chunks: 20, streamWindowMs: 1500 },  // 真流式
+    { ok: true, ttftMs: 500, chunks: 2, streamWindowMs: 5 },      // 不可判定（chunk 少）
+    { ok: false, error: 'HTTP 502' },
+  ]);
+  assert.equal(s.burstStreamRate, 0.5);
+  assert.equal(summarize([{ ok: true, ttftMs: 100, chunks: 1 }]).burstStreamRate, null);
 });
 
 test('evalToolCall: valid call passes, wrong tool / bad args / missing rejected', () => {

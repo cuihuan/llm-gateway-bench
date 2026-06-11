@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-11T04:04:47.389Z",
+  "generatedAt": "2026-06-11T05:07:27.879Z",
   "demo": false,
   "windowDays": 30,
   "regions": [
@@ -194,6 +194,7 @@
         "total": 4,
         "nonStreamMs": 37
       },
+      "streamBurst": null,
       "connMs": 198,
       "connOk": true,
       "modelCount": 39,
@@ -371,6 +372,7 @@
         "trend": []
       },
       "toolCalls": null,
+      "streamBurst": null,
       "connMs": null,
       "connOk": null,
       "modelCount": null,
@@ -548,6 +550,7 @@
         "trend": []
       },
       "toolCalls": null,
+      "streamBurst": null,
       "connMs": null,
       "connOk": null,
       "modelCount": null,
@@ -724,6 +727,7 @@
         "trend": []
       },
       "toolCalls": null,
+      "streamBurst": null,
       "connMs": null,
       "connOk": null,
       "modelCount": null,
@@ -900,6 +904,7 @@
         "trend": []
       },
       "toolCalls": null,
+      "streamBurst": null,
       "connMs": null,
       "connOk": null,
       "modelCount": null,
@@ -1076,6 +1081,7 @@
         "trend": []
       },
       "toolCalls": null,
+      "streamBurst": null,
       "connMs": null,
       "connOk": null,
       "modelCount": null,
@@ -1252,6 +1258,7 @@
         "trend": []
       },
       "toolCalls": null,
+      "streamBurst": null,
       "connMs": null,
       "connOk": null,
       "modelCount": null,
@@ -1428,6 +1435,7 @@
         "trend": []
       },
       "toolCalls": null,
+      "streamBurst": null,
       "connMs": null,
       "connOk": null,
       "modelCount": null,
@@ -1604,6 +1612,7 @@
         "trend": []
       },
       "toolCalls": null,
+      "streamBurst": null,
       "connMs": null,
       "connOk": null,
       "modelCount": null,
@@ -1780,6 +1789,7 @@
         "trend": []
       },
       "toolCalls": null,
+      "streamBurst": null,
       "connMs": null,
       "connOk": null,
       "modelCount": null,
@@ -1956,6 +1966,7 @@
         "trend": []
       },
       "toolCalls": null,
+      "streamBurst": null,
       "connMs": null,
       "connOk": null,
       "modelCount": null,

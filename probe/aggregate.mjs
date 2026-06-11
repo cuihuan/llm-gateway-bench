@@ -92,6 +92,15 @@ export function rollupGateway(runEntries, today) {
     if (d >= day7Start) { ok7 += b.ok; total7 += b.total; }
   }
 
+  // 流式真实性快照：最近一次运行里可判定模型中，疑似假流式（burstStreamRate≥0.5）的个数
+  let streamBurst = null;
+  if (latest) {
+    const rows = (latest.models ?? []).filter((m) => typeof m.burstStreamRate === 'number');
+    if (rows.length) {
+      streamBurst = { suspect: rows.filter((m) => m.burstStreamRate >= 0.5).length, total: rows.length };
+    }
+  }
+
   // tool-call capability snapshot from the most recent run that attempted it
   let toolCalls = null;
   if (latest) {
@@ -125,6 +134,7 @@ export function rollupGateway(runEntries, today) {
     authExcluded,
     speed: { ttftP50, ttftP95, tps, trend },
     toolCalls,
+    streamBurst,
     connMs: latest?.connectivity?.latencyMs ?? null,
     connOk: latest?.connectivity?.ok ?? null,
     modelCount: latest?.connectivity?.modelCount ?? null,

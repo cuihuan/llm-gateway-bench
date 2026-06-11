@@ -85,6 +85,7 @@ async function probeChatOnce(gw, model, key) {
     let ttftMs = null;
     let completionTokens = null;
     let chunks = 0;
+    let lastContentAt = null;
     const reader = res.body.getReader();
     const decoder = new TextDecoder();
     let buf = '';
@@ -100,7 +101,8 @@ async function probeChatOnce(gw, model, key) {
         try { evt = JSON.parse(line.slice(6)); } catch { continue; }
         if (evt.choices?.[0]?.delta?.content) {
           chunks++;
-          if (ttftMs === null) ttftMs = performance.now() - t0;
+          lastContentAt = performance.now();
+          if (ttftMs === null) ttftMs = lastContentAt - t0;
         }
         if (evt.usage?.completion_tokens) completionTokens = evt.usage.completion_tokens;
       }
@@ -116,6 +118,9 @@ async function probeChatOnce(gw, model, key) {
       totalMs: Math.round(totalMs),
       tokensPerSec: genMs > 0 ? Math.round((tokens / (genMs / 1000)) * 10) / 10 : null,
       usageReported: completionTokens !== null,
+      chunks,
+      // 首个内容 chunk 到末个内容 chunk 的时间窗——假流式检测的核心指纹
+      streamWindowMs: Math.round(lastContentAt - (t0 + ttftMs)),
     };
   } catch (e) {
     return { ok: false, error: String(e?.message ?? e), totalMs: Math.round(performance.now() - t0) };
