@@ -206,3 +206,29 @@ article-list, .list { padding: 18px 0 8px; }
   background: var(--accent-soft); border-radius: 999px; padding: 2px 10px; font-weight: 500; }
 .list .date { font-size: 12px; color: var(--faint); font-family: var(--mono); }
 .lead { color: var(--muted); margin-top: 12px; max-width: 680px; font-size: 16px; line-height: 1.6; }
+
+/* ============================================================
+   响应式：窄屏（手机）
+   ============================================================ */
+@media (max-width: 640px) {
+  .wrap { padding: 0 16px; }
+  /* 导航：链接横向滚动而非挤压换行；隐藏 logo 副标题省空间 */
+  nav .wrap { height: 52px; gap: 16px; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  nav .wrap::-webkit-scrollbar { display: none; }
+  nav .logo { white-space: nowrap; flex: none; }
+  nav .logo span { display: none; }
+  nav a.lnk { white-space: nowrap; flex: none; }
+  nav .right { margin-left: 0; }
+  /* 头部留白与字号收紧 */
+  header { padding: 36px 0 24px; }
+  h1 { font-size: 27px; }
+  .tagline { font-size: 15px; }
+  section { padding: 32px 0 6px; }
+  h2 { font-size: 20px; }
+  h2 .anchor { display: block; margin-left: 0; margin-top: 4px; }
+  /* 稳定性双栏在窄屏单列 */
+  .stab-grid { grid-template-columns: 1fr; }
+  /* 阅读页正文略收 */
+  body.reading { font-size: 15.5px; }
+  article h1, .list .body h2 { font-size: 24px; }
+}
