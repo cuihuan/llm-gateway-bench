@@ -19,6 +19,37 @@ function flag(name, fallback) {
   const i = args.indexOf(`--${name}`);
   return i >= 0 ? args[i + 1] : fallback;
 }
+
+/** CLI 用法说明（--help / -h） */
+export function usage() {
+  return `llm-gateway-bench 拨测器 — 黑盒拨测 OpenAI 兼容网关/端点
+
+用法:
+  node probe/probe.mjs [选项]
+
+选项:
+  --gateway <id>     只测 data/gateways.json 里的某个网关（默认全测）
+  --url <baseUrl>    临时拨测任意端点，免改配置；key 从环境变量读（见 --auth-env）
+  --model <id[,id]>  配合 --url：要拨测的模型，逗号分隔
+  --auth-env <NAME>  配合 --url：存 key 的环境变量名（默认 PROBE_KEY）
+  --name <name>      配合 --url：结果里显示的网关名（默认取 host）
+  --samples <n>      每个模型的采样次数（默认 3，多采样取分位数）
+  --out <dir>        结果落盘目录（默认 out/；--url 模式默认只打印不落盘）
+  -h, --help         显示本帮助
+
+环境:
+  <网关>.authEnv     各网关的 key 环境变量名见 data/gateways.json（缺 key 自动跳过）
+  PROBE_REGION       探测地域标签，写进结果（如 gh-us / local-cn）
+
+示例:
+  # 临时测某端点的一个模型（结果打到 stdout，不落盘）
+  PROBE_KEY=sk-... node probe/probe.mjs --url https://api.example.com --model gpt-4o-mini --samples 3
+  # 测配置里的某网关并落盘，供聚合
+  SYNTHORAI_API_KEY=sk-... node probe/probe.mjs --gateway synthorai --out data/results
+
+每次拨测同时测：流式 TTFT/吞吐、成功率、工具调用转发、假流式、CJK 完整性、
+上下文截断、模型回显、usage 重算。判定逻辑见 probe/metrics.mjs（纯函数+单测）。`;
+}
 const SAMPLES = Number(flag('samples', 3));
 const OUT_DIR = flag('out', 'out');
 const ONLY_GATEWAY = flag('gateway', null);
@@ -238,6 +269,7 @@ async function probeNeedle(gw, model, key) {
 }
 
 async function main() {
+  if (args.includes('--help') || args.includes('-h')) { console.log(usage()); return; }
   const adhoc = adhocGateway({ url: flag('url', null), model: flag('model', null), name: flag('name', null), authEnv: flag('auth-env', null) });
   if (adhoc && !adhoc.probeModels.length) {
     console.error('[probe] --url 需要配合 --model <id[,id2]>（要拨测哪个模型）');

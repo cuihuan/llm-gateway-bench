@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { adhocGateway } from './probe.mjs';
+import { adhocGateway, usage } from './probe.mjs';
 
 test('adhocGateway: builds gateway from --url + --model', () => {
   const gw = adhocGateway({ url: 'https://api.example.com/', model: 'gpt-4o-mini' });
@@ -22,4 +22,12 @@ test('adhocGateway: no url → null; no model → empty probeModels', () => {
   assert.equal(adhocGateway({}), null);
   assert.equal(adhocGateway({ model: 'x' }), null);
   assert.deepEqual(adhocGateway({ url: 'https://x.io' }).probeModels, []);
+});
+
+test('usage: documents every CLI flag', () => {
+  const u = usage();
+  for (const flag of ['--gateway', '--url', '--model', '--auth-env', '--name', '--samples', '--out', '--help']) {
+    assert.ok(u.includes(flag), `帮助应包含 ${flag}`);
+  }
+  assert.ok(u.includes('PROBE_KEY') && u.includes('PROBE_REGION'), '应说明关键环境变量');
 });
