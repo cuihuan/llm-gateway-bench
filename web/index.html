@@ -12,13 +12,13 @@
 
 <nav><div class="wrap">
   <div class="logo">LLM Gateway Bench<span>大模型网关评测</span></div>
-  <a class="lnk" href="#leaderboard">排行榜</a>
+  <a class="lnk" href="#suite">评测集</a>
+  <a class="lnk" href="#leaderboard">网关排行</a>
   <a class="lnk" href="#fingerprint">行为体检</a>
   <a class="lnk" href="#price">价格</a>
   <a class="lnk" href="#stability">稳定性</a>
   <a class="lnk" href="evals.html">模型评测</a>
   <a class="lnk" href="#articles">分析框架</a>
-  <a class="lnk" href="#selftest">自测指南</a>
   <div class="right">
     <a class="lnk" href="https://github.com/cuihuan/llm-gateway-bench/blob/main/docs/methodology.md">方法论</a>
     <a class="lnk" href="https://github.com/cuihuan/llm-gateway-bench">GitHub</a>
@@ -46,8 +46,20 @@
   <div class="mock-banner" id="banner" hidden></div>
 </div></header>
 
+<section id="suite"><div class="wrap">
+  <h2>评测集导览<span class="anchor">两层评测，覆盖"选哪个模型"到"走哪个网关"</span></h2>
+  <div class="pains">
+    <div class="pain"><div class="no">第一层 · 模型评测</div><h3>选哪个模型最值？</h3>
+      <p>同任务比花费、同预算比产出（<a href="evals.html#cost">价格价值实测</a>）· 公开权威 benchmark（<a href="evals.html#benchmarks">硬分数挂来源</a>）· 分场景能力（<a href="evals.html#scenarios">编码/数学/科学/知识</a>）。</p></div>
+    <div class="pain"><div class="no">第二层 · 网关评测</div><h3>走哪个网关靠谱？</h3>
+      <p>同一个模型，不同中转/网关的<b>合规与安全</b>（<a href="#fingerprint">行为体检</a>）· <b>价格</b>是否虚高（<a href="#price">价格矩阵</a>）· <b>稳定性</b>会不会崩（<a href="#stability">30 天时序</a>）——黑盒实测，不看声明。</p></div>
+    <div class="pain"><div class="no">方法 · 全开源</div><h3>凭什么可信？</h3>
+      <p>拨测脚本、判定阈值、原始数据逐次 commit，可用自己的 key 复现；不做黑箱加权总分。完整分析框架见 <a href="articles.html">知识库</a>。</p></div>
+  </div>
+</div></section>
+
 <section id="leaderboard"><div class="wrap">
-  <h2>排行榜<span class="anchor">默认按 30 天稳定性排序 · 点击表头切换 · 不做黑箱总分 · <a href="article.html?slug=choosing-a-gateway">读懂这一维 →</a></span></h2>
+  <h2>网关排行榜<span class="anchor">默认按 30 天稳定性排序 · 点击表头切换 · 不做黑箱总分 · <a href="article.html?slug=choosing-a-gateway">读懂这一维 →</a></span></h2>
   <div class="tablebox"><table id="lb">
     <thead><tr>
       <th>网关</th>

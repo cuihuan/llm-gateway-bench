@@ -77,15 +77,18 @@
 </div></section>
 
 <section id="benchmarks"><div class="wrap">
-  <h2>权威 Benchmark<span class="anchor">各模型在公开权威评测上的得分 · 数据来源标注、不臆造</span></h2>
-  <p class="sub">汇总 MMLU-Pro / GPQA / SWE-bench / 数学 / 长上下文等公开基准的模型得分，每个分数挂来源与采集日期。</p>
-  <div class="scaffold">📊 权威 benchmark 评测数据整理中 —— 正在采集各模型公开评测分并核对来源，随后填入。<br>方法与口径见 <a href="articles.html">分析框架</a>。</div>
+  <h2>权威 Benchmark<span class="anchor">公开评测硬分数 · 每条挂来源 · 缺失记 — 不臆造</span></h2>
+  <p class="sub">权威评测分来自各模型技术报告与公开榜单。下表收录可溯源的代表性分数（不同来源/采集日期，已逐条标注）；完整、实时的对比建议看专门的聚合榜单（见表下外链）。欢迎带来源的 PR 补充。</p>
+  <div class="tablebox"><table id="bench-tbl"><thead></thead><tbody></tbody></table></div>
+  <p class="fn" id="bench-srcs"></p>
+  <p class="fn"><b>看更权威/更全的榜单 →</b> <span id="bench-hubs"></span></p>
 </div></section>
 
 <section id="scenarios"><div class="wrap">
-  <h2>分场景评测<span class="anchor">编码 / 写作 / 数学 / Agent 工具调用 / 长上下文 / 视觉</span></h2>
-  <p class="sub">按真实使用场景而非单一总分给模型画像——你关心哪类活，就看哪一栏。</p>
-  <div class="scaffold">🧪 分场景评测整理中 —— 将按场景给出可比的模型表现矩阵。</div>
+  <h2>分场景评测<span class="anchor">按真实用途选模型——你关心哪类活，就看哪一栏</span></h2>
+  <p class="sub">单一总分会误导：擅长数学的不一定擅长写代码。这里把权威 benchmark 按使用场景归类——每个场景标出主要看的指标，再列出已有可溯源分数的模型表现。分数与上表同源。</p>
+  <div class="pains" id="scenario-grid"></div>
+  <p class="fn">场景 ↔ 指标映射：<b>编码</b>看 SWE-bench Verified · <b>科学推理</b>看 GPQA · <b>数学</b>看 AIME · <b>综合知识</b>看 MMLU-Pro。视觉/长上下文/Agent 工具调用的可比分数收录中（网关侧的工具调用转发实测见 <a href="index.html#fingerprint">行为体检</a>）。</p>
 </div></section>
 
 <footer><div class="wrap">
@@ -143,11 +146,47 @@ function applyPreset(){
 ['preset'].forEach(id=>$('#'+id).addEventListener('change', applyPreset));
 ['inTok','outTok','budget','cur','fx'].forEach(id=>$('#'+id).addEventListener('input', ()=>{ if(['inTok','outTok'].includes(id)) $('#preset').value='custom'; render(); }));
 
+function renderBench(data){
+  const cols = data.benchCols||[];
+  const rows = (data.models||[]).filter(m=>m.bench);  // 只列有可溯源分数的模型
+  if(!rows.length){ $('#benchmarks .tablebox').innerHTML='<p class="muted" style="padding:18px">benchmark 数据收录中。</p>'; return; }
+  $('#bench-tbl thead').innerHTML = '<tr><th>模型</th>'+cols.map(c=>`<th class="r" title="${esc(c.hint)}">${esc(c.label)}</th>`).join('')+'<th>来源</th></tr>';
+  // 每列取最高分高亮
+  const best={}; cols.forEach(c=>{ best[c.key]=Math.max(...rows.map(m=>typeof m.bench[c.key]==='number'?m.bench[c.key]:-1)); });
+  $('#bench-tbl tbody').innerHTML = rows.map(m=>`<tr>
+    <td><span class="gw-name">${esc(m.name)}</span><span class="kindtag">${esc(m.kind||'')}</span></td>
+    ${cols.map(c=>{ const v=m.bench[c.key]; return `<td class="r num ${v===best[c.key]&&v>=0?'badge-cheap':''}">${typeof v==='number'?v.toFixed(1):'—'}</td>`; }).join('')}
+    <td class="evidence">${m.bench.srcUrl?`<a href="${esc(m.bench.srcUrl)}" target="_blank" rel="noopener">${esc(m.bench.src||'来源')}</a>`:esc(m.bench.src||'—')} <span class="muted">${esc(m.bench.asOf||'')}</span></td>
+  </tr>`).join('');
+  $('#bench-srcs').innerHTML = '绿色 = 该基准当前收录里的最高分。分数来自不同来源与采集日期，已逐条标注；跨来源不完全可比，仅供量级参考。';
+  $('#bench-hubs').innerHTML = (data.benchHubs||[]).map(h=>`<a href="${esc(h.url)}" target="_blank" rel="noopener">${esc(h.label)}</a>`).join(' · ');
+}
+
+function renderScenarios(data){
+  const SCEN=[
+    { key:'swe',     icon:'💻', name:'编码工程', desc:'真实仓库 issue 修复能力', col:'SWE-bench Verified' },
+    { key:'gpqa',    icon:'🔬', name:'科学推理', desc:'研究生级科学难题', col:'GPQA' },
+    { key:'aime',    icon:'📐', name:'竞赛数学', desc:'高难数学解题', col:'AIME' },
+    { key:'mmluPro', icon:'📚', name:'综合知识', desc:'跨学科知识与推理', col:'MMLU-Pro' },
+  ];
+  const models=(data.models||[]).filter(m=>m.bench);
+  $('#scenario-grid').innerHTML = SCEN.map(s=>{
+    const ranked=models.filter(m=>typeof m.bench[s.key]==='number').sort((a,b)=>b.bench[s.key]-a.bench[s.key]);
+    const body = ranked.length
+      ? ranked.map((m,i)=>`<div style="display:flex;justify-content:space-between;font-size:13.5px;margin:5px 0"><span>${i===0?'🏆 ':''}${esc(m.name)}</span><span class="num ${i===0?'badge-cheap':'muted'}">${m.bench[s.key].toFixed(1)}</span></div>`).join('')
+      : '<p class="muted" style="font-size:13px">暂无可溯源分数</p>';
+    return `<div class="pain"><div class="no">${s.icon} 看 ${esc(s.col)}</div><h3>${esc(s.name)}</h3>
+      <p style="margin-bottom:8px">${esc(s.desc)}</p>${body}</div>`;
+  }).join('');
+}
+
 (async function(){
   try {
     const data = await fetch('models.json', {cache:'no-store'}).then(r=>{ if(!r.ok) throw 0; return r.json(); });
     MODELS = data.models||[]; $('#asof').textContent = data.asOf||'—';
     applyPreset();
+    renderBench(data);
+    renderScenarios(data);
   } catch {
     document.getElementById('cost').querySelectorAll('.tablebox').forEach(b=>b.innerHTML='<p class="muted" style="padding:18px">模型数据需起本地服务（npm run serve）后加载。</p>');
   }

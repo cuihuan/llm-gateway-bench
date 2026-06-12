@@ -1,19 +1,34 @@
 {
   "unit": "USD per 1M tokens",
-  "note": "官方标价（list price），随厂商调整；可在本文件维护。本地/开源自建模型按 0 计（自付算力）。benchmarks 为公开评测分，asOf 标注采集日期，缺失记 null 不臆造。",
+  "note": "官方标价（list price），随厂商调整；可在本文件维护。本地/开源自建模型按 0 计（自付算力）。bench 为公开评测分，每条挂来源；缺失记 null 不臆造，欢迎带来源 PR 补充。",
   "asOf": "2026-06-12",
+  "benchCols": [
+    { "key": "mmluPro", "label": "MMLU-Pro", "hint": "综合知识推理 %" },
+    { "key": "gpqa",    "label": "GPQA",     "hint": "研究生级科学难题 %" },
+    { "key": "swe",     "label": "SWE-bench Verified", "hint": "真实工程修复 %" },
+    { "key": "aime",    "label": "AIME",     "hint": "竞赛数学 %" }
+  ],
+  "benchHubs": [
+    { "label": "Artificial Analysis（综合智能指数/价格/速度）", "url": "https://artificialanalysis.ai/models" },
+    { "label": "LM Council Benchmarks（多榜聚合）", "url": "https://lmcouncil.ai/benchmarks" },
+    { "label": "OpenCompass / SuperCLUE（中文向）", "url": "https://opencompass.org.cn/" }
+  ],
   "models": [
-    { "id": "claude-fable-5",   "name": "Claude Fable 5",   "vendor": "Anthropic", "input": 10,   "output": 50,   "kind": "闭源", "source": "platform.claude.com" },
-    { "id": "claude-opus-4-8",  "name": "Claude Opus 4.8",  "vendor": "Anthropic", "input": 5,    "output": 25,   "kind": "闭源", "source": "platform.claude.com" },
-    { "id": "claude-opus-4-5",  "name": "Claude Opus 4.5",  "vendor": "Anthropic", "input": 15,   "output": 75,   "kind": "闭源", "source": "用户提供" },
-    { "id": "claude-sonnet-4-6","name": "Claude Sonnet 4.6","vendor": "Anthropic", "input": 3,    "output": 15,   "kind": "闭源", "source": "platform.claude.com" },
-    { "id": "claude-haiku-4-5", "name": "Claude Haiku 4.5", "vendor": "Anthropic", "input": 1,    "output": 5,    "kind": "闭源", "source": "platform.claude.com" },
-    { "id": "gpt-4o",           "name": "GPT-4o",           "vendor": "OpenAI",    "input": 5,    "output": 15,   "kind": "闭源", "source": "用户提供" },
-    { "id": "gemini-2.5-pro",   "name": "Gemini 2.5 Pro",   "vendor": "Google",    "input": 2.5,  "output": 10,   "kind": "闭源", "source": "用户提供" },
-    { "id": "deepseek-v3",      "name": "DeepSeek-V3",      "vendor": "DeepSeek",  "input": 0.27, "output": 1.10, "kind": "开源权重", "source": "用户提供" },
-    { "id": "qwen3-235b",       "name": "Qwen3-235B",       "vendor": "Alibaba",   "input": 1.5,  "output": 4.5,  "kind": "开源权重", "source": "用户提供" },
-    { "id": "glm-5-130b",       "name": "GLM-5-130B",       "vendor": "Zhipu",     "input": 1.0,  "output": 3.0,  "kind": "开源权重", "source": "用户提供" },
-    { "id": "mimo-2.5-pro",     "name": "MiMo 2.5 Pro",     "vendor": "Xiaomi",    "input": 8,    "output": 24,   "kind": "闭源", "source": "用户提供" },
-    { "id": "gemma-4-local",    "name": "Gemma 4（本地自建）", "vendor": "Google",  "input": 0,    "output": 0,    "kind": "本地/免费", "source": "自付算力" }
+    { "id": "claude-fable-5",   "name": "Claude Fable 5",   "vendor": "Anthropic", "input": 10,   "output": 50,   "kind": "闭源", "source": "platform.claude.com", "bench": null },
+    { "id": "claude-opus-4-8",  "name": "Claude Opus 4.8",  "vendor": "Anthropic", "input": 5,    "output": 25,   "kind": "闭源", "source": "platform.claude.com", "bench": null },
+    { "id": "claude-opus-4-5",  "name": "Claude Opus 4.5",  "vendor": "Anthropic", "input": 15,   "output": 75,   "kind": "闭源", "source": "用户提供",
+      "bench": { "swe": 76.7, "src": "LM Council Benchmarks", "srcUrl": "https://lmcouncil.ai/benchmarks", "asOf": "2026-03" } },
+    { "id": "claude-sonnet-4-6","name": "Claude Sonnet 4.6","vendor": "Anthropic", "input": 3,    "output": 15,   "kind": "闭源", "source": "platform.claude.com", "bench": null },
+    { "id": "claude-haiku-4-5", "name": "Claude Haiku 4.5", "vendor": "Anthropic", "input": 1,    "output": 5,    "kind": "闭源", "source": "platform.claude.com", "bench": null },
+    { "id": "gpt-4o",           "name": "GPT-4o",           "vendor": "OpenAI",    "input": 5,    "output": 15,   "kind": "闭源", "source": "用户提供",
+      "bench": { "mmluPro": 81.7, "src": "OpenAI GPT-4o-0513 公开评测", "srcUrl": "https://openai.com/index/hello-gpt-4o/", "asOf": "2024-05" } },
+    { "id": "gemini-2.5-pro",   "name": "Gemini 2.5 Pro",   "vendor": "Google",    "input": 2.5,  "output": 10,   "kind": "闭源", "source": "用户提供", "bench": null },
+    { "id": "deepseek-v3",      "name": "DeepSeek-V3",      "vendor": "DeepSeek",  "input": 0.27, "output": 1.10, "kind": "开源权重", "source": "用户提供",
+      "bench": { "mmluPro": 75.9, "gpqa": 59.1, "swe": 42.0, "src": "DeepSeek-V3 Technical Report", "srcUrl": "https://arxiv.org/abs/2412.19437", "asOf": "2024-12" } },
+    { "id": "qwen3-235b",       "name": "Qwen3-235B",       "vendor": "Alibaba",   "input": 1.5,  "output": 4.5,  "kind": "开源权重", "source": "用户提供",
+      "bench": { "mmluPro": 84.8, "src": "Qwen3-2507 发布", "srcUrl": "https://qwenlm.github.io/blog/qwen3/", "asOf": "2025-07" } },
+    { "id": "glm-5-130b",       "name": "GLM-5-130B",       "vendor": "Zhipu",     "input": 1.0,  "output": 3.0,  "kind": "开源权重", "source": "用户提供", "bench": null },
+    { "id": "mimo-2.5-pro",     "name": "MiMo 2.5 Pro",     "vendor": "Xiaomi",    "input": 8,    "output": 24,   "kind": "闭源", "source": "用户提供", "bench": null },
+    { "id": "gemma-4-local",    "name": "Gemma 4（本地自建）", "vendor": "Google",  "input": 0,    "output": 0,    "kind": "本地/免费", "source": "自付算力", "bench": null }
   ]
 }
