@@ -22,6 +22,10 @@
     border-radius: 999px; padding: 1px 8px; margin-left: 6px; }
   .scaffold { background: var(--panel); border: 1px dashed var(--border); border-radius: var(--radius);
     padding: 28px; text-align: center; color: var(--muted); box-shadow: var(--shadow); }
+  #share { font-family: var(--sans); font-size: 13px; font-weight: 600; cursor: pointer; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid var(--accent-soft); border-radius: 9px; padding: 9px 14px; transition: background .15s; }
+  #share:hover { background: #e0e7ff; }
+  #share.ok { color: var(--good); background: var(--good-bg); border-color: var(--good-bd); }
 </style>
 </head>
 <body>
@@ -57,6 +61,7 @@
     <div class="ctl"><label>币种 / 汇率(¥/$)</label>
       <select id="cur"><option value="cny">人民币 ¥</option><option value="usd">美元 $</option></select></div>
     <div class="ctl" id="fxWrap"><label>汇率 ¥/$</label><input id="fx" type="number" min="0.1" step="0.1" value="7.2"></div>
+    <div class="ctl"><label>&nbsp;</label><button id="share" type="button">🔗 复制对比链接</button></div>
   </div>
 
   <div class="stab-grid" style="grid-template-columns: repeat(auto-fit, minmax(440px, 1fr))">
@@ -143,6 +148,7 @@ function render(){
     <td class="r num ${vi===Infinity?'free':''}">${fmtTok(vi)}</td>
     <td class="r num ${(vo===Infinity||vo===maxOut)?'badge-cheap':''}">${fmtTok(vo)}</td>
   </tr>`).join('');
+  syncUrl();
 }
 
 function applyPreset(){
@@ -152,6 +158,25 @@ function applyPreset(){
 }
 ['preset'].forEach(id=>$('#'+id).addEventListener('change', applyPreset));
 ['inTok','outTok','budget','cur','fx'].forEach(id=>$('#'+id).addEventListener('input', ()=>{ if(['inTok','outTok'].includes(id)) $('#preset').value='custom'; render(); }));
+
+// 计算器状态 ↔ URL：可把一份对比直接发链接给人
+const STATE_KEYS = { preset:'p', inTok:'in', outTok:'out', budget:'b', cur:'c', fx:'fx' };
+function syncUrl(){
+  const p = new URLSearchParams();
+  for(const [id,k] of Object.entries(STATE_KEYS)) p.set(k, $('#'+id).value);
+  history.replaceState(null, '', location.pathname + '?' + p.toString() + '#cost');
+}
+function readUrl(){
+  const p = new URLSearchParams(location.search);
+  for(const [id,k] of Object.entries(STATE_KEYS)) if(p.has(k)) $('#'+id).value = p.get(k);
+  return p.has('in') || p.has('out') || p.has('b'); // 是否带了状态
+}
+$('#share').addEventListener('click', async ()=>{
+  syncUrl();
+  try { await navigator.clipboard.writeText(location.href); } catch {}
+  const b=$('#share'); const t=b.textContent; b.textContent='✓ 已复制'; b.classList.add('ok');
+  setTimeout(()=>{ b.textContent=t; b.classList.remove('ok'); }, 1600);
+});
 
 function renderBench(data){
   const cols = data.benchCols||[];
@@ -205,7 +230,8 @@ function renderScenarios(data){
   try {
     const data = await fetch('models.json', {cache:'no-store'}).then(r=>{ if(!r.ok) throw 0; return r.json(); });
     MODELS = data.models||[]; $('#asof').textContent = data.asOf||'—';
-    applyPreset();
+    const hadState = readUrl();
+    if(hadState) render(); else applyPreset();  // URL 带状态则直接按其渲染，否则用默认预设
     renderBench(data);
     renderScenarios(data);
   } catch {
