@@ -313,7 +313,8 @@ function spark(vals,w=110,h=24){
   if(!vals || vals.length<2) return '<span class="muted" style="font-size:11px">积累中</span>';
   const min=Math.min(...vals),max=Math.max(...vals);
   const pts=vals.map((v,i)=>`${(i/(vals.length-1)*w).toFixed(1)},${(h-2-(v-min)/(max-min||1)*(h-4)).toFixed(1)}`).join(' ');
-  return `<svg class="spark" width="${w}" height="${h}"><polyline points="${pts}"/></svg>`;
+  const label=`TTFT 趋势：${vals.length} 个采样点，区间 ${min}–${max} ms`;
+  return `<svg class="spark" width="${w}" height="${h}" role="img" aria-label="${label}"><title>${label}</title><polyline points="${pts}"/></svg>`;
 }
 
 function trendChart(vals,w=460,h=64){
@@ -321,7 +322,8 @@ function trendChart(vals,w=460,h=64){
     return `<span class="muted" style="font-size:12px">数据积累中（${vals?.length??0} 个采样日，需 ≥2 天出趋势）</span>`;
   const min=Math.min(...vals),max=Math.max(...vals),pad=4;
   const pts=vals.map((v,i)=>`${(pad+i/(vals.length-1)*(w-pad-44)).toFixed(1)},${(h-10-(v-min)/(max-min||1)*(h-20)).toFixed(1)}`).join(' ');
-  return `<svg width="${w}" height="${h}" style="max-width:100%">
+  const label=`TTFT 趋势：${vals.length} 个采样日，区间 ${min}–${max} ms`;
+  return `<svg width="${w}" height="${h}" style="max-width:100%" role="img" aria-label="${label}"><title>${label}</title>
     <line class="gridline" x1="${pad}" y1="${h-10}" x2="${w-44}" y2="${h-10}"/>
     <line class="gridline" x1="${pad}" y1="10" x2="${w-44}" y2="10"/>
     <text class="axis" x="${w-40}" y="14">${max}ms</text>
@@ -345,7 +347,9 @@ function hourlyChart(hourly){
     return `<rect x="${x}" y="${h-14-bh}" width="${bw}" height="${bh}" fill="${col}" rx="1"><title>${String(p.hour).padStart(2,'0')}:00 UTC · TTFT ${p.ttftP50}ms · 成功率 ${p.okRate==null?'—':p.okRate+'%'} · ${p.n} 采样</title></rect>`+
       `<text class="axis" x="${x+bw/2}" y="${h-3}" text-anchor="middle">${String(p.hour).padStart(2,'0')}</text>`;
   }).join('');
-  return `<svg width="${w}" height="${h}" style="max-width:100%">
+  const slow=pts.reduce((a,b)=>b.ttftP50>a.ttftP50?b:a), fast=pts.reduce((a,b)=>b.ttftP50<a.ttftP50?b:a);
+  const label=`时段 TTFT 画像：${pts.length} 个 UTC 时段；最慢 ${String(slow.hour).padStart(2,'0')}:00 ${max}ms，最快 ${String(fast.hour).padStart(2,'0')}:00 ${min}ms`;
+  return `<svg width="${w}" height="${h}" style="max-width:100%" role="img" aria-label="${label}"><title>${label}</title>
     <text class="axis" x="${w-26}" y="14">${max}ms</text>
     <text class="axis" x="${w-26}" y="${h-16}">${min}ms</text>${bars}</svg>`;
 }
