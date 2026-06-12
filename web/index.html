@@ -382,6 +382,13 @@ function render(site, isDemo){
       <td class="r num">${fmt(g.models)}</td>
       <td>${spark(g.trend)}</td>
     </tr>`).join('');
+    // 排序状态指示：当前列高亮 + 方向箭头，其余列 ↕
+    document.querySelectorAll('#lb thead th.sortable').forEach(th=>{
+      const active = th.dataset.k===sortKey;
+      th.classList.toggle('sorted', active);
+      const arr = th.querySelector('.arr');
+      if(arr) arr.textContent = active ? (sortAsc?'▲':'▼') : '↕';
+    });
   };
   document.querySelectorAll('#lb thead th.sortable').forEach(th=>{
     th.addEventListener('click',()=>{
