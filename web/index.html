@@ -397,20 +397,26 @@ function render(site, isDemo){
       <td class="r num">${fmt(g.models)}</td>
       <td>${spark(g.trend)}</td>
     </tr>`).join('');
-    // 排序状态指示：当前列高亮 + 方向箭头，其余列 ↕
+    // 排序状态指示：当前列高亮 + 方向箭头 + aria-sort（屏幕阅读器可知排序状态）
     document.querySelectorAll('#lb thead th.sortable').forEach(th=>{
       const active = th.dataset.k===sortKey;
       th.classList.toggle('sorted', active);
+      th.setAttribute('aria-sort', active ? (sortAsc?'ascending':'descending') : 'none');
       const arr = th.querySelector('.arr');
       if(arr) arr.textContent = active ? (sortAsc?'▲':'▼') : '↕';
     });
   };
+  const doSort = (th)=>{
+    const k=th.dataset.k;
+    if(sortKey===k) sortAsc=!sortAsc; else { sortKey=k; sortAsc=false; }
+    renderLB();
+  };
   document.querySelectorAll('#lb thead th.sortable').forEach(th=>{
-    th.addEventListener('click',()=>{
-      const k=th.dataset.k;
-      if(sortKey===k) sortAsc=!sortAsc; else { sortKey=k; sortAsc=false; }
-      renderLB();
-    });
+    th.setAttribute('tabindex','0');           // 键盘可聚焦
+    th.setAttribute('role','columnheader');
+    th.setAttribute('title','点击或回车按此列排序');
+    th.addEventListener('click',()=>doSort(th));
+    th.addEventListener('keydown',(e)=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); doSort(th); } });
   });
   renderLB();
 

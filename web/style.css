@@ -90,6 +90,7 @@ thead th { font-size: 11.5px; color: var(--muted); text-transform: uppercase; le
   border-bottom: 1px solid var(--border); background: #f8fafc; }
 thead th.sortable { cursor: pointer; user-select: none; }
 thead th.sortable:hover { color: var(--accent); }
+thead th.sortable:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; color: var(--accent); }
 thead th.sorted { color: var(--accent); }
 thead th .arr { font-size: 9px; opacity: .6; }
 thead th.sorted .arr { opacity: 1; }
