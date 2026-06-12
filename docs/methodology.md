@@ -89,10 +89,27 @@
 | 关键模型覆盖 | 主流模型（Claude/GPT/Gemini/DeepSeek/Qwen 旗舰与 flash 档）的可用矩阵 |
 | 协议覆盖 | OpenAI 兼容 / Anthropic 原生 / Gemini 原生 |
 
+## 模型评测层（evals.html）
+
+网关层回答"走哪个网关靠谱"；模型层回答"选哪个模型最值"。数据源 `data/models.json`
+（官方标价 + 可溯源 benchmark，`asOf` 标日期），`aggregate.mjs` 产出 `web/models.json`。
+核心计算为纯函数（`probe/metrics.mjs`），带单测。
+
+| 子项 | 口径 | 实现 |
+|---|---|---|
+| 价格价值实测 | 任务费用 = (输入价×输入token + 输出价×输出token) ÷ 1e6；预算可买 = 预算 ÷ 单价 ×1e6；本地/免费记 0 / ∞ | `taskCost` / `tokensForBudget` |
+| 权威 benchmark | 只收录**有公开出处**的硬分（MMLU-Pro/GPQA/SWE-bench/AIME…），每条挂来源链接 + 采集日期；缺失记 — **不臆造**；跨来源不完全可比，仅量级参考；并外链 Artificial Analysis / LM Council / OpenCompass 看更全 | `data/models.json` 的 `bench` |
+| 分场景 | 把 benchmark 按场景映射（编码→SWE-bench、科学→GPQA、数学→AIME、知识→MMLU-Pro），同源不另造数 | evals.html `renderScenarios` |
+| 质量性价比 | 综合知识分(MMLU-Pro) ÷ 输出价 = 每美元买到多少分；粗糙质量/价比，仅同基准列内排序参考 | `valuePerDollar` |
+
+> 价格为官方标价（list price），随厂商调整；可在 `data/models.json` 维护，benchmark 分
+> 欢迎带来源的 PR 补充。模型层不做拨测（那是网关层的事），是"标价 + 公开评测"的对标。
+
 ## 综合评分
 
 不做加权总分（黑箱总分必然被质疑）。排行榜默认按"30 天稳定性"排序，信任评级、
-价格指数等各自独立成列，工程师按自己关心的列排序。
+价格指数等各自独立成列，工程师按自己关心的列排序。模型层同理：价格价值、benchmark、
+性价比各自独立，不合成单一总分。
 
 ## 公正性
 
