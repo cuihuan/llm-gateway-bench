@@ -234,7 +234,11 @@ async function readJsonDir(dirUrl) {
   let files = [];
   try { files = (await readdir(dirUrl)).filter((f) => f.endsWith('.json')); } catch { return []; }
   const out = [];
-  for (const f of files.sort()) out.push(JSON.parse(await readFile(new URL(f, dirUrl + '/'), 'utf8')));
+  // 单个损坏文件（CI 写一半中断、坏 PR）不应让整个聚合崩掉——跳过并告警。
+  for (const f of files.sort()) {
+    try { out.push(JSON.parse(await readFile(new URL(f, dirUrl + '/'), 'utf8'))); }
+    catch (e) { console.error(`[aggregate] 跳过损坏文件 ${f}: ${e.message}`); }
+  }
   return out;
 }
 
