@@ -1,6 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { percentile, summarize, stabilityOverTime, evalToolCall, isBurstStream, evalModelEcho, evalCjkIntegrity, evalNeedle, taskCost, tokensForBudget, valuePerDollar } from './metrics.mjs';
+import { percentile, summarize, stabilityOverTime, evalToolCall, isBurstStream, evalModelEcho, evalCjkIntegrity, evalNeedle } from './metrics.mjs';
+// 模型层价格价值计算的单一来源（浏览器与单测共用同一份）
+import { taskCost, tokensForBudget, valuePerDollar } from '../web/calc.mjs';
 
 test('percentile: empty and basic cases', () => {
   assert.equal(percentile([], 50), null);

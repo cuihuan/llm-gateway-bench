@@ -115,13 +115,13 @@
   <p>价格与拨测数据均开源、可复现 · <a href="index.html">返回排行榜</a></p>
 </div></footer>
 
-<script>
+<script type="module">
+// 价格价值计算从 calc.mjs 导入——与单测共用同一份，上线算法即被测算法
+import { taskCost, tokensForBudget as tokensFor, valuePerDollar } from './calc.mjs';
 const $ = (s)=>document.querySelector(s);
 const esc = (s)=> String(s??'').replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const PRESETS = { email:[0,100000], rag:[50000,2000], codereview:[30000,8000], agent:[200000,50000] };
 const fmtTok = (n)=> n===Infinity ? '∞' : n>=1e8 ? (n/1e8).toFixed(1)+' 亿' : n>=1e4 ? (n/1e4).toFixed(n>=1e6?0:1)+' 万' : Math.round(n).toLocaleString();
-const taskCost = (m,i,o)=> (m.input*i + m.output*o)/1e6;
-const tokensFor = (price,usd)=> price<=0 ? Infinity : usd/price*1e6;
 let MODELS = [];
 
 function budgetUsd(){
@@ -200,9 +200,9 @@ function renderBench(data){
   $('#bench-srcs').innerHTML = '绿色 = 该基准当前收录里的最高分。分数来自不同来源与采集日期，已逐条标注；跨来源不完全可比，仅供量级参考。';
   $('#bench-hubs').innerHTML = (data.benchHubs||[]).map(h=>`<a href="${esc(h.url)}" target="_blank" rel="noopener">${esc(h.label)}</a>`).join(' · ');
 
-  // 质量性价比：MMLU-Pro ÷ 输出价
+  // 质量性价比：MMLU-Pro ÷ 输出价（valuePerDollar 单一来源）
   const vpd = rows.filter(m=>typeof m.bench.mmluPro==='number' && typeof m.output==='number')
-    .map(m=>({ m, v: m.output<=0 ? Infinity : m.bench.mmluPro/m.output }))
+    .map(m=>({ m, v: valuePerDollar(m.bench.mmluPro, m.output) }))
     .sort((a,b)=>b.v-a.v);
   if(vpd.length){
     const top = vpd.find(x=>x.v!==Infinity)?.v ?? 0;
