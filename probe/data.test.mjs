@@ -27,6 +27,12 @@ test('data/models.json: shape, non-negative prices, sourced benchmarks', () => {
   assert.ok(doc.unit && doc.asOf, '缺 unit/asOf');
   assert.ok(Array.isArray(doc.models) && doc.models.length > 0, 'models 非空数组');
   const ids = new Set();
+  // benchCols 是分数 key 的唯一真相源；模型分数 key 必须取自它（避免两份硬编码漂移）
+  for (const c of doc.benchCols ?? []) assert.ok(c.key && c.label, 'benchCols 条目缺 key/label');
+  for (const h of doc.benchHubs ?? []) assert.ok(isHttp(h.url) && h.label, 'benchHubs 条目缺合法 url/label');
+  const scoreKeys = new Set((doc.benchCols ?? []).map((c) => c.key));
+  const META = new Set(['src', 'srcUrl', 'asOf']);  // bench 里允许的非分数字段
+  assert.ok(scoreKeys.size > 0, 'benchCols 不应为空');
   for (const m of doc.models) {
     assert.ok(m.id && m.name, `模型缺 id/name: ${JSON.stringify(m).slice(0,60)}`);
     assert.ok(!ids.has(m.id), `模型 id 重复: ${m.id}`); ids.add(m.id);
@@ -35,20 +41,19 @@ test('data/models.json: shape, non-negative prices, sourced benchmarks', () => {
     assert.ok(m.input >= 0 && m.output >= 0, `${m.id} 价格不应为负`);
     assert.ok(m.source, `${m.id} 缺 source（每条数据要可溯源）`);
     if (m.bench && m.bench !== null) {
-      const scoreKeys = ['mmluPro', 'gpqa', 'swe', 'aime'];
-      const hasScore = scoreKeys.some((k) => typeof m.bench[k] === 'number');
+      const hasScore = [...scoreKeys].some((k) => typeof m.bench[k] === 'number');
       assert.ok(hasScore, `${m.id} bench 无任何数值分数`);
       assert.ok(m.bench.src, `${m.id} bench 缺 src（不臆造：分数必须挂来源）`);
       assert.ok(isHttp(m.bench.srcUrl), `${m.id} bench.srcUrl 应为 http(s) 链接`);
       assert.ok(m.bench.asOf, `${m.id} bench 缺 asOf 采集日期`);
-      for (const k of scoreKeys) {
-        if (m.bench[k] != null) assert.ok(m.bench[k] >= 0 && m.bench[k] <= 100, `${m.id}.${k} 分数应在 0-100`);
+      for (const [k, v] of Object.entries(m.bench)) {
+        if (META.has(k)) continue;
+        // 非元数据字段必须是 benchCols 声明过的分数 key，且 0-100——抓拼写错误/漂移
+        assert.ok(scoreKeys.has(k), `${m.id}.bench 含未知 key「${k}」(不在 benchCols 里，疑似拼写错误)`);
+        assert.ok(typeof v === 'number' && v >= 0 && v <= 100, `${m.id}.${k} 分数应在 0-100`);
       }
     }
   }
-  // benchCols 引用的 key 要和模型分数 key 一致
-  for (const c of doc.benchCols ?? []) assert.ok(c.key && c.label, 'benchCols 条目缺 key/label');
-  for (const h of doc.benchHubs ?? []) assert.ok(isHttp(h.url) && h.label, 'benchHubs 条目缺合法 url/label');
 });
 
 test('data/annotations/*.json: shape, allowed enums, evidence is null-or-link', () => {
