@@ -200,6 +200,19 @@ export function rollupGateway(runEntries, today) {
 }
 
 /**
+ * 选主地域：取最近一次拨测所属的 region（headline 统计只反映这一个观测点，
+ * 避免把不同网络视角混算）。无 region 标注的旧数据归一为 'unknown'。
+ */
+export function pickPrimaryRegion(entries) {
+  let latest = null;
+  for (const e of entries ?? []) {
+    if (!e.startedAt) continue;
+    if (!latest || e.startedAt > latest.startedAt) latest = e;
+  }
+  return latest ? (latest.region ?? 'unknown') : null;
+}
+
+/**
  * Price index. Per model the ratio is the ARITHMETIC mean of the input-price
  * ratio and output-price ratio (documented in docs/methodology.md — matters
  * for asymmetric pricing); the index is the geometric mean of those per-model
@@ -245,9 +258,17 @@ async function main() {
     runCount: runs.length,
     gateways: gateways.map((gw) => {
       const entries = runs
-        .map((r) => ({ startedAt: r.startedAt, ...(r.results.find((x) => x.gateway === gw.id && !x.skipped) ?? {}) }))
+        .map((r) => ({ region: r.region, startedAt: r.startedAt, ...(r.results.find((x) => x.gateway === gw.id && !x.skipped) ?? {}) }))
         .filter((e) => e.models || e.connectivity);
-      const roll = rollupGateway(entries, today);
+      // 不同地域是不同的网络观测点（国内直连 vs 海外），不能混算——headline 只用
+      // 主地域（最近一次拨测的地域），各地域成功率/延迟另列在 byRegion，供分地域展示。
+      const primaryRegion = pickPrimaryRegion(entries);
+      const roll = rollupGateway(entries.filter((e) => e.region === primaryRegion), today);
+      const gwRegions = [...new Set(entries.map((e) => e.region))];
+      const byRegion = Object.fromEntries(gwRegions.map((rg) => {
+        const r = rollupGateway(entries.filter((e) => e.region === rg), today);
+        return [rg, { uptimePct: r.uptimePct, uptime7dPct: r.uptime7dPct, probes: r.probes, ttftP50: r.speed.ttftP50, connMs: r.connMs }];
+      }));
       return {
         id: gw.id,
         name: gw.name,
@@ -258,6 +279,8 @@ async function main() {
         probeModels: gw.probeModels,
         priceIdx: priceIndex(prices?.models, gw.id),
         trust: annoById[gw.id] ?? null,
+        region: primaryRegion,
+        byRegion,
         ...roll,
       };
     }),

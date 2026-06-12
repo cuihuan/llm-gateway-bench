@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { classifyError, rollupGateway, priceIndex } from './aggregate.mjs';
+import { classifyError, rollupGateway, priceIndex, pickPrimaryRegion } from './aggregate.mjs';
 
 test('classifyError: maps error strings to classes', () => {
   assert.equal(classifyError('HTTP 403 {"error":"model_not_allowed"}'), 'auth');
@@ -239,6 +239,15 @@ test('rollupGateway: empty input yields nulls, not NaN', () => {
   assert.equal(r.probes, 0);
   assert.equal(r.connMs, null);
   assert.ok(r.daysArr.every((d) => d.status === 'n'));
+});
+
+test('pickPrimaryRegion: region of the most recent entry; null/unknown handled', () => {
+  assert.equal(pickPrimaryRegion([
+    { region: 'gh-us', startedAt: '2026-06-10T06:00:00Z' },
+    { region: 'local-cn', startedAt: '2026-06-11T06:00:00Z' },  // 最近 → 主地域
+  ]), 'local-cn');
+  assert.equal(pickPrimaryRegion([{ startedAt: '2026-06-11T06:00:00Z' }]), 'unknown'); // 无 region 标注
+  assert.equal(pickPrimaryRegion([]), null);
 });
 
 test('priceIndex: geometric mean over comparable models only', () => {
