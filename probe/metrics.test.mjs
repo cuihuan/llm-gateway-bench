@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { percentile, summarize, stabilityOverTime, evalToolCall, isBurstStream, evalModelEcho, evalCjkIntegrity, evalNeedle, taskCost, tokensForBudget } from './metrics.mjs';
+import { percentile, summarize, stabilityOverTime, evalToolCall, isBurstStream, evalModelEcho, evalCjkIntegrity, evalNeedle, taskCost, tokensForBudget, valuePerDollar } from './metrics.mjs';
 
 test('percentile: empty and basic cases', () => {
   assert.equal(percentile([], 50), null);
@@ -145,6 +145,14 @@ test('tokensForBudget: tokens buyable for a USD budget; free → Infinity', () =
   assert.equal(tokensForBudget(5, 0), 0);
   assert.equal(tokensForBudget('x', 10), null);
   assert.equal(tokensForBudget(5, -1), null);
+});
+
+test('valuePerDollar: benchmark points per $; free → Infinity, missing → null', () => {
+  assert.equal(valuePerDollar(75.9, 1.10), 75.9 / 1.10);  // DeepSeek-V3 MMLU-Pro / 输出价
+  assert.equal(valuePerDollar(84.8, 4.5), 84.8 / 4.5);    // Qwen3-235B
+  assert.equal(valuePerDollar(80, 0), Infinity);          // 本地/免费
+  assert.equal(valuePerDollar(null, 5), null);            // 无分数不臆造
+  assert.equal(valuePerDollar(80, 'x'), null);
 });
 
 test('evalNeedle: finds embedded needle, flags truncation', () => {

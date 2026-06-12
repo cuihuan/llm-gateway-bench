@@ -82,6 +82,13 @@
   <div class="tablebox"><table id="bench-tbl"><thead></thead><tbody></tbody></table></div>
   <p class="fn" id="bench-srcs"></p>
   <p class="fn"><b>看更权威/更全的榜单 →</b> <span id="bench-hubs"></span></p>
+
+  <h3 style="font-size:17px;font-weight:700;margin:28px 0 6px">质量性价比<span style="color:var(--faint);font-weight:400;font-size:13px;margin-left:8px">综合知识分(MMLU-Pro) ÷ 输出价 = 每美元买到多少分，越高越值</span></h3>
+  <p class="sub" style="margin-top:4px">把上表的权威分和价格拼起来回答"花同样的钱，谁的知识密度高"。仅列同时有 MMLU-Pro 分与价格的模型；本地/免费模型质量受限于自建算力，单列。</p>
+  <div class="tablebox"><table id="vpd-tbl"><thead><tr>
+    <th>模型</th><th class="r">MMLU-Pro</th><th class="r">输出 $/1M</th><th class="r">每美元知识分</th>
+  </tr></thead><tbody></tbody></table></div>
+  <p class="fn">粗糙的质量/价比，仅供量级参考——高质量低价≠适合你的场景，请结合 <a href="#scenarios">分场景</a> 与 <a href="index.html#leaderboard">网关稳定性/合规</a> 一起看。</p>
 </div></section>
 
 <section id="scenarios"><div class="wrap">
@@ -160,6 +167,20 @@ function renderBench(data){
   </tr>`).join('');
   $('#bench-srcs').innerHTML = '绿色 = 该基准当前收录里的最高分。分数来自不同来源与采集日期，已逐条标注；跨来源不完全可比，仅供量级参考。';
   $('#bench-hubs').innerHTML = (data.benchHubs||[]).map(h=>`<a href="${esc(h.url)}" target="_blank" rel="noopener">${esc(h.label)}</a>`).join(' · ');
+
+  // 质量性价比：MMLU-Pro ÷ 输出价
+  const vpd = rows.filter(m=>typeof m.bench.mmluPro==='number' && typeof m.output==='number')
+    .map(m=>({ m, v: m.output<=0 ? Infinity : m.bench.mmluPro/m.output }))
+    .sort((a,b)=>b.v-a.v);
+  if(vpd.length){
+    const top = vpd.find(x=>x.v!==Infinity)?.v ?? 0;
+    $('#vpd-tbl tbody').innerHTML = vpd.map(({m,v})=>`<tr class="${v===Infinity||v===top?'winner':''}">
+      <td><span class="gw-name">${esc(m.name)}</span><span class="kindtag">${esc(m.kind||'')}</span></td>
+      <td class="r num">${m.bench.mmluPro.toFixed(1)}</td>
+      <td class="r num">${m.output===0?'<span class="free">免费</span>':'$'+m.output}</td>
+      <td class="r num ${(v===Infinity||v===top)?'badge-cheap':''}">${v===Infinity?'∞':v.toFixed(1)}</td>
+    </tr>`).join('');
+  } else { $('#vpd-tbl tbody').innerHTML='<tr><td class="muted" style="padding:14px">暂无同时具备分数与价格的模型。</td></tr>'; }
 }
 
 function renderScenarios(data){

@@ -155,6 +155,17 @@ export function tokensForBudget(pricePerM, budgetUsd) {
 }
 
 /**
+ * 质量性价比：权威 benchmark 分 ÷ 单价（$/1M），即"每美元买到多少分"——
+ * 越高越值。价格 0（本地/免费）→ Infinity；分数或价格缺失 → null（不臆造）。
+ * 是粗糙的质量/价比，跨基准不可比，仅在同一基准列内排序参考。
+ */
+export function valuePerDollar(score, pricePerM) {
+  if (typeof score !== 'number' || typeof pricePerM !== 'number' || score < 0) return null;
+  if (pricePerM <= 0) return Infinity;
+  return score / pricePerM;
+}
+
+/**
  * needle 上下文截断检测：在长填充文本里埋一个唯一标记，要求模型原样回读。
  * 网关若为省上游成本悄悄截断上下文，标记落在切点前就会确定性丢失。
  * ok ⇔ 回答里包含该 needle（忽略大小写）。
