@@ -97,6 +97,8 @@ tail -f logs/record.log                   # 看运行日志
 PR 修改 [`data/gateways.json`](data/gateways.json)：填 `baseUrl`（OpenAI 兼容）、
 `authEnv`、`probeModels`（选最便宜的 1-2 个），仓库维护者在 Secrets 里配 key 后自动进入拨测。
 
+贡献网关 / 模型 / benchmark / 标注的完整规则与可信度铁律见 [CONTRIBUTING.md](CONTRIBUTING.md)。
+
 ## 公正性
 
 - 拨测脚本、探测 prompt、原始数据、聚合逻辑全部公开，任何人可用自己的 key 复现；
