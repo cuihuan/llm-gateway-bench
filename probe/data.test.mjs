@@ -66,3 +66,13 @@ test('data/annotations/*.json: shape, allowed enums, evidence is null-or-link', 
     }
   }
 });
+
+test('referential integrity: every annotation id maps to a real gateway', () => {
+  // aggregate 靠 annoById[gateway.id] 匹配——id 打错的标注会变成永不显示的死数据。
+  const gwIds = new Set(readJson('data/gateways.json').map((g) => g.id));
+  const dir = new URL('data/annotations/', root);
+  for (const f of readdirSync(dir).filter((x) => x.endsWith('.json'))) {
+    const a = JSON.parse(readFileSync(new URL(f, dir), 'utf8'));
+    assert.ok(gwIds.has(a.id), `标注 ${f} 的 id「${a.id}」不对应任何网关（孤儿标注/拼写错误）`);
+  }
+});
