@@ -1,7 +1,9 @@
 # LLM Gateway Bench · 大模型网关评测
 
-> An open, user-perspective, continuously-running benchmark for LLM API gateways.
-> 从用户视角持续拨测大模型 API 网关：**直连性 · 稳定性 · 速度 · 价格 · 模型清单**。
+> An open, user-perspective, continuously-running benchmark for LLM API gateways & models.
+> 一套完整评测集，两层回答两个问题：
+> **① 选哪个模型最值**（模型层：价格价值 · 权威 benchmark · 分场景 · 质量性价比）·
+> **② 走哪个网关靠谱**（网关层：合规安全 · 价格 · 稳定性，全部黑盒拨测、不看声明）。
 
 ## 它回答什么问题
 
@@ -31,6 +33,18 @@
 
 榜面维度：排行榜 · 行为体检（反欺诈指纹一表汇总）· 价格矩阵 · 稳定性时序（含高峰时段画像）·
 网关清单 · 分析框架 · 自测指南。
+
+## 模型评测层：选哪个模型最值（[web/evals.html](web/evals.html)）
+
+网关层回答"走哪个网关"；模型层回答"选哪个模型"。数据源 [`data/models.json`](data/models.json)
+（官方标价 + 可溯源 benchmark），四块：
+
+- **价格价值实测** —— 交互计算器：选任务（如"写一封 10 万 token 邮件"）或自定义输入/输出 token + 预算/汇率，实时算各模型费用与"同预算谁最值"；
+- **权威 benchmark** —— MMLU-Pro / GPQA / SWE-bench / AIME 硬分，**只收有公开出处的，每条挂来源链接 + 采集日期，缺失记「—」不臆造**，并外链 Artificial Analysis / LM Council / OpenCompass 看更全；
+- **分场景** —— 把 benchmark 按编码 / 科学 / 数学 / 知识映射，按用途选模型；
+- **质量性价比** —— 综合知识分 ÷ 价格 = 每美元买到多少分。
+
+口径定义见 [docs/methodology.md](docs/methodology.md) §模型评测层。
 
 ## 形态：无服务器，数据即仓库
 
