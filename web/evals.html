@@ -53,6 +53,8 @@
   <h2>价格价值实测<span class="anchor">同任务比花费 · 同预算比产出 · 价格为官方标价，可在 data/models.json 维护</span></h2>
   <p class="sub">选一个任务或自定义输入/输出 token，实时算出各模型成本与性价比。下方两张表：左问"这个任务花多少钱"，右问"这笔钱能买多少 token"。</p>
 
+  <div class="mock-banner" id="needserver" style="margin:0 0 16px">⚠ 本页需起本地服务后访问：<code>npm run serve</code> → http://localhost:8080/evals.html。直接用 file:// 打开时浏览器会拦截数据模块，计算器无法加载。</div>
+
   <div class="calc-controls">
     <div class="ctl"><label>任务预设</label>
       <select id="preset">
@@ -119,6 +121,8 @@
 // 价格价值计算从 calc.mjs 导入——与单测共用同一份，上线算法即被测算法
 import { taskCost, tokensForBudget as tokensFor, valuePerDollar } from './calc.mjs';
 const $ = (s)=>document.querySelector(s);
+// 模块成功加载（=在服务器上）就隐藏"需起服务"提示；file:// 下模块不运行，提示留存
+const _ns = $('#needserver'); if(_ns) _ns.hidden = true;
 const esc = (s)=> String(s??'').replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const PRESETS = { email:[0,100000], rag:[50000,2000], codereview:[30000,8000], agent:[200000,50000] };
 const fmtTok = (n)=> n===Infinity ? '∞' : n>=1e8 ? (n/1e8).toFixed(1)+' 亿' : n>=1e4 ? (n/1e4).toFixed(n>=1e6?0:1)+' 万' : Math.round(n).toLocaleString();
