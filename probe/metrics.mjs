@@ -139,6 +139,22 @@ export function evalCjkIntegrity(text) {
 }
 
 /**
+ * 模型评测 · 价格价值实测。价格单位 = USD per 1M tokens。
+ * taskCost: 给定输入/输出 token 数，算一次任务的美元成本。
+ */
+export function taskCost({ input = 0, output = 0 }, inTokens, outTokens) {
+  if (typeof inTokens !== 'number' || typeof outTokens !== 'number') return null;
+  return (input * inTokens + output * outTokens) / 1e6;
+}
+
+/** tokensForBudget: 给定美元预算与单价（$/1M），算能买多少 token；单价 0（本地/免费）→ Infinity */
+export function tokensForBudget(pricePerM, budgetUsd) {
+  if (typeof pricePerM !== 'number' || typeof budgetUsd !== 'number' || budgetUsd < 0) return null;
+  if (pricePerM <= 0) return Infinity;
+  return (budgetUsd / pricePerM) * 1e6;
+}
+
+/**
  * needle 上下文截断检测：在长填充文本里埋一个唯一标记，要求模型原样回读。
  * 网关若为省上游成本悄悄截断上下文，标记落在切点前就会确定性丢失。
  * ok ⇔ 回答里包含该 needle（忽略大小写）。

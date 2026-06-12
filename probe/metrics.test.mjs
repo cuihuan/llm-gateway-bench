@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { percentile, summarize, stabilityOverTime, evalToolCall, isBurstStream, evalModelEcho, evalCjkIntegrity, evalNeedle } from './metrics.mjs';
+import { percentile, summarize, stabilityOverTime, evalToolCall, isBurstStream, evalModelEcho, evalCjkIntegrity, evalNeedle, taskCost, tokensForBudget } from './metrics.mjs';
 
 test('percentile: empty and basic cases', () => {
   assert.equal(percentile([], 50), null);
@@ -128,6 +128,23 @@ test('evalCjkIntegrity: real Chinese passes, corruption/escapes/no-CJK fail', ()
   assert.equal(evalCjkIntegrity('\\u4eca\\u5929\\u5929\\u6c14').ok, false);       // 字面量转义
   assert.equal(evalCjkIntegrity('今�天�气�').ok, false);                          // 替换符
   assert.equal(evalCjkIntegrity('').ok, false);
+});
+
+test('taskCost: input+output token cost in USD', () => {
+  // Claude Fable 5 $10/$50；10 万 token 全输出 → 50/1M * 1e5 = $5
+  assert.equal(taskCost({ input: 10, output: 50 }, 0, 100000), 5);
+  // DeepSeek-V3 $0.27/$1.10；2万输入+8万输出
+  assert.equal(taskCost({ input: 0.27, output: 1.10 }, 20000, 80000), (0.27*20000+1.10*80000)/1e6);
+  assert.equal(taskCost({ input: 0, output: 0 }, 99999, 99999), 0); // 本地免费
+  assert.equal(taskCost({ input: 10, output: 50 }, 'x', 1), null);
+});
+
+test('tokensForBudget: tokens buyable for a USD budget; free → Infinity', () => {
+  assert.equal(tokensForBudget(10, 100), 1e7);         // $100 / $10per1M = 1000 万
+  assert.equal(tokensForBudget(0, 100), Infinity);     // 本地/免费
+  assert.equal(tokensForBudget(5, 0), 0);
+  assert.equal(tokensForBudget('x', 10), null);
+  assert.equal(tokensForBudget(5, -1), null);
 });
 
 test('evalNeedle: finds embedded needle, flags truncation', () => {

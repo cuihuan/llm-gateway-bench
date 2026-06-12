@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>模型评测 · 评测集 · LLM Gateway Bench</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="style.css">
+<style>
+  .calc-controls { display: flex; gap: 18px; flex-wrap: wrap; align-items: flex-end; margin: 4px 0 20px; }
+  .ctl { display: flex; flex-direction: column; gap: 5px; }
+  .ctl label { font-size: 12px; color: var(--muted); font-weight: 600; }
+  .ctl input, .ctl select { font-family: var(--sans); font-size: 14px; color: var(--text);
+    background: var(--panel); border: 1px solid var(--border); border-radius: 9px; padding: 8px 11px; min-width: 130px; }
+  .ctl input:focus, .ctl select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+  .winner { background: var(--good-bg); }
+  .winner td:first-child { box-shadow: inset 3px 0 0 var(--good); }
+  .badge-cheap { color: var(--good); font-weight: 700; }
+  .free { color: var(--accent); font-weight: 600; }
+  .kindtag { font-size: 11px; color: var(--muted); border: 1px solid var(--border); background: var(--panel2);
+    border-radius: 999px; padding: 1px 8px; margin-left: 6px; }
+  .scaffold { background: var(--panel); border: 1px dashed var(--border); border-radius: var(--radius);
+    padding: 28px; text-align: center; color: var(--muted); box-shadow: var(--shadow); }
+</style>
+</head>
+<body>
+<nav><div class="wrap">
+  <div class="logo">LLM Gateway Bench<span>大模型网关评测</span></div>
+  <a class="lnk" href="index.html#leaderboard">网关评测</a>
+  <a class="lnk" href="evals.html">模型评测</a>
+  <a class="lnk" href="articles.html">分析框架</a>
+  <div class="right"><a class="lnk" href="index.html">← 返回平台</a></div>
+</div></nav>
+
+<header><div class="wrap">
+  <h1>模型评测 · 评测集</h1>
+  <p class="tagline">同一个任务、同一笔预算，不同模型差多少？这里把<b>价格价值</b>、<b>权威 benchmark</b>、<b>分场景能力</b>三块拼成一张完整评测集。网关层（合规/价格/安全/稳定）见 <a href="index.html#leaderboard">网关评测</a>。</p>
+</div></header>
+
+<section id="cost"><div class="wrap">
+  <h2>价格价值实测<span class="anchor">同任务比花费 · 同预算比产出 · 价格为官方标价，可在 data/models.json 维护</span></h2>
+  <p class="sub">选一个任务或自定义输入/输出 token，实时算出各模型成本与性价比。下方两张表：左问"这个任务花多少钱"，右问"这笔钱能买多少 token"。</p>
+
+  <div class="calc-controls">
+    <div class="ctl"><label>任务预设</label>
+      <select id="preset">
+        <option value="email">写一封 10 万 token 邮件（约 7.5 万汉字）</option>
+        <option value="rag">RAG 问答（5 万输入 / 2 千输出）</option>
+        <option value="codereview">代码审查（3 万输入 / 8 千输出）</option>
+        <option value="agent">Agent 长链路（20 万输入 / 5 万输出）</option>
+        <option value="custom">自定义</option>
+      </select></div>
+    <div class="ctl"><label>输入 token</label><input id="inTok" type="number" min="0" value="0"></div>
+    <div class="ctl"><label>输出 token</label><input id="outTok" type="number" min="0" value="100000"></div>
+    <div class="ctl"><label>预算</label><input id="budget" type="number" min="0" value="100"></div>
+    <div class="ctl"><label>币种 / 汇率(¥/$)</label>
+      <select id="cur"><option value="cny">人民币 ¥</option><option value="usd">美元 $</option></select></div>
+    <div class="ctl" id="fxWrap"><label>汇率 ¥/$</label><input id="fx" type="number" min="0.1" step="0.1" value="7.2"></div>
+  </div>
+
+  <div class="stab-grid" style="grid-template-columns: repeat(auto-fit, minmax(440px, 1fr))">
+    <div>
+      <p class="sub" style="margin-bottom:8px"><b>① 这个任务花多少钱</b> <span id="taskLabel" class="muted"></span></p>
+      <div class="tablebox"><table id="cost-tbl"><thead><tr>
+        <th>模型</th><th class="r">输入 $/1M</th><th class="r">输出 $/1M</th><th class="r">本任务费用</th>
+      </tr></thead><tbody></tbody></table></div>
+    </div>
+    <div>
+      <p class="sub" style="margin-bottom:8px"><b>② 这笔预算能买多少 token</b> <span id="budgetLabel" class="muted"></span></p>
+      <div class="tablebox"><table id="value-tbl"><thead><tr>
+        <th>模型</th><th class="r">可买输入</th><th class="r">可买输出</th>
+      </tr></thead><tbody></tbody></table></div>
+    </div>
+  </div>
+  <p class="fn">绿色高亮 = 该列最省/最划算。价格为<b>官方标价</b>（list price，asOf <span id="asof">—</span>），随厂商调整；本地/开源自建按 0 计（自付算力，产出视为 ∞）。要改价或加模型，编辑 <code>data/models.json</code>。</p>
+</div></section>
+
+<section id="benchmarks"><div class="wrap">
+  <h2>权威 Benchmark<span class="anchor">各模型在公开权威评测上的得分 · 数据来源标注、不臆造</span></h2>
+  <p class="sub">汇总 MMLU-Pro / GPQA / SWE-bench / 数学 / 长上下文等公开基准的模型得分，每个分数挂来源与采集日期。</p>
+  <div class="scaffold">📊 权威 benchmark 评测数据整理中 —— 正在采集各模型公开评测分并核对来源，随后填入。<br>方法与口径见 <a href="articles.html">分析框架</a>。</div>
+</div></section>
+
+<section id="scenarios"><div class="wrap">
+  <h2>分场景评测<span class="anchor">编码 / 写作 / 数学 / Agent 工具调用 / 长上下文 / 视觉</span></h2>
+  <p class="sub">按真实使用场景而非单一总分给模型画像——你关心哪类活，就看哪一栏。</p>
+  <div class="scaffold">🧪 分场景评测整理中 —— 将按场景给出可比的模型表现矩阵。</div>
+</div></section>
+
+<footer><div class="wrap">
+  <p><b>评测集构成</b> — 模型层：价格价值 · 权威 benchmark · 分场景能力；网关层：<a href="index.html#fingerprint">行为体检</a>（合规/安全）· <a href="index.html#price">价格</a> · <a href="index.html#stability">稳定性</a>。</p>
+  <p>价格与拨测数据均开源、可复现 · <a href="index.html">返回排行榜</a></p>
+</div></footer>
+
+<script>
+const $ = (s)=>document.querySelector(s);
+const esc = (s)=> String(s??'').replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const PRESETS = { email:[0,100000], rag:[50000,2000], codereview:[30000,8000], agent:[200000,50000] };
+const fmtTok = (n)=> n===Infinity ? '∞' : n>=1e8 ? (n/1e8).toFixed(1)+' 亿' : n>=1e4 ? (n/1e4).toFixed(n>=1e6?0:1)+' 万' : Math.round(n).toLocaleString();
+const taskCost = (m,i,o)=> (m.input*i + m.output*o)/1e6;
+const tokensFor = (price,usd)=> price<=0 ? Infinity : usd/price*1e6;
+let MODELS = [];
+
+function budgetUsd(){
+  const b = Math.max(0, Number($('#budget').value)||0);
+  return $('#cur').value==='usd' ? b : b / Math.max(0.1, Number($('#fx').value)||7.2);
+}
+function curSym(){ return $('#cur').value==='usd' ? '$' : '¥'; }
+
+function render(){
+  const i = Math.max(0, Number($('#inTok').value)||0), o = Math.max(0, Number($('#outTok').value)||0);
+  const usd = budgetUsd();
+  $('#fxWrap').style.display = $('#cur').value==='cny' ? 'flex' : 'none';
+  $('#taskLabel').textContent = `（输入 ${fmtTok(i)} / 输出 ${fmtTok(o)} token）`;
+  $('#budgetLabel').textContent = `（${curSym()}${Number($('#budget').value)||0} ≈ $${usd.toFixed(2)}）`;
+
+  // ① 任务费用，按费用升序
+  const costs = MODELS.map(m=>({m, c: taskCost(m,i,o)})).sort((a,b)=>a.c-b.c);
+  const minCost = Math.min(...costs.map(x=>x.c));
+  $('#cost-tbl tbody').innerHTML = costs.map(({m,c})=>`<tr class="${c===minCost?'winner':''}">
+    <td><span class="gw-name">${esc(m.name)}</span><span class="kindtag">${esc(m.kind||'')}</span><div class="gw-sub">${esc(m.vendor||'')}</div></td>
+    <td class="r num">${m.input===0?'<span class="free">免费</span>':'$'+m.input}</td>
+    <td class="r num">${m.output===0?'<span class="free">免费</span>':'$'+m.output}</td>
+    <td class="r num ${c===minCost?'badge-cheap':''}">${c===0?'<span class="free">¥0</span>':'$'+c.toFixed(c<0.1?4:2)+' ≈ ¥'+(c*(Number($('#fx').value)||7.2)).toFixed(c<0.1?3:2)}</td>
+  </tr>`).join('');
+
+  // ② 预算能买多少，按可买输出降序
+  const vals = MODELS.map(m=>({m, in: tokensFor(m.input,usd), out: tokensFor(m.output,usd)})).sort((a,b)=>b.out-a.out);
+  const maxOut = Math.max(...vals.filter(v=>v.out!==Infinity).map(v=>v.out), 0);
+  $('#value-tbl tbody').innerHTML = vals.map(({m,in:vi,out:vo})=>`<tr class="${vo===Infinity||vo===maxOut?'winner':''}">
+    <td><span class="gw-name">${esc(m.name)}</span><span class="kindtag">${esc(m.kind||'')}</span></td>
+    <td class="r num ${vi===Infinity?'free':''}">${fmtTok(vi)}</td>
+    <td class="r num ${(vo===Infinity||vo===maxOut)?'badge-cheap':''}">${fmtTok(vo)}</td>
+  </tr>`).join('');
+}
+
+function applyPreset(){
+  const p = $('#preset').value;
+  if(p!=='custom'){ const [i,o]=PRESETS[p]; $('#inTok').value=i; $('#outTok').value=o; }
+  render();
+}
+['preset'].forEach(id=>$('#'+id).addEventListener('change', applyPreset));
+['inTok','outTok','budget','cur','fx'].forEach(id=>$('#'+id).addEventListener('input', ()=>{ if(['inTok','outTok'].includes(id)) $('#preset').value='custom'; render(); }));
+
+(async function(){
+  try {
+    const data = await fetch('models.json', {cache:'no-store'}).then(r=>{ if(!r.ok) throw 0; return r.json(); });
+    MODELS = data.models||[]; $('#asof').textContent = data.asOf||'—';
+    applyPreset();
+  } catch {
+    document.getElementById('cost').querySelectorAll('.tablebox').forEach(b=>b.innerHTML='<p class="muted" style="padding:18px">模型数据需起本地服务（npm run serve）后加载。</p>');
+  }
+})();
+</script>
+</body>
+</html>

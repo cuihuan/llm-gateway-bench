@@ -266,6 +266,13 @@ async function main() {
 
   await writeFile(new URL('web/data.json', root), JSON.stringify(site, null, 2));
   console.log(`web/data.json: ${site.gateways.length} gateways, ${runs.length} runs, regions=${regions.join(',') || 'none'}`);
+
+  // 模型评测集数据集（价格价值 + 后续 benchmark/场景）：data/models.json → web/ 供静态页 fetch
+  try {
+    const models = JSON.parse(await readFile(new URL('data/models.json', root), 'utf8'));
+    await writeFile(new URL('web/models.json', root), JSON.stringify(models, null, 2));
+    console.log(`web/models.json: ${models.models?.length ?? 0} models`);
+  } catch (e) { console.error('[aggregate] models.json skipped:', e.message); }
 }
 
 if (process.argv[1] && import.meta.url.endsWith(process.argv[1].split('/').pop())) {
