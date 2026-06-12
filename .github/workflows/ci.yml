@@ -1,0 +1,32 @@
+# 每次 push / PR 跑单测 + 聚合冒烟，给贡献者即时反馈、防坏改动合入。
+# 与 6 小时的 probe.yml 互补：那个跑真实拨测，这个只验证代码与策展数据的正确性，
+# 不需要任何 API key。
+name: ci
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true # checkout/setup-node v4 默认 Node20，2026-06-16 起弃用
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Unit tests（metrics / aggregate / prices / probe / data 契约）
+        run: npm test
+      - name: Aggregate smoke（聚合不崩 + 产出 web/data.json、web/models.json）
+        run: |
+          node probe/aggregate.mjs
+          test -s web/data.json || { echo 'web/data.json 未生成或为空'; exit 1; }
+          test -s web/models.json || { echo 'web/models.json 未生成或为空'; exit 1; }
+      - name: JS 语法检查（probe/*.mjs）
+        run: for f in probe/*.mjs; do node --check "$f"; done
