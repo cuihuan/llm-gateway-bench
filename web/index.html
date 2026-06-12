@@ -213,6 +213,8 @@ function adapt(raw){
     usageByModel:g.usageByModel ?? [],
     hourly:g.hourly ?? [],
     peakDrift:g.peakDrift ?? null,
+    probeRegion:g.region ?? null,
+    byRegion:g.byRegion ?? null,
     trust: adaptTrust(g.trust),
   }));
   const lastRuns = gateways.map(g=>raw.gateways.find(x=>x.id===g.id)?.lastRun).filter(Boolean).sort();
@@ -275,6 +277,8 @@ const DEMO = {
 };
 DEMO.gateways.forEach((g,gi)=>{
   g.uptime7 = g.uptime;
+  g.probeRegion = 'gh-us';
+  g.byRegion = { 'gh-us': { uptimePct: g.uptime, uptime7dPct: g.uptime, probes: 120, ttftP50: g.ttft, connMs: g.connMs } };
   g.toolCalls = { ok: g.probeModels.length, total: g.probeModels.length, nonStreamMs: g.ttft*2 };
   g.streamBurst = { suspect: 0, total: g.probeModels.length };
   const n = g.probeModels.length;
@@ -471,10 +475,17 @@ function render(site, isDemo){
     const segs = errEntries.map(([k,n])=>`<i style="width:${n/Math.max(total,1)*100}%;background:${ERR_META[k].c}" title="${ERR_META[k].label} ×${n}"></i>`).join('');
     const legend = errEntries.map(([k,n])=>`<span style="color:${ERR_META[k].c}">■</span> ${ERR_META[k].label} ×${n}`).join(' · ')||'无失败';
     const authNote = g.authExcluded?`<div class="row"><span class="lbl"></span><span class="legend muted">鉴权排除 ×${g.authExcluded}（探针 key 无该模型权限，按方法论不计入失败）</span></div>`:'';
+    const regionKeys = g.byRegion ? Object.keys(g.byRegion) : [];
+    const regionTag = g.probeRegion ? ` · <span title="本卡所有成功率/延迟均来自该网络观测点；不同地域不可混算">探测点 ${esc(g.probeRegion)}</span>` : '';
+    // 多地域时，各观测点的成功率/TTFT 分列对比（国内 vs 海外体感）
+    const regionBreakdown = regionKeys.length>1 ? `<div class="row"><span class="lbl">分地域</span><span class="legend">${
+      regionKeys.map(rk=>{const r=g.byRegion[rk];return `<span class="${uptimeCls(r.uptimePct)}">${esc(rk)}</span> ${r.uptimePct==null?'—':fmt(r.uptimePct,1)+'%'}${r.ttftP50!=null?` / ${fmt(r.ttftP50)}ms`:''}`;}).join(' · ')
+    }</span></div>` : '';
     return `<div class="stab">
       <div class="head"><span class="gw-name">${esc(g.name)}</span>
         <span class="pct ${uptimeCls(g.uptime)}">${g.uptime==null?'—':fmt(g.uptime,2)+'%'}</span>
-        <span class="muted" style="font-size:12px">${site.windowDays} 天成功率${g.uptime7!=null?` · 近 7 天 ${fmt(g.uptime7,2)}%`:''} · ${g.probes} 次采样</span></div>
+        <span class="muted" style="font-size:12px">${site.windowDays} 天成功率${g.uptime7!=null?` · 近 7 天 ${fmt(g.uptime7,2)}%`:''} · ${g.probes} 次采样${regionTag}</span></div>
+      ${regionBreakdown}
       <div class="row"><span class="lbl">逐日状态</span>${strip(g.daysArr)}</div>
       <div class="row"><span class="lbl">错误画像</span><span class="errbar">${segs||''}</span></div>
       <div class="row"><span class="lbl"></span><span class="legend">${legend}</span></div>
