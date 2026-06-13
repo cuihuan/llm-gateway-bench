@@ -138,6 +138,7 @@
         "mmluPro": 75.9,
         "gpqa": 59.1,
         "swe": 42,
+        "aime": 39.2,
         "src": "DeepSeek-V3 Technical Report",
         "srcUrl": "https://arxiv.org/abs/2412.19437",
         "asOf": "2024-12"
