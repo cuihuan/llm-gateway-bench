@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-13T12:16:08.743Z",
+  "generatedAt": "2026-06-13T12:26:30.835Z",
   "demo": false,
   "windowDays": 30,
   "regions": [
@@ -511,22 +511,22 @@
       "priceIdx": null,
       "trust": {
         "id": "aihubmix",
-        "annotatedAt": "2026-06-10",
+        "annotatedAt": "2026-06-13",
         "channel": {
           "claim": "自声明官转",
           "verify": "pending"
         },
         "promptRetention": {
-          "status": "unknown",
-          "text": "待标注",
-          "evidence": null
+          "status": "warn",
+          "text": "仅概括性「按必要期限保留个人信息」，未专门承诺 API 正文留存期限；服务器在美国 Azure",
+          "evidence": "https://docs.aihubmix.com/en/terms-and-privacy/Privacy"
         },
         "training": {
-          "status": "unknown",
-          "text": "待标注",
-          "evidence": null
+          "status": "good",
+          "text": "官方隐私政策：We do not use the content you send via the API to train models",
+          "evidence": "https://docs.aihubmix.com/en/terms-and-privacy/Privacy"
         },
-        "entity": "待标注",
+        "entity": "美国 Delaware 注册公司（法人名未披露）",
         "invoice": "待标注",
         "disclosure": null
       },
