@@ -103,10 +103,10 @@
       "kind": "闭源",
       "source": "用户提供",
       "bench": {
-        "mmluPro": 81.7,
-        "src": "OpenAI GPT-4o-0513 公开评测",
-        "srcUrl": "https://openai.com/index/hello-gpt-4o/",
-        "asOf": "2024-05"
+        "mmluPro": 72.6,
+        "src": "MMLU-Pro 论文 Table 2（TIGER-Lab）",
+        "srcUrl": "https://arxiv.org/abs/2406.01574",
+        "asOf": "2024-06"
       }
     },
     {
