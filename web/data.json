@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-13T11:37:08.601Z",
+  "generatedAt": "2026-06-13T11:46:04.870Z",
   "demo": false,
   "windowDays": 30,
   "regions": [
@@ -1060,20 +1060,20 @@
       "priceIdx": null,
       "trust": {
         "id": "moonshot-direct",
-        "annotatedAt": "2026-06-10",
+        "annotatedAt": "2026-06-13",
         "channel": {
           "claim": "官方",
           "verify": "baseline"
         },
         "promptRetention": {
-          "status": "unknown",
-          "text": "待标注",
-          "evidence": null
+          "status": "warn",
+          "text": "§5.2 仅在「实现服务目的所必需的时间内」保留，未给具体期限；§5.1 数据存储于中国境内",
+          "evidence": "https://platform.kimi.com/docs/agreement/userprivacy"
         },
         "training": {
-          "status": "unknown",
-          "text": "待标注",
-          "evidence": null
+          "status": "warn",
+          "text": "§2.3 对话信息用于「优化模型」，未明确区分默认/单独授权、无专门训练 opt-out（§7.1 仅概括性撤回授权权）",
+          "evidence": "https://platform.kimi.com/docs/agreement/userprivacy"
         },
         "entity": "北京月之暗面科技有限公司",
         "invoice": "待标注",
