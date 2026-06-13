@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-13T12:36:47.778Z",
+  "generatedAt": "2026-06-13T12:46:25.614Z",
   "demo": false,
   "windowDays": 30,
   "regions": [
@@ -1975,22 +1975,22 @@
       "priceIdx": null,
       "trust": {
         "id": "closeai",
-        "annotatedAt": "2026-06-10",
+        "annotatedAt": "2026-06-13",
         "channel": {
           "claim": "自声明官转",
           "verify": "pending"
         },
         "promptRetention": {
-          "status": "unknown",
-          "text": "待标注",
-          "evidence": null
+          "status": "warn",
+          "text": "可能临时记录请求与响应「部分或全部内容」，通常留存 30 天（计费/排障/安全审计）后清理或匿名化；调用第三方模型时数据转发上游、按其政策处理（平台不担保）",
+          "evidence": "https://doc.closeai-asia.com/legal/privacy-policy.html"
         },
         "training": {
-          "status": "unknown",
-          "text": "待标注",
-          "evidence": null
+          "status": "good",
+          "text": "官方明示：不利用用户业务数据进行模型训练/微调/蒸馏，亦不出售 API 业务数据",
+          "evidence": "https://doc.closeai-asia.com/legal/privacy-policy.html"
         },
-        "entity": "待标注",
+        "entity": "境外公司（具体实体未披露）",
         "invoice": "待标注",
         "disclosure": null
       },
