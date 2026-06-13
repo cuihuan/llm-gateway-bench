@@ -1,19 +1,19 @@
 {
   "id": "ohmygpt",
-  "annotatedAt": "2026-06-10",
+  "annotatedAt": "2026-06-13",
   "channel": {
     "claim": "自声明官转",
     "verify": "pending"
   },
   "promptRetention": {
-    "status": "unknown",
-    "text": "待标注",
-    "evidence": null
+    "status": "warn",
+    "text": "官方保留「store, review, and investigate」通信数据之权利；销户后 30 天内删除、服务器位置未披露；上游（如 OpenAI）可能另行记录，平台称 usually unable to prevent",
+    "evidence": "https://www.ohmygpt.com/privacy"
   },
   "training": {
     "status": "unknown",
-    "text": "待标注",
-    "evidence": null
+    "text": "政策仅承诺不出售（not sell）交互内容，未提及是否用于训练——未表态",
+    "evidence": "https://www.ohmygpt.com/privacy"
   },
   "entity": "待标注",
   "invoice": "待标注",
