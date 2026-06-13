@@ -1,5 +1,9 @@
 {
+<<<<<<< Updated upstream
   "generatedAt": "2026-06-13T12:55:33.836Z",
+=======
+  "generatedAt": "2026-06-13T12:57:06.150Z",
+>>>>>>> Stashed changes
   "demo": false,
   "windowDays": 30,
   "regions": [
@@ -23,22 +27,22 @@
       "priceIdx": 1,
       "trust": {
         "id": "synthorai",
-        "annotatedAt": "2026-06-10",
+        "annotatedAt": "2026-06-13",
         "channel": {
           "claim": "官方直连（自声明）",
           "verify": "pending"
         },
         "promptRetention": {
-          "status": "unknown",
-          "text": "待标注",
-          "evidence": null
+          "status": "warn",
+          "text": "官网自称零留存（zero-retention, audited gateway / No data kept），但未见正式隐私政策/ToS 文档、且未独立核验；维护者与 Synthorai 有利益关联（见下方披露）",
+          "evidence": "https://synthorai.io"
         },
         "training": {
-          "status": "unknown",
-          "text": "待标注",
-          "evidence": null
+          "status": "warn",
+          "text": "由「零留存」自声明推断不用于训练（官网未单独表述训练用途）；同属自声明、无正式政策文档、未独立核验",
+          "evidence": "https://synthorai.io"
         },
-        "entity": "待标注",
+        "entity": "未公开披露",
         "invoice": "待标注",
         "disclosure": "本仓库维护者为 Synthorai 开发者（利益关联，已披露）"
       },
