@@ -81,3 +81,41 @@ test('referential integrity: every annotation id maps to a real gateway', () => 
     assert.ok(gwIds.has(a.id), `标注 ${f} 的 id「${a.id}」不对应任何网关（孤儿标注/拼写错误）`);
   }
 });
+
+test('data/tracked-models.json: shape, unique ids, complete price aliases', () => {
+  // 价格抓取（prices.mjs）按这些 alias 去各源取价；alias 打错 ⇒ 该列静默变 null。
+  const tracked = readJson('data/tracked-models.json');
+  assert.ok(Array.isArray(tracked) && tracked.length > 0, 'tracked-models 应为非空数组');
+  const ids = new Set();
+  for (const t of tracked) {
+    assert.ok(t.id && typeof t.id === 'string', `tracked 缺 id: ${JSON.stringify(t).slice(0, 60)}`);
+    assert.ok(!ids.has(t.id), `tracked id 重复: ${t.id}`); ids.add(t.id);
+    assert.ok(Array.isArray(t.litellm) && t.litellm.length > 0 && t.litellm.every((k) => typeof k === 'string'),
+      `${t.id} litellm 应为非空字符串数组（官方基线价的 litellm key）`);
+    assert.ok(t.aliases && typeof t.aliases === 'object', `${t.id} 缺 aliases 对象`);
+    for (const src of ['synthorai', 'openrouter']) {
+      assert.ok(typeof t.aliases[src] === 'string' && t.aliases[src], `${t.id} aliases.${src} 应为非空字符串`);
+    }
+  }
+});
+
+test('data/prices.json: shape, sources, valid price cells, refs tracked models', () => {
+  // 价格矩阵是网关层核心维度；脏价格元组（NaN/负数/形状错）会坏掉页面与 priceIndex。
+  const trackedIds = new Set(readJson('data/tracked-models.json').map((t) => t.id));
+  const p = readJson('data/prices.json');
+  assert.ok(p.unit && p.fetchedAt, 'prices 缺 unit/fetchedAt');
+  assert.ok(p.sources && typeof p.sources === 'object', 'prices 缺 sources');
+  for (const k of ['official', 'synthorai', 'openrouter']) assert.ok(p.sources[k], `prices.sources 缺 ${k}`);
+  assert.ok(Array.isArray(p.models) && p.models.length > 0, 'prices.models 应为非空数组');
+  // 价格元组：null（缺价/未上架）或恰好 [输入价, 输出价] 两个非负数。
+  const okCell = (c) => c === null || (Array.isArray(c) && c.length === 2 && c.every((n) => typeof n === 'number' && n >= 0));
+  for (const m of p.models) {
+    assert.ok(m.model && typeof m.model === 'string', `prices 行缺 model: ${JSON.stringify(m).slice(0, 60)}`);
+    assert.ok(trackedIds.has(m.model), `prices 行「${m.model}」不在 tracked-models 内（孤儿行/拼写错误）`);
+    assert.ok(okCell(m.official), `${m.model} official 价格元组非法: ${JSON.stringify(m.official)}`);
+    assert.ok(m.cells && typeof m.cells === 'object', `${m.model} 缺 cells`);
+    for (const [gw, cell] of Object.entries(m.cells)) {
+      assert.ok(okCell(cell), `${m.model}.cells.${gw} 价格元组非法: ${JSON.stringify(cell)}`);
+    }
+  }
+});
