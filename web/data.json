@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-13T11:46:04.870Z",
+  "generatedAt": "2026-06-13T11:56:06.691Z",
   "demo": false,
   "windowDays": 30,
   "regions": [
@@ -1609,20 +1609,20 @@
       "priceIdx": null,
       "trust": {
         "id": "together",
-        "annotatedAt": "2026-06-10",
+        "annotatedAt": "2026-06-13",
         "channel": {
           "claim": "自营推理（开源权重模型一手渠道）",
           "verify": "pending"
         },
         "promptRetention": {
-          "status": "unknown",
-          "text": "待标注",
-          "evidence": null
+          "status": "good",
+          "text": "默认不存储输入/输出（官方 docs：does not store inputs or outputs by default），仅临时缓存提性能",
+          "evidence": "https://docs.together.ai/docs/privacy-and-security"
         },
         "training": {
-          "status": "unknown",
-          "text": "待标注",
-          "evidence": null
+          "status": "good",
+          "text": "训练为 opt-in、默认不启用（官方 docs：opt-in and not enabled by default）",
+          "evidence": "https://docs.together.ai/docs/privacy-and-security"
         },
         "entity": "Together Computer, Inc. (US)",
         "invoice": "待标注",
