@@ -117,7 +117,14 @@
       "output": 10,
       "kind": "闭源",
       "source": "用户提供",
-      "bench": null
+      "bench": {
+        "gpqa": 86.4,
+        "aime": 88,
+        "swe": 59.6,
+        "src": "Gemini 2.5 Pro Model Card (GA)",
+        "srcUrl": "https://storage.googleapis.com/deepmind-media/Model-Cards/Gemini-2-5-Pro-Model-Card.pdf",
+        "asOf": "2025-06"
+      }
     },
     {
       "id": "deepseek-v3",
