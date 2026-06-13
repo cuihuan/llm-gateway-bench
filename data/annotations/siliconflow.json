@@ -1,19 +1,19 @@
 {
   "id": "siliconflow",
-  "annotatedAt": "2026-06-10",
+  "annotatedAt": "2026-06-13",
   "channel": {
     "claim": "自营推理（开源权重模型一手渠道）",
     "verify": "pending"
   },
   "promptRetention": {
-    "status": "unknown",
-    "text": "待标注",
-    "evidence": null
+    "status": "good",
+    "text": "官方对照表标明交互数据「平台不存储」；账户类用户信息按必要期限保留、存于中国境内",
+    "evidence": "https://docs.siliconflow.cn/cn/legals/privacy-policy"
   },
   "training": {
-    "status": "unknown",
-    "text": "待标注",
-    "evidence": null
+    "status": "good",
+    "text": "中立技术渠道，承诺不对交互数据做任何非授权使用或披露（即不用于训练）",
+    "evidence": "https://docs.siliconflow.cn/cn/legals/privacy-policy"
   },
   "entity": "北京硅基流动科技有限公司",
   "invoice": "待标注",
