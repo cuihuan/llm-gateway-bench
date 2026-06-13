@@ -1,19 +1,19 @@
 {
   "id": "groq",
-  "annotatedAt": "2026-06-10",
+  "annotatedAt": "2026-06-13",
   "channel": {
     "claim": "自营 LPU 推理（开源权重模型一手渠道）",
     "verify": "pending"
   },
   "promptRetention": {
-    "status": "unknown",
-    "text": "待标注",
-    "evidence": null
+    "status": "good",
+    "text": "默认不留存推理数据（官方：does not retain customer data for inference requests），仅排障日志≤30天；ZDR 全员可开",
+    "evidence": "https://console.groq.com/docs/your-data"
   },
   "training": {
-    "status": "unknown",
-    "text": "待标注",
-    "evidence": null
+    "status": "good",
+    "text": "服务协议 §4.2：未经客户授权不得用 Inputs/Outputs 训练或微调任何模型",
+    "evidence": "https://console.groq.com/docs/legal/services-agreement"
   },
   "entity": "Groq, Inc. (US)",
   "invoice": "待标注",
