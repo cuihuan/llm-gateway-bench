@@ -27,7 +27,7 @@
     { "id": "deepseek-v3",      "name": "DeepSeek-V3",      "vendor": "DeepSeek",  "input": 0.27, "output": 1.10, "kind": "开源权重", "source": "用户提供",
       "bench": { "mmluPro": 75.9, "gpqa": 59.1, "swe": 42.0, "aime": 39.2, "src": "DeepSeek-V3 Technical Report", "srcUrl": "https://arxiv.org/abs/2412.19437", "asOf": "2024-12" } },
     { "id": "qwen3-235b",       "name": "Qwen3-235B",       "vendor": "Alibaba",   "input": 1.5,  "output": 4.5,  "kind": "开源权重", "source": "用户提供",
-      "bench": { "mmluPro": 84.8, "src": "Qwen3-2507 发布", "srcUrl": "https://qwenlm.github.io/blog/qwen3/", "asOf": "2025-07" } },
+      "bench": { "mmluPro": 84.4, "gpqa": 81.1, "aime": 92.3, "src": "Qwen3-235B-A22B-Thinking-2507 模型卡（HF）", "srcUrl": "https://huggingface.co/Qwen/Qwen3-235B-A22B-Thinking-2507", "asOf": "2025-07" } },
     { "id": "glm-5-130b",       "name": "GLM-5-130B",       "vendor": "Zhipu",     "input": 1.0,  "output": 3.0,  "kind": "开源权重", "source": "用户提供", "bench": null },
     { "id": "mimo-2.5-pro",     "name": "MiMo 2.5 Pro",     "vendor": "Xiaomi",    "input": 8,    "output": 24,   "kind": "闭源", "source": "用户提供", "bench": null },
     { "id": "gemma-4-local",    "name": "Gemma 4（本地自建）", "vendor": "Google",  "input": 0,    "output": 0,    "kind": "本地/免费", "source": "自付算力", "bench": null }

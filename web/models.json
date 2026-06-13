@@ -153,9 +153,11 @@
       "kind": "开源权重",
       "source": "用户提供",
       "bench": {
-        "mmluPro": 84.8,
-        "src": "Qwen3-2507 发布",
-        "srcUrl": "https://qwenlm.github.io/blog/qwen3/",
+        "mmluPro": 84.4,
+        "gpqa": 81.1,
+        "aime": 92.3,
+        "src": "Qwen3-235B-A22B-Thinking-2507 模型卡（HF）",
+        "srcUrl": "https://huggingface.co/Qwen/Qwen3-235B-A22B-Thinking-2507",
         "asOf": "2025-07"
       }
     },
