@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-13T07:35:55.902Z",
+  "generatedAt": "2026-06-13T11:37:08.601Z",
   "demo": false,
   "windowDays": 30,
   "regions": [
@@ -877,20 +877,20 @@
       "priceIdx": null,
       "trust": {
         "id": "deepseek-direct",
-        "annotatedAt": "2026-06-10",
+        "annotatedAt": "2026-06-13",
         "channel": {
           "claim": "官方",
           "verify": "baseline"
         },
         "promptRetention": {
-          "status": "unknown",
-          "text": "待标注",
-          "evidence": null
+          "status": "warn",
+          "text": "保留期与账户存续挂钩（账户存在期间保留），未承诺短期删除；数据存储于中国境内服务器",
+          "evidence": "https://cdn.deepseek.com/policies/en-US/deepseek-privacy-policy.html"
         },
         "training": {
-          "status": "unknown",
-          "text": "待标注",
-          "evidence": null
+          "status": "warn",
+          "text": "默认用于训练/改进模型，提供 opt-out 退出权（非默认关闭，与 OpenAI 默认不训练相反）",
+          "evidence": "https://cdn.deepseek.com/policies/en-US/deepseek-privacy-policy.html"
         },
         "entity": "杭州深度求索人工智能基础技术研究有限公司",
         "invoice": "待标注",
