@@ -1,11 +1,11 @@
 {
-  "generatedAt": "2026-06-19T18:57:00.916Z",
+  "generatedAt": "2026-06-20T01:23:10.946Z",
   "demo": false,
   "windowDays": 30,
   "regions": [
     "gh-us"
   ],
-  "runCount": 47,
+  "runCount": 48,
   "gateways": [
     {
       "id": "synthorai",
@@ -47,19 +47,15 @@
         "gh-us": {
           "uptimePct": 100,
           "uptime7dPct": 100,
-          "probes": 141,
-          "ttftP50": 3027,
-          "connMs": 203
+          "probes": 144,
+          "ttftP50": 2098,
+          "connMs": 554
         }
       },
-      "probes": 141,
+      "probes": 144,
       "uptimePct": 100,
       "uptime7dPct": 100,
       "daysArr": [
-        {
-          "date": "2026-05-21",
-          "status": "n"
-        },
         {
           "date": "2026-05-22",
           "status": "n"
@@ -175,6 +171,10 @@
         {
           "date": "2026-06-19",
           "status": "g"
+        },
+        {
+          "date": "2026-06-20",
+          "status": "g"
         }
       ],
       "errors": {
@@ -183,11 +183,11 @@
         "timeout": 0,
         "other": 0
       },
-      "authExcluded": 423,
+      "authExcluded": 432,
       "speed": {
-        "ttftP50": 3027,
-        "ttftP95": 3533,
-        "tps": 376,
+        "ttftP50": 2098,
+        "ttftP95": 2175,
+        "tps": 592,
         "trend": [
           {
             "date": "2026-06-10",
@@ -228,13 +228,17 @@
           {
             "date": "2026-06-19",
             "ttftP50": 2727
+          },
+          {
+            "date": "2026-06-20",
+            "ttftP50": 2098
           }
         ]
       },
       "toolCalls": {
         "ok": 1,
         "total": 4,
-        "nonStreamMs": 26
+        "nonStreamMs": 35
       },
       "streamBurst": {
         "suspect": 0,
@@ -243,7 +247,7 @@
       "usageByModel": [
         {
           "model": "deepseek-v4-flash",
-          "charsPerToken": 1.16,
+          "charsPerToken": 1.27,
           "promptTokens": 32
         }
       ],
@@ -264,9 +268,9 @@
       "hourly": [
         {
           "hour": 1,
-          "ttftP50": 2361,
+          "ttftP50": 2230,
           "okRate": 100,
-          "n": 27
+          "n": 30
         },
         {
           "hour": 2,
@@ -344,10 +348,10 @@
         "worstOkRateHour": 1,
         "worstOkRate": 100
       },
-      "connMs": 203,
+      "connMs": 554,
       "connOk": true,
       "modelCount": 41,
-      "lastRun": "2026-06-19T18:56:42.337Z"
+      "lastRun": "2026-06-20T01:22:55.746Z"
     },
     {
       "id": "openrouter",
@@ -388,10 +392,6 @@
       "uptimePct": null,
       "uptime7dPct": null,
       "daysArr": [
-        {
-          "date": "2026-05-21",
-          "status": "n"
-        },
         {
           "date": "2026-05-22",
           "status": "n"
@@ -506,6 +506,10 @@
         },
         {
           "date": "2026-06-19",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-20",
           "status": "n"
         }
       ],
@@ -573,10 +577,6 @@
       "uptime7dPct": null,
       "daysArr": [
         {
-          "date": "2026-05-21",
-          "status": "n"
-        },
-        {
           "date": "2026-05-22",
           "status": "n"
         },
@@ -690,6 +690,10 @@
         },
         {
           "date": "2026-06-19",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-20",
           "status": "n"
         }
       ],
@@ -756,10 +760,6 @@
       "uptime7dPct": null,
       "daysArr": [
         {
-          "date": "2026-05-21",
-          "status": "n"
-        },
-        {
           "date": "2026-05-22",
           "status": "n"
         },
@@ -873,6 +873,10 @@
         },
         {
           "date": "2026-06-19",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-20",
           "status": "n"
         }
       ],
@@ -939,10 +943,6 @@
       "uptime7dPct": null,
       "daysArr": [
         {
-          "date": "2026-05-21",
-          "status": "n"
-        },
-        {
           "date": "2026-05-22",
           "status": "n"
         },
@@ -1056,6 +1056,10 @@
         },
         {
           "date": "2026-06-19",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-20",
           "status": "n"
         }
       ],
@@ -1122,10 +1126,6 @@
       "uptime7dPct": null,
       "daysArr": [
         {
-          "date": "2026-05-21",
-          "status": "n"
-        },
-        {
           "date": "2026-05-22",
           "status": "n"
         },
@@ -1239,6 +1239,10 @@
         },
         {
           "date": "2026-06-19",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-20",
           "status": "n"
         }
       ],
@@ -1305,10 +1309,6 @@
       "uptime7dPct": null,
       "daysArr": [
         {
-          "date": "2026-05-21",
-          "status": "n"
-        },
-        {
           "date": "2026-05-22",
           "status": "n"
         },
@@ -1422,6 +1422,10 @@
         },
         {
           "date": "2026-06-19",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-20",
           "status": "n"
         }
       ],
@@ -1488,10 +1492,6 @@
       "uptime7dPct": null,
       "daysArr": [
         {
-          "date": "2026-05-21",
-          "status": "n"
-        },
-        {
           "date": "2026-05-22",
           "status": "n"
         },
@@ -1605,6 +1605,10 @@
         },
         {
           "date": "2026-06-19",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-20",
           "status": "n"
         }
       ],
@@ -1671,10 +1675,6 @@
       "uptime7dPct": null,
       "daysArr": [
         {
-          "date": "2026-05-21",
-          "status": "n"
-        },
-        {
           "date": "2026-05-22",
           "status": "n"
         },
@@ -1788,6 +1788,10 @@
         },
         {
           "date": "2026-06-19",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-20",
           "status": "n"
         }
       ],
@@ -1854,10 +1858,6 @@
       "uptime7dPct": null,
       "daysArr": [
         {
-          "date": "2026-05-21",
-          "status": "n"
-        },
-        {
           "date": "2026-05-22",
           "status": "n"
         },
@@ -1971,6 +1971,10 @@
         },
         {
           "date": "2026-06-19",
+          "status": "n"
+        },
+        {
+          "date": "2026-06-20",
           "status": "n"
         }
       ],
@@ -2037,10 +2041,6 @@
       "uptime7dPct": null,
       "daysArr": [
         {
-          "date": "2026-05-21",
-          "status": "n"
-        },
-        {
           "date": "2026-05-22",
           "status": "n"
         },
@@ -2155,6 +2155,10 @@
         {
           "date": "2026-06-19",
           "status": "n"
+        },
+        {
+          "date": "2026-06-20",
+          "status": "n"
         }
       ],
       "errors": {
@@ -2183,7 +2187,7 @@
     }
   ],
   "prices": {
-    "fetchedAt": "2026-06-19T18:57:00.850Z",
+    "fetchedAt": "2026-06-20T01:23:10.880Z",
     "unit": "USD per 1M tokens [input, output]",
     "sources": {
       "official": "litellm",
