@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>报告广场 · 网关对比报告 · LLM Gateway Bench</title>
+<meta name="description" content="网关对比报告广场：用 gwbench 自助拨测你的网关 vs OpenRouter vs 别家，生成可分享报告。公共基线报告 + 用户分享报告，覆盖价格 / 长文本 / 稳定性 / 合规 / 行为指纹。">
+<meta name="theme-color" content="#6366f1">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%236366f1'/><rect x='7' y='17' width='4' height='8' rx='1' fill='%23fff'/><rect x='14' y='12' width='4' height='13' rx='1' fill='%23fff'/><rect x='21' y='7' width='4' height='18' rx='1' fill='%23fff'/></svg>">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="LLM Gateway Bench">
+<meta property="og:title" content="报告广场 · 网关对比报告">
+<meta property="og:description" content="自助拨测你的网关 vs OpenRouter vs 别家，生成可分享报告。key 不出本机。">
+<link rel="stylesheet" href="style.css">
+<style>
+  .cat-row { display:flex; flex-wrap:wrap; gap:8px; margin:6px 0 22px; }
+  .cat { font-size:13px; font-weight:600; color:var(--muted); background:var(--panel); border:1px solid var(--border);
+    border-radius:999px; padding:6px 14px; cursor:pointer; transition:all .15s; }
+  .cat:hover { color:var(--accent); border-color:var(--accent); }
+  .cat.on { color:#fff; background:var(--accent); border-color:var(--accent); }
+  .rcard { display:flex; flex-direction:column; gap:8px; }
+  .rcard .top { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+  .rcard .kind { font-family:var(--mono); font-size:11px; color:var(--accent); background:var(--accent-soft);
+    border-radius:6px; padding:2px 8px; }
+  .rcard h3 { font-size:16px; margin:2px 0; }
+  .rcard .stats { display:flex; gap:16px; flex-wrap:wrap; color:var(--muted); font-size:13px; }
+  .rcard .stats b { color:var(--text); font-variant-numeric:tabular-nums; }
+  .rcard .flagn { color:var(--bad); font-weight:700; }
+  .rcard .open { align-self:flex-start; margin-top:4px; font-size:13px; font-weight:600; color:var(--accent);
+    background:var(--accent-soft); border:1px solid var(--accent-soft); border-radius:9px; padding:7px 13px; cursor:pointer; }
+  .rcard .open:hover { background:#e0e7ff; }
+  .codeblk { font-family:var(--mono); font-size:13px; background:var(--text); color:#e2e8f0; border-radius:10px;
+    padding:14px 16px; overflow-x:auto; line-height:1.7; margin:8px 0 0; }
+  .codeblk .c { color:#64748b; }
+  /* detail overlay */
+  #overlay { position:fixed; inset:0; background:#0f172abf; z-index:50; display:none; }
+  #overlay.on { display:flex; flex-direction:column; padding:20px; }
+  #overlay .bar { display:flex; align-items:center; gap:12px; color:#fff; margin-bottom:10px; }
+  #overlay .bar b { font-size:15px; }
+  #overlay .bar .sp { margin-left:auto; display:flex; gap:10px; }
+  #overlay button, #overlay a.btn { font-family:var(--sans); font-size:13px; font-weight:600; color:#fff;
+    background:#ffffff26; border:1px solid #ffffff40; border-radius:8px; padding:7px 13px; cursor:pointer; }
+  #overlay iframe { flex:1; width:100%; border:0; border-radius:12px; background:#fff; }
+</style>
+</head>
+<body>
+
+<nav><div class="wrap">
+  <div class="logo">LLM Gateway Bench<span>大模型网关评测</span></div>
+  <a class="lnk" href="index.html#leaderboard">网关评测</a>
+  <a class="lnk" href="evals.html">模型评测</a>
+  <a class="lnk" href="reports.html">报告广场</a>
+  <a class="lnk" href="articles.html">分析框架</a>
+  <div class="right"><a class="lnk" href="index.html">← 返回平台</a></div>
+</div></nav>
+
+<header><div class="wrap">
+  <h1>报告广场</h1>
+  <p class="tagline">要接一个新网关，怎么知道它靠不靠谱？<b>用 gwbench 自己测</b>：同一个模型，你的网关 vs OpenRouter vs 别家，一把跑完延迟 / 稳定 / 价格 / 假流式 / 偷换 / 长文本截断，出一份<b>可分享的报告</b>。key 不出本机。下面是公共基线报告与用户分享的报告。</p>
+</div></header>
+
+<section><div class="wrap">
+  <h2>自己生成一份<span class="anchor">零依赖，Node ≥ 20，key 只存环境变量</span></h2>
+  <p class="sub">把"我的网关"和 OpenRouter、AiHubMix 放一起比 <code>gemini-2.5-flash</code>：</p>
+  <div class="codeblk"><span class="c"># 装好 Node，克隆仓库后：</span><br>
+  PROBE_KEY=<span class="c">你网关的key</span> OPENROUTER_API_KEY=<span class="c">…</span> AIHUBMIX_API_KEY=<span class="c">…</span> \<br>
+  &nbsp;&nbsp;npm run compare -- --model gemini-2.5-flash \<br>
+  &nbsp;&nbsp;&nbsp;&nbsp;--url https://my-gateway.com --name <span class="c">"我的网关"</span> --with openrouter,aihubmix<br>
+  <span class="c"># → 产出 reports/gemini-2.5-flash-<日期>.html（自包含，可直接发给别人）</span></div>
+  <p class="fn">想公开到这个广场？把生成的 <code>report.json</code> 复制进 <code>web/reports/</code> 并提 PR（或用 <code>node scripts/publish-report.mjs &lt;report.json&gt;</code> 自动归档 + 更新清单）。后续会上线一键上传。</p>
+</div></section>
+
+<section><div class="wrap">
+  <h2>报告列表<span class="anchor">公共基线 + 用户分享 · 按分类筛选</span></h2>
+  <div class="mock-banner" id="needserver" hidden>⚠ 本页需起本地服务后访问：<code>npm run serve</code> → http://localhost:8080/reports.html。直接用 file:// 打开时浏览器会拦截数据模块。</div>
+  <div class="cat-row" id="cats"></div>
+  <div class="pains" id="grid"></div>
+  <p class="fn" id="empty" hidden>暂无报告。用上面的命令生成第一份。</p>
+</div></section>
+
+<div id="overlay">
+  <div class="bar">
+    <b id="ov-title">报告</b>
+    <div class="sp">
+      <a class="btn" id="ov-json" href="#" target="_blank" rel="noopener">下载 JSON</a>
+      <button id="ov-close">关闭 ✕</button>
+    </div>
+  </div>
+  <iframe id="ov-frame" title="对比报告"></iframe>
+</div>
+
+<script type="module">
+import { renderReportHtml } from './report.mjs';
+
+const CATS = [
+  { key: 'all', label: '全部' },
+  { key: 'compare', label: '横向对比' },
+  { key: 'longcontext', label: '长文本' },
+  { key: 'stability', label: '稳定性' },
+  { key: 'price', label: '价格' },
+];
+const grid = document.getElementById('grid');
+const catRow = document.getElementById('cats');
+let all = [];
+let active = 'all';
+
+function fmtDate(iso) { return typeof iso === 'string' ? iso.slice(0, 16).replace('T', ' ') : '—'; }
+
+function card(r) {
+  const el = document.createElement('div');
+  el.className = 'pain rcard';
+  const badge = r.demo ? '<span class="bdg unk">示例</span>'
+    : r.source === 'baseline' ? '<span class="bdg ok">公共基线</span>' : '<span class="bdg warn">用户分享</span>';
+  el.innerHTML = `
+    <div class="top"><span class="kind">${r.kind || 'compare'}</span>${badge}</div>
+    <h3>${r.title ? esc(r.title) : esc(r.model || '报告')}</h3>
+    <div class="stats">
+      <span>模型 <b>${esc(r.model || '—')}</b></span>
+      <span>视角 <b>${esc(r.region || '—')}</b></span>
+      <span>目标 <b>${r.targetCount ?? '—'}</b></span>
+      <span>最快 <b>${esc(r.fastestTtft || '—')}</b></span>
+      <span>红旗 <b class="${r.flagCount ? 'flagn' : ''}">${r.flagCount ?? 0}</b></span>
+    </div>
+    <div class="stats"><span>${fmtDate(r.generatedAt)}</span></div>
+    <button class="open" data-id="${esc(r.id)}">查看报告 →</button>`;
+  el.querySelector('.open').addEventListener('click', () => openReport(r));
+  return el;
+}
+
+const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+function renderGrid() {
+  const list = all.filter((r) => active === 'all' || (r.kind || 'compare') === active);
+  grid.innerHTML = '';
+  document.getElementById('empty').hidden = list.length > 0;
+  list.forEach((r) => grid.appendChild(card(r)));
+}
+
+async function openReport(meta) {
+  const ov = document.getElementById('overlay');
+  const frame = document.getElementById('ov-frame');
+  document.getElementById('ov-title').textContent = meta.title || meta.model || '报告';
+  const jsonUrl = `reports/${meta.id}.json`;
+  document.getElementById('ov-json').href = jsonUrl;
+  ov.classList.add('on');
+  frame.srcdoc = '<p style="font:14px sans-serif;padding:24px;color:#64748b">加载中…</p>';
+  try {
+    const full = await (await fetch(jsonUrl)).json();
+    // 与 CLI 完全相同的渲染函数——分享报告与本地报告像素一致
+    frame.srcdoc = renderReportHtml(full);
+  } catch (e) {
+    frame.srcdoc = `<p style="font:14px sans-serif;padding:24px;color:#dc2626">报告加载失败：${esc(String(e))}</p>`;
+  }
+}
+document.getElementById('ov-close').addEventListener('click', () => document.getElementById('overlay').classList.remove('on'));
+document.getElementById('overlay').addEventListener('click', (e) => { if (e.target.id === 'overlay') e.currentTarget.classList.remove('on'); });
+
+CATS.forEach((c) => {
+  const b = document.createElement('button');
+  b.className = 'cat' + (c.key === 'all' ? ' on' : '');
+  b.textContent = c.label;
+  b.addEventListener('click', () => {
+    active = c.key;
+    [...catRow.children].forEach((x) => x.classList.toggle('on', x === b));
+    renderGrid();
+  });
+  catRow.appendChild(b);
+});
+
+(async () => {
+  try {
+    const idx = await (await fetch('reports/index.json')).json();
+    all = Array.isArray(idx.reports) ? idx.reports : [];
+    renderGrid();
+  } catch (e) {
+    document.getElementById('needserver').hidden = false;
+  }
+})();
+</script>
+</body>
+</html>

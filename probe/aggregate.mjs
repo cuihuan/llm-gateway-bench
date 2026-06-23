@@ -300,6 +300,15 @@ async function main() {
     await writeFile(new URL('web/models.json', root), JSON.stringify(models, null, 2));
     console.log(`web/models.json: ${models.models?.length ?? 0} models`);
   } catch (e) { console.error('[aggregate] models.json skipped:', e.message); }
+
+  // 报告渲染单一来源：把纯函数 report.mjs 镜像到 web/，让报告广场（reports.html）
+  // 在浏览器里用与 CLI 完全相同的 renderReportHtml 渲染分享报告（pages 直接部署
+  // web/，故此文件需提交进仓库）。report.mjs 无外部依赖、浏览器 ESM 兼容。
+  try {
+    const src = await readFile(new URL('probe/report.mjs', root), 'utf8');
+    await writeFile(new URL('web/report.mjs', root), src);
+    console.log('web/report.mjs: mirrored from probe/report.mjs');
+  } catch (e) { console.error('[aggregate] report.mjs mirror skipped:', e.message); }
 }
 
 if (process.argv[1] && import.meta.url.endsWith(process.argv[1].split('/').pop())) {

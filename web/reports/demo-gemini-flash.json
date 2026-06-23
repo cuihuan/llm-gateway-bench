@@ -1,0 +1,110 @@
+{
+  "schema": "gwbench-report/1",
+  "kind": "compare",
+  "generatedAt": "2026-06-23T03:30:00Z",
+  "tool": {
+    "name": "gwbench",
+    "version": "0.2.0"
+  },
+  "model": "gemini-2.5-flash",
+  "region": "local-cn",
+  "samplesPerTarget": 3,
+  "targets": [
+    {
+      "name": "我的网关（自建）",
+      "host": "my-gateway.example.com",
+      "connMs": 172,
+      "ttftMs": {
+        "p50": 430,
+        "p95": 760
+      },
+      "tokensPerSec": 52,
+      "successRate": 1,
+      "toolCall": true,
+      "burstStream": false,
+      "modelEcho": true,
+      "cjk": true,
+      "needle": true,
+      "usage": {
+        "promptTokens": 21,
+        "charsPerToken": 3.8
+      },
+      "error": null
+    },
+    {
+      "name": "OpenRouter",
+      "host": "openrouter.ai",
+      "connMs": 204,
+      "ttftMs": {
+        "p50": 510,
+        "p95": 880
+      },
+      "tokensPerSec": 47,
+      "successRate": 1,
+      "toolCall": true,
+      "burstStream": false,
+      "modelEcho": true,
+      "cjk": true,
+      "needle": true,
+      "usage": {
+        "promptTokens": 21,
+        "charsPerToken": 3.8
+      },
+      "error": null
+    },
+    {
+      "name": "某低价中转",
+      "host": "cheap-relay.example.cn",
+      "connMs": 560,
+      "ttftMs": {
+        "p50": 1400,
+        "p95": 3200
+      },
+      "tokensPerSec": 18,
+      "successRate": 1,
+      "toolCall": true,
+      "burstStream": true,
+      "modelEcho": false,
+      "cjk": false,
+      "needle": false,
+      "usage": {
+        "promptTokens": 21,
+        "charsPerToken": 2.1
+      },
+      "error": null
+    }
+  ],
+  "comparison": {
+    "fastestTtft": "我的网关（自建）",
+    "highestThroughput": "我的网关（自建）",
+    "flags": [
+      {
+        "target": "某低价中转",
+        "flag": "modelEcho",
+        "severity": "alert",
+        "label": "模型回显不符（疑似偷换）"
+      },
+      {
+        "target": "某低价中转",
+        "flag": "burstStream",
+        "severity": "warn",
+        "label": "疑似假流式（憋完再吐）"
+      },
+      {
+        "target": "某低价中转",
+        "flag": "needle",
+        "severity": "warn",
+        "label": "长文本标记丢失（疑似上下文截断）"
+      },
+      {
+        "target": "某低价中转",
+        "flag": "cjk",
+        "severity": "warn",
+        "label": "CJK 输出损坏（疑似量化降智）"
+      }
+    ]
+  },
+  "demo": true,
+  "title": "示例 · gemini-2.5-flash 三网关横评",
+  "note": "这是一份演示报告，展示报告广场如何呈现对比与红旗。数据为示意，非真实拨测。"
+}

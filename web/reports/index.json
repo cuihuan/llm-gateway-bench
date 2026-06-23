@@ -1,0 +1,19 @@
+{
+  "schema": "gwbench-reports-index/1",
+  "updatedAt": "2026-06-23T03:30:00Z",
+  "reports": [
+    {
+      "id": "demo-gemini-flash",
+      "kind": "compare",
+      "model": "gemini-2.5-flash",
+      "region": "local-cn",
+      "generatedAt": "2026-06-23T03:30:00Z",
+      "demo": true,
+      "title": "示例 · gemini-2.5-flash 三网关横评",
+      "targetCount": 3,
+      "fastestTtft": "我的网关（自建）",
+      "flagCount": 4,
+      "source": "baseline"
+    }
+  ]
+}
