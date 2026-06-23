@@ -106,9 +106,14 @@ web/reports/<id>.json  ──►  web/reports.html 广场静态渲染  ← 柱�
 - **Phase 3 · 长文本报告**：`longcontext.mjs` 多长度×多深度 needle 热图，kind=longcontext
   复用报告广场；`npm run longcontext`；范例报告。✅
 - **Phase 4 · 网站与变现脚手架**：`pricing.html` 四层定价（自助免费/托管拨测/Pro 托管/封装 SDK）；
-  首页自助对比 CTA。✅（脚手架）
-  - **Phase 4b · 分享与支付（待定后端）**：一键上传端点 + 广场提交流；接入支付通道。⏳ 需定后端架构。
-- **Phase 5 · 引流**：报告/榜单/定价页 CTA 深链到主项目；分享卡片 OG 图。⏳ 需主项目 URL（pricing.html 已留占位）。
+  首页自助对比 CTA。✅
+  - **Phase 4b · 分享与支付（无服务器变现）**：决策＝保持无服务器；报告内置'下载 JSON / 分享到广场'入口
+    （`renderReportHtml`，纯前端）；支付走收款链接（拿到链接换 `pricing.html` 候补 CTA 的 href 即可，无需后端）。✅
+- **Phase 5 · 引流**：决策＝先指向 GitHub 仓库；`pricing.html`'关于这个平台'区 + 报告 footer CTA 已接入
+  （注释标明主项目 URL 替换点）。✅（占位）。剩余：分享卡片 OG 图、拿到主项目 URL 后替换。
+
+> 后续（用户给信息后即可推进）：① 正式收款链接替换候补 CTA；② 主项目 URL 替换引流占位；
+> ③ 托管拨测真正落地（Phase 1/3 探针已就绪，缺的是我们侧的 key + 调度）；④ 封装各厂商 SDK 的统一客户端。
 
 ## 7. 不变量（工程红线，沿用现状并扩展）
 
