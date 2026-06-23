@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-23T08:07:40.020Z",
+  "generatedAt": "2026-06-23T08:59:29.745Z",
   "demo": false,
   "windowDays": 30,
   "regions": [
@@ -13,6 +13,7 @@
       "host": "synthorai.io",
       "website": "https://synthorai.io",
       "protocols": "OpenAI · Anthropic",
+      "category": "网关",
       "pricing": "https://synthorai.io/api/pricing",
       "probeModels": [
         "gemini-2.5-flash",
@@ -371,6 +372,7 @@
       "host": "openrouter.ai/api",
       "website": "https://openrouter.ai",
       "protocols": "OpenAI",
+      "category": "网关",
       "pricing": "https://openrouter.ai/models",
       "probeModels": [
         "openai/gpt-4o-mini",
@@ -555,6 +557,7 @@
       "host": "aihubmix.com",
       "website": "https://aihubmix.com",
       "protocols": "OpenAI",
+      "category": "网关",
       "pricing": "https://aihubmix.com/models",
       "probeModels": [
         "gpt-4o-mini",
@@ -739,6 +742,7 @@
       "host": "api.openai.com",
       "website": "https://platform.openai.com",
       "protocols": "OpenAI",
+      "category": "官方直连",
       "pricing": "https://platform.openai.com/docs/pricing",
       "probeModels": [
         "gpt-4o-mini"
@@ -922,6 +926,7 @@
       "host": "api.deepseek.com",
       "website": "https://platform.deepseek.com",
       "protocols": "OpenAI",
+      "category": "官方直连",
       "pricing": "https://api-docs.deepseek.com/quick_start/pricing",
       "probeModels": [
         "deepseek-chat"
@@ -1105,6 +1110,7 @@
       "host": "api.moonshot.cn",
       "website": "https://platform.moonshot.cn",
       "protocols": "OpenAI",
+      "category": "官方直连",
       "pricing": "https://platform.moonshot.cn/docs/pricing/chat",
       "probeModels": [
         "moonshot-v1-8k"
@@ -1288,6 +1294,7 @@
       "host": "api.siliconflow.cn",
       "website": "https://siliconflow.cn",
       "protocols": "OpenAI",
+      "category": "供应商",
       "pricing": "https://siliconflow.cn/pricing",
       "probeModels": [
         "Qwen/Qwen2.5-7B-Instruct"
@@ -1471,6 +1478,7 @@
       "host": "api.groq.com/openai",
       "website": "https://groq.com",
       "protocols": "OpenAI",
+      "category": "供应商",
       "pricing": "https://groq.com/pricing",
       "probeModels": [
         "llama-3.1-8b-instant"
@@ -1654,6 +1662,7 @@
       "host": "api.together.xyz",
       "website": "https://www.together.ai",
       "protocols": "OpenAI",
+      "category": "供应商",
       "pricing": "https://www.together.ai/pricing",
       "probeModels": [
         "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo"
@@ -1837,6 +1846,7 @@
       "host": "api.ohmygpt.com",
       "website": "https://www.ohmygpt.com",
       "protocols": "OpenAI",
+      "category": "网关",
       "pricing": "https://www.ohmygpt.com",
       "probeModels": [
         "gpt-4o-mini"
@@ -2020,6 +2030,7 @@
       "host": "api.closeai-asia.com",
       "website": "https://www.closeai-asia.com",
       "protocols": "OpenAI",
+      "category": "网关",
       "pricing": "https://www.closeai-asia.com",
       "probeModels": [
         "gpt-4o-mini"

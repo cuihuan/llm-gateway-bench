@@ -280,6 +280,8 @@ async function main() {
         host: gw.baseUrl.replace(/^https?:\/\//, ''),
         website: gw.website,
         protocols: gw.tags.includes('anthropic-compatible') ? 'OpenAI · Anthropic' : 'OpenAI',
+        // 类型分档（供前端"速选"按类型筛选）：官方直连 / 一手供应商 / 中转网关。
+        category: gw.tags.includes('official') ? '官方直连' : gw.tags.includes('provider') ? '供应商' : '网关',
         pricing: gw.pricingUrl,
         probeModels: gw.probeModels,
         priceIdx: priceIndex(prices?.models, gw.id),

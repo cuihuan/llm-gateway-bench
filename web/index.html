@@ -72,7 +72,26 @@
 </div></section>
 
 <section id="leaderboard"><div class="wrap">
-  <h2>网关排行榜<span class="anchor">默认按 30 天稳定性排序 · 点击表头切换 · 不做黑箱总分 · <a href="article.html?slug=choosing-a-gateway">读懂这一维 →</a></span></h2>
+  <h2>网关排行榜<span class="anchor">先选你最看重什么，榜单按那一维实时重排——不做黑箱总分，每一维都是公开口径 · <a href="article.html?slug=choosing-a-gateway">读懂这一维 →</a></span></h2>
+  <div class="picker" id="picker">
+    <div class="picker-row">
+      <span class="pk-label">我最看重</span>
+      <div class="chips" id="pri-chips">
+        <button class="chip on" data-k="uptime" data-asc="0">更稳</button>
+        <button class="chip" data-k="priceIdx" data-asc="1">更便宜</button>
+        <button class="chip" data-k="ttft" data-asc="1">更快</button>
+        <button class="chip" data-k="fpScore" data-asc="0">更合规</button>
+        <button class="chip" data-k="models" data-asc="0">模型多</button>
+      </div>
+    </div>
+    <div class="picker-row">
+      <span class="pk-label">筛选</span>
+      <select id="f-proto"><option value="">协议：全部</option><option>OpenAI</option><option>OpenAI · Anthropic</option></select>
+      <select id="f-cat"><option value="">类型：全部</option><option>网关</option><option>官方直连</option><option>供应商</option></select>
+      <a class="pk-self" href="reports.html">＋ 测我自己的网关</a>
+    </div>
+    <div class="verdict" id="verdict"></div>
+  </div>
   <div class="tablebox"><table id="lb">
     <thead><tr>
       <th>网关</th>
@@ -210,9 +229,18 @@ function adaptTrust(a){
   };
 }
 
+// 合规指纹综合命中率（0–1）：模型回显/CJK/needle/工具调用/真流式 各项通过率的均值；
+// 仅作"更合规"排序用，不是黑箱总分（各维度在体检表里仍独立可查）。
+function fpScoreOf(g){
+  const parts=[]; const it=g.integrity;
+  for(const k of ['modelEcho','cjk','needle']){ const s=it?.[k]; if(s&&s.total) parts.push(s.ok/s.total); }
+  if(g.toolCalls&&g.toolCalls.total) parts.push(g.toolCalls.ok/g.toolCalls.total);
+  if(g.streamBurst&&g.streamBurst.total) parts.push((g.streamBurst.total-g.streamBurst.suspect)/g.streamBurst.total);
+  return parts.length ? parts.reduce((a,b)=>a+b,0)/parts.length : null;
+}
 function adapt(raw){
   const gateways = (raw.gateways ?? []).map(g=>({
-    id:g.id, name:g.name, host:g.host, website:g.website, protocols:g.protocols,
+    id:g.id, name:g.name, host:g.host, website:g.website, protocols:g.protocols, category:g.category ?? '网关',
     pricing:g.pricing, probeModels:g.probeModels ?? [],
     priceIdx:g.priceIdx, uptime:g.uptimePct, uptime7:g.uptime7dPct ?? null, probes:g.probes ?? 0,
     ttft:g.speed?.ttftP50 ?? null, tps:g.speed?.tps ?? null,
@@ -223,6 +251,7 @@ function adapt(raw){
     toolCalls:g.toolCalls ?? null,
     streamBurst:g.streamBurst ?? null,
     integrity:g.integrity ?? null,
+    fpScore: fpScoreOf(g),
     usageByModel:g.usageByModel ?? [],
     hourly:g.hourly ?? [],
     peakDrift:g.peakDrift ?? null,
@@ -297,6 +326,8 @@ DEMO.gateways.forEach((g,gi)=>{
   const n = g.probeModels.length;
   // 演示：aihubmix 故意展示 CJK 不通过（量化降智）以示意红态
   g.integrity = { modelEcho:{ok:n,total:n}, cjk:{ok: gi===2?n-1:n, total:n}, needle:{ok:n,total:n} };
+  g.category = g.id==='openai-direct' ? '官方直连' : '网关';
+  g.fpScore = fpScoreOf(g);
   g.usageByModel = g.probeModels.map(m=>({ model:m.split('/').pop(), charsPerToken: 3.5+(gi*0.3)%1.5, promptTokens: 30+gi }));
   const rnd = seeded(gi*7+3);
   g.daysArr = Array.from({length:30},()=>{ const r=rnd();
@@ -382,18 +413,28 @@ function render(site, isDemo){
   $('#m-gw').textContent = site.gateways.length+' 个';
   $('#m-region').textContent = site.region;
 
-  // ---- 排行榜（null 永远排末尾） ----
-  let sortKey='uptime', sortAsc=false;
+  // ---- 排行榜：速选（按优先级实时重排 + 筛选 + 当前第一高亮）。null 永远排末尾 ----
+  let sortKey='uptime', sortAsc=false, fProto='', fCat='';
+  const PRI_LABEL = { uptime:'稳定', priceIdx:'价格', ttft:'速度', fpScore:'合规', tps:'吞吐', models:'模型数' };
+  const metricStr = (g,k)=> k==='priceIdx'?(g.priceIdx==null?'—':fmt(g.priceIdx,2)+'×')
+    : k==='ttft'?(g.ttft==null?'—':fmt(g.ttft)+'ms') : k==='uptime'?(g.uptime==null?'—':fmt(g.uptime,2)+'%')
+    : k==='fpScore'?(g.fpScore==null?'—':Math.round(g.fpScore*100)+'%') : k==='tps'?fmt(g.tps) : fmt(g.models);
   const renderLB = ()=>{
-    const rows=[...site.gateways].sort((a,b)=>{
+    const list = site.gateways.filter(g=> (!fProto||g.protocols===fProto) && (!fCat||g.category===fCat));
+    const rows = list.sort((a,b)=>{
       const av=a[sortKey], bv=b[sortKey];
       if(av==null&&bv==null) return 0;
       if(av==null) return 1; if(bv==null) return -1;
       return (av-bv)*(sortAsc?1:-1);
     });
-    $('#lb tbody').innerHTML = rows.map(g=>`<tr>
-      <td><div class="gw-name"><a href="${safeUrl(g.website)??'#'}" target="_blank" rel="noopener">${esc(g.name)}</a></div>
-          <div class="gw-sub">${esc(g.host)}</div></td>
+    const top = (rows[0] && rows[0][sortKey]!=null) ? rows[0] : null;
+    $('#verdict').innerHTML = rows.length
+      ? (top ? `最看重<b>${PRI_LABEL[sortKey]}</b> → 当前第一 <b>${esc(top.name)}</b>（${metricStr(top,sortKey)}）<span class="muted">· ${rows.length} 个网关参与排序</span>`
+             : `<span class="muted">该维度暂无数据</span>`)
+      : `<span class="muted">当前筛选下无网关</span>`;
+    $('#lb tbody').innerHTML = rows.map(g=>`<tr class="${g===top?'toppick':''}">
+      <td><div class="gw-name">${g===top?'<span class="pick-star" title="当前优先级下第一">★</span> ':''}<a href="${safeUrl(g.website)??'#'}" target="_blank" rel="noopener">${esc(g.name)}</a></div>
+          <div class="gw-sub">${esc(g.host)} · ${esc(g.category)}</div></td>
       <td>${bdg(g.trust.level, esc(g.trust.levelText))}</td>
       <td>${bdg(g.trust.prompt.bdg??'unk', esc(g.trust.prompt.text))}</td>
       <td class="r num ${priceCls(g.priceIdx)}">${g.priceIdx==null?'—':fmt(g.priceIdx,2)+'×'}</td>
@@ -403,24 +444,27 @@ function render(site, isDemo){
       <td class="r num">${fmt(g.models)}</td>
       <td>${spark(g.trend)}</td>
     </tr>`).join('');
-    // 排序状态指示：当前列高亮 + 方向箭头 + aria-sort（屏幕阅读器可知排序状态）
     document.querySelectorAll('#lb thead th.sortable').forEach(th=>{
       const active = th.dataset.k===sortKey;
       th.classList.toggle('sorted', active);
       th.setAttribute('aria-sort', active ? (sortAsc?'ascending':'descending') : 'none');
-      const arr = th.querySelector('.arr');
-      if(arr) arr.textContent = active ? (sortAsc?'▲':'▼') : '↕';
+      const arr = th.querySelector('.arr'); if(arr) arr.textContent = active ? (sortAsc?'▲':'▼') : '↕';
     });
+    // 同步优先级 chip 高亮（与当前排序键/方向一致的那个点亮）
+    document.querySelectorAll('#pri-chips .chip').forEach(c=>
+      c.classList.toggle('on', c.dataset.k===sortKey && (c.dataset.asc==='1')===sortAsc));
   };
-  const doSort = (th)=>{
-    const k=th.dataset.k;
-    if(sortKey===k) sortAsc=!sortAsc; else { sortKey=k; sortAsc=false; }
-    renderLB();
-  };
+  const applySort = (k, asc)=>{ sortKey=k; sortAsc=asc; renderLB(); };
+  // 优先级 chip
+  document.querySelectorAll('#pri-chips .chip').forEach(c=>
+    c.addEventListener('click', ()=> applySort(c.dataset.k, c.dataset.asc==='1')));
+  // 筛选
+  $('#f-proto').addEventListener('change', e=>{ fProto=e.target.value; renderLB(); });
+  $('#f-cat').addEventListener('change', e=>{ fCat=e.target.value; renderLB(); });
+  // 表头点击仍可排序（与 chip 联动）
+  const doSort = (th)=>{ const k=th.dataset.k; if(sortKey===k) sortAsc=!sortAsc; else { sortKey=k; sortAsc=false; } renderLB(); };
   document.querySelectorAll('#lb thead th.sortable').forEach(th=>{
-    th.setAttribute('tabindex','0');           // 键盘可聚焦
-    th.setAttribute('role','columnheader');
-    th.setAttribute('title','点击或回车按此列排序');
+    th.setAttribute('tabindex','0'); th.setAttribute('role','columnheader'); th.setAttribute('title','点击或回车按此列排序');
     th.addEventListener('click',()=>doSort(th));
     th.addEventListener('keydown',(e)=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); doSort(th); } });
   });

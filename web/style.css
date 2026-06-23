@@ -233,6 +233,30 @@ article-list, .list { padding: 18px 0 8px; }
   article h1, .list .body h2 { font-size: 24px; }
 }
 
+/* 速选：优先级 chip + 筛选 + 当前第一 verdict */
+.picker { background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 14px 16px; margin: 4px 0 16px; box-shadow: var(--shadow); }
+.picker-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.picker-row + .picker-row { margin-top: 10px; }
+.pk-label { font-size: 12.5px; font-weight: 700; color: var(--muted); min-width: 56px; }
+.chips { display: flex; gap: 8px; flex-wrap: wrap; }
+.chip { font: 600 13px/1 var(--sans); color: var(--muted); background: var(--panel2);
+  border: 1px solid var(--border); border-radius: 999px; padding: 7px 14px; cursor: pointer; transition: all .12s; }
+.chip:hover { color: var(--accent); border-color: var(--accent); }
+.chip.on { color: #fff; background: var(--accent); border-color: var(--accent); }
+.picker select { font: 500 13px var(--sans); color: var(--text); background: var(--panel);
+  border: 1px solid var(--border); border-radius: 9px; padding: 7px 11px; cursor: pointer; }
+.picker select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.pk-self { margin-left: auto; font-size: 13px; font-weight: 600; color: var(--accent);
+  background: var(--accent-soft); border: 1px solid #c7d2fe; border-radius: 9px; padding: 7px 13px; }
+.pk-self:hover { background: #e0e7ff; text-decoration: none; }
+.verdict { margin-top: 12px; padding-top: 11px; border-top: 1px dashed var(--border);
+  font-size: 14px; color: var(--text); }
+.verdict b { color: var(--accent-strong); }
+#lb tr.toppick td { background: var(--accent-soft); }
+#lb tr.toppick td:first-child { box-shadow: inset 3px 0 0 var(--accent); }
+.pick-star { color: #f59e0b; font-weight: 700; }
+
 /* 首页/页面 CTA 按钮 */
 .hero-cta { display: flex; flex-wrap: wrap; gap: 12px; margin: 22px 0 4px; }
 .cta { display: inline-flex; align-items: center; font-size: 14.5px; font-weight: 600; color: var(--accent);
