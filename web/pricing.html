@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>定价 · 托管拨测 / 报告托管 · LLM Gateway Bench</title>
+<meta name="description" content="自助拨测永久免费、key 不出本机。付费层：托管拨测（我们用自己的 infra 跑贵活）、Pro 报告托管（私有/带品牌/定时复测/告警）、封装各厂商 SDK 的统一 benchmark 客户端。">
+<meta name="theme-color" content="#6366f1">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%236366f1'/><rect x='7' y='17' width='4' height='8' rx='1' fill='%23fff'/><rect x='14' y='12' width='4' height='13' rx='1' fill='%23fff'/><rect x='21' y='7' width='4' height='18' rx='1' fill='%23fff'/></svg>">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="LLM Gateway Bench">
+<meta property="og:title" content="定价 · 托管拨测 / 报告托管">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav><div class="wrap">
+  <div class="logo">LLM Gateway Bench<span>大模型网关评测</span></div>
+  <a class="lnk" href="index.html#leaderboard">网关评测</a>
+  <a class="lnk" href="evals.html">模型评测</a>
+  <a class="lnk" href="reports.html">报告广场</a>
+  <a class="lnk" href="pricing.html">定价</a>
+  <div class="right"><a class="lnk" href="index.html">← 返回平台</a></div>
+</div></nav>
+
+<header><div class="wrap">
+  <h1>定价</h1>
+  <p class="tagline"><b>自助拨测永久免费</b>，key 只存你本机的环境变量、绝不上传。付费的只有两件事：① 你不想烧自己的 token / 不想配环境，让我们用<b>自己的 infra 跑贵活</b>（长文本 128K、与官方对拍、模型身份指纹）；② 你想把报告<b>私有托管、带品牌、定时复测、变更告警</b>。仅 benchmark 维度，不碰你的业务数据。</p>
+</div></header>
+
+<section><div class="wrap">
+  <h2>分层<span class="anchor">从免费自测到企业托管，按 benchmark 用量计费</span></h2>
+  <div class="tiers">
+
+    <div class="tier">
+      <span class="t-tag">免费 · 永久</span>
+      <div class="t-name">自助拨测</div>
+      <div class="t-price">¥0</div>
+      <ul>
+        <li>本地跑 gwbench compare / longcontext，无限次</li>
+        <li>用你自己的 key，key 不出本机</li>
+        <li>便携报告 report.html / report.json</li>
+        <li>浏览报告广场全部公开报告</li>
+        <li>把报告公开分享到广场（提 PR）</li>
+      </ul>
+      <a class="cta" href="reports.html">立即开测 →</a>
+    </div>
+
+    <div class="tier feat">
+      <span class="t-tag">最受欢迎</span>
+      <div class="t-name">托管拨测</div>
+      <div class="t-price">按次 / 按量</div>
+      <ul>
+        <li>我们用自己的 infra + key 跑，你不烧 token</li>
+        <li>贵活全包：长文本 128K needle、与官方 API 对拍、模型身份指纹</li>
+        <li>多地域探针（含国内直连视角）</li>
+        <li>一键出报告，免配环境</li>
+        <li>结果可直接发布到广场或私有保存</li>
+      </ul>
+      <a class="cta cta-primary" href="#contact">加入候补 →</a>
+    </div>
+
+    <div class="tier">
+      <span class="t-tag">订阅</span>
+      <div class="t-name">Pro 报告托管</div>
+      <div class="t-price">包月</div>
+      <ul>
+        <li>私有报告，带你的品牌/水印</li>
+        <li>定时复测（每日/每周），趋势留存</li>
+        <li>偷换 / 截断 / 限速 变更告警</li>
+        <li>团队共享与权限</li>
+        <li>导出 PDF / 分享短链</li>
+      </ul>
+      <a class="cta" href="#contact">加入候补 →</a>
+    </div>
+
+    <div class="tier">
+      <span class="t-tag">企业 / 开发者</span>
+      <div class="t-name">统一 benchmark 客户端</div>
+      <div class="t-price">License / 用量</div>
+      <ul>
+        <li>封装各厂商 SDK，一套接口横评多家</li>
+        <li>国内用户友好：一处接入，跑遍主流网关</li>
+        <li>把 gwbench 探针嵌进你自己的 CI</li>
+        <li>私有部署与定制指标</li>
+        <li>SLA 与技术支持</li>
+      </ul>
+      <a class="cta" href="#contact">商务洽谈 →</a>
+    </div>
+
+  </div>
+  <p class="fn">付费的是<b>我们替你跑拨测 + 托管报告</b>，不是把开源能力锁起来——自助拨测与公开报告永久免费、可复现。计费与支付通道即将上线。</p>
+</div></section>
+
+<section id="contact"><div class="wrap">
+  <h2>加入候补 / 联系<span class="anchor">支付通道上线前，先登记需求，优先开放</span></h2>
+  <p class="sub">想要托管拨测或 Pro 报告托管？现在就告诉我们你要测哪些网关、哪些维度。支付与自助下单通道接入后第一时间通知你。</p>
+  <div class="hero-cta">
+    <a class="cta cta-primary" href="https://github.com/cuihuan/llm-gateway-bench/issues/new?title=%5B%E5%80%99%E8%A1%A5%5D%20%E6%89%98%E7%AE%A1%E6%8B%A8%E6%B5%8B%2FPro%E6%8A%A5%E5%91%8A&body=%E6%83%B3%E6%B5%8B%E7%9A%84%E7%BD%91%E5%85%B3%EF%BC%9A%0A%E5%85%B3%E5%BF%83%E7%9A%84%E7%BB%B4%E5%BA%A6%EF%BC%9A%0A%E8%81%94%E7%B3%BB%E6%96%B9%E5%BC%8F%EF%BC%9A" target="_blank" rel="noopener">用 GitHub Issue 登记 →</a>
+    <a class="cta" href="reports.html">先免费自测一把</a>
+  </div>
+  <!-- TODO(引流·Phase 5): 在此放"主项目"CTA 深链——待确认主项目名称与 URL 后填入。 -->
+</div></section>
+
+</body>
+</html>

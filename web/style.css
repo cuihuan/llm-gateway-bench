@@ -232,3 +232,23 @@ article-list, .list { padding: 18px 0 8px; }
   body.reading { font-size: 15.5px; }
   article h1, .list .body h2 { font-size: 24px; }
 }
+
+/* 首页/页面 CTA 按钮 */
+.hero-cta { display: flex; flex-wrap: wrap; gap: 12px; margin: 22px 0 4px; }
+.cta { display: inline-flex; align-items: center; font-size: 14.5px; font-weight: 600; color: var(--accent);
+  background: var(--accent-soft); border: 1px solid #c7d2fe; border-radius: 10px; padding: 10px 18px; transition: all .15s; }
+.cta:hover { background: #e0e7ff; text-decoration: none; transform: translateY(-1px); }
+.cta-primary { color: #fff; background: var(--accent); border-color: var(--accent); box-shadow: var(--shadow-md); }
+.cta-primary:hover { background: var(--accent-strong); }
+/* 定价页 */
+.tiers { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin-top: 20px; }
+.tier { background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius); padding: 22px 20px;
+  box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 10px; }
+.tier.feat { border-color: var(--accent); box-shadow: var(--shadow-md); }
+.tier .t-name { font-weight: 800; font-size: 17px; }
+.tier .t-price { font-family: var(--mono); color: var(--accent); font-size: 15px; }
+.tier ul { list-style: none; padding: 0; margin: 4px 0 0; }
+.tier li { color: var(--muted); font-size: 13.5px; padding: 4px 0 4px 20px; position: relative; line-height: 1.5; }
+.tier li::before { content: "✓"; color: var(--good); position: absolute; left: 0; font-weight: 700; }
+.tier .t-tag { font-size: 11px; font-weight: 700; color: var(--accent); background: var(--accent-soft);
+  border-radius: 999px; padding: 3px 10px; align-self: flex-start; }
