@@ -29,6 +29,11 @@
         "promptTokens": 21,
         "charsPerToken": 3.8
       },
+      "price": [
+        0.28,
+        2.4
+      ],
+      "priceIdx": 0.95,
       "error": null
     },
     {
@@ -50,6 +55,11 @@
         "promptTokens": 21,
         "charsPerToken": 3.8
       },
+      "price": [
+        0.3,
+        2.5
+      ],
+      "priceIdx": 1,
       "error": null
     },
     {
@@ -71,12 +81,18 @@
         "promptTokens": 21,
         "charsPerToken": 2.1
       },
+      "price": [
+        0.11,
+        0.9
+      ],
+      "priceIdx": 0.36,
       "error": null
     }
   ],
   "comparison": {
     "fastestTtft": "我的网关（自建）",
     "highestThroughput": "我的网关（自建）",
+    "cheapest": "某低价中转",
     "flags": [
       {
         "target": "某低价中转",
@@ -101,10 +117,16 @@
         "flag": "cjk",
         "severity": "warn",
         "label": "CJK 输出损坏（疑似量化降智）"
+      },
+      {
+        "target": "某低价中转",
+        "flag": "cheapPrice",
+        "severity": "warn",
+        "label": "价格异常偏低（<0.5×官方，疑似逆向渠道）"
       }
     ]
   },
   "demo": true,
   "title": "示例 · gemini-2.5-flash 三网关横评",
-  "note": "这是一份演示报告，展示报告广场如何呈现对比与红旗。数据为示意，非真实拨测。"
+  "note": "演示报告：含价格/倍率与红旗（某低价中转价格异常偏低+多项指纹不过）。数据为示意。"
 }

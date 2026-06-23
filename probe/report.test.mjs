@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { buildTarget, buildComparison, buildReport, renderReportHtml } from './report.mjs';
+import { buildTarget, buildComparison, buildReport, renderReportHtml, priceIdxFor } from './report.mjs';
 
 // 一个典型的 probeGateway 产出（含 summarize 的字段形状）。
 const okRaw = {
@@ -63,6 +63,34 @@ test('buildTarget: no model probed → safe empty target with error', () => {
   assert.equal(t.error, 'no model probed');
 });
 
+test('priceIdxFor: averages in/out ratios vs official; null on missing/zero', () => {
+  assert.equal(priceIdxFor([2, 8], [1, 4]), 2); // (2/1 + 8/4)/2 = 2
+  assert.equal(priceIdxFor([0.5, 2], [1, 4]), 0.5);
+  assert.equal(priceIdxFor([1, 4], null), null);
+  assert.equal(priceIdxFor(null, [1, 4]), null);
+  assert.equal(priceIdxFor([1, 4], [0, 4]), null); // zero official
+});
+
+test('buildTarget: carries price + computes priceIdx vs official', () => {
+  const t = buildTarget({ ...okRaw, price: [0.15, 0.6], official: [0.3, 1.2] });
+  assert.deepEqual(t.price, [0.15, 0.6]);
+  assert.equal(t.priceIdx, 0.5); // half of official
+  const noPrice = buildTarget(okRaw);
+  assert.equal(noPrice.price, null);
+  assert.equal(noPrice.priceIdx, null);
+});
+
+test('buildComparison: picks cheapest by in+out and flags <0.5x as reverse-channel', () => {
+  const cmp = buildComparison([
+    { name: 'Official', ttftMs: { p50: 500 }, tokensPerSec: 40, successRate: 1, price: [1, 4], priceIdx: 1 },
+    { name: 'Cheap', ttftMs: { p50: 500 }, tokensPerSec: 40, successRate: 1, price: [0.2, 0.8], priceIdx: 0.2 },
+  ]);
+  assert.equal(cmp.cheapest, 'Cheap');
+  const cheapFlag = cmp.flags.find((f) => f.target === 'Cheap' && f.flag === 'cheapPrice');
+  assert.ok(cheapFlag, 'sub-0.5x price raises reverse-channel flag');
+  assert.equal(cheapFlag.severity, 'warn');
+});
+
 test('buildComparison: picks fastest TTFT and highest throughput', () => {
   const cmp = buildComparison([
     { name: 'A', ttftMs: { p50: 800 }, tokensPerSec: 30, successRate: 1 },
@@ -114,6 +142,17 @@ test('renderReportHtml: self-contained, embeds data, escapes, no secret leak', (
   assert.ok(html.includes('gwbench-report'));         // embedded JSON block id
   assert.ok(html.includes('gemini-2.5-flash'));
   assert.ok(!/sk-|Bearer/.test(html), 'rendered report must not contain secrets');
+});
+
+test('renderReportHtml: renders price + multiplier columns and cheapest winner', () => {
+  const r = buildReport({ model: 'm', generatedAt: 't', version: '0.2.0', targets: [
+    buildTarget({ ...okRaw, name: 'Cheap', price: [0.15, 0.6], official: [0.3, 1.2] }),
+  ] });
+  const html = renderReportHtml(r);
+  assert.ok(html.includes('价格 入/出'), 'price column header');
+  assert.ok(html.includes('0.15/0.6'), 'per-target price shown');
+  assert.ok(html.includes('0.5×'), 'price multiplier shown');
+  assert.ok(html.includes('最便宜'), 'cheapest winner shown');
 });
 
 test('renderReportHtml: includes serverless share affordance (download + share link)', () => {

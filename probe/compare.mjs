@@ -15,6 +15,8 @@
 //   --name <name>       配合 --url：报告里显示的名字（默认取 host）
 //   --auth-env <NAME>   配合 --url：存 key 的环境变量名（默认 PROBE_KEY）
 //   --with <id,id>      要对比的已登记网关（默认：所有有该模型别名且环境里有 key 的）
+//   --price-in <usd>    配合 --url：你网关该模型的输入价（USD/1M），让自建网关进入价格对比
+//   --price-out <usd>   配合 --url：你网关该模型的输出价（USD/1M）
 //   --samples <n>       每个目标的采样次数（默认 3）
 //   --region <label>    探测视角标签写进报告（默认取 PROBE_REGION 或 'local'）
 //   --out <path>        报告输出前缀（默认 reports/<model>-<时间戳>），产出 .json 与 .html
@@ -99,6 +101,16 @@ async function main() {
   const gateways = JSON.parse(await readFile(new URL('data/gateways.json', root), 'utf8'));
   const tracked = JSON.parse(await readFile(new URL('data/tracked-models.json', root), 'utf8'));
   const version = JSON.parse(await readFile(new URL('package.json', root), 'utf8')).version;
+  // 价格快照（可选）：给对比报告补上'价格 + 倍率'列。缺文件不影响其它维度。
+  let prices = null;
+  try { prices = JSON.parse(await readFile(new URL('data/prices.json', root), 'utf8')); } catch {}
+  const priceRow = prices?.models?.find((p) => p.model === model) ?? null;
+  const official = Array.isArray(priceRow?.official) ? priceRow.official : null;
+  const adhocPriceIn = flag('price-in') != null ? Number(flag('price-in')) : null;
+  const adhocPriceOut = flag('price-out') != null ? Number(flag('price-out')) : null;
+  const adhocPrice = Number.isFinite(adhocPriceIn) && Number.isFinite(adhocPriceOut) ? [adhocPriceIn, adhocPriceOut] : null;
+  // 解析某目标的网关价 [入,出]：registry 取 prices.json 对应网关列；ad-hoc 取 --price-in/out。
+  const priceFor = (t) => (t.source === 'adhoc' ? adhocPrice : (Array.isArray(priceRow?.cells?.[t.id]) ? priceRow.cells[t.id] : null));
 
   const adhoc = flag('url') ? { url: flag('url'), alias: flag('alias'), name: flag('name'), authEnv: flag('auth-env') } : null;
   const withIds = flag('with') ? String(flag('with')).split(',').map((s) => s.trim()).filter(Boolean) : null;
@@ -115,7 +127,7 @@ async function main() {
     if (!key) { console.error(`[skip] ${t.name}: 环境变量 ${t.authEnv} 未设置`); continue; }
     const gw = { id: t.id, name: t.name, baseUrl: t.baseUrl, authEnv: t.authEnv, probeModels: [t.alias], tags: [] };
     const { connectivity, models } = await probeGateway(gw, key, { samples });
-    probed.push(buildTarget({ name: t.name, host: host(t.baseUrl), connectivity, models }));
+    probed.push(buildTarget({ name: t.name, host: host(t.baseUrl), connectivity, models, price: priceFor(t), official }));
   }
   if (!probed.length) { console.error('[compare] 所有目标都因缺 key 被跳过——没产出报告。'); process.exit(1); }
 
@@ -130,7 +142,7 @@ async function main() {
   await writeFile(new URL(`${out}.json`, root), JSON.stringify(report, null, 2));
   await writeFile(new URL(`${out}.html`, root), renderReportHtml(report));
   const cmp = report.comparison;
-  console.error(`[compare] ${probed.length} 个目标 · 最快 ${cmp.fastestTtft ?? '—'} · 吞吐最高 ${cmp.highestThroughput ?? '—'} · 红旗 ${cmp.flags.length}`);
+  console.error(`[compare] ${probed.length} 个目标 · 最快 ${cmp.fastestTtft ?? '—'} · 吞吐最高 ${cmp.highestThroughput ?? '—'} · 最便宜 ${cmp.cheapest ?? '—'} · 红旗 ${cmp.flags.length}`);
   console.log(`${out}.html`);
   console.log(`${out}.json`);
 }

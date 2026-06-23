@@ -18,9 +18,11 @@
 ```bash
 PROBE_KEY=sk-你的key OPENROUTER_API_KEY=sk-or AIHUBMIX_API_KEY=sk-ah \
   npm run compare -- --model gemini-2.5-flash \
-    --url https://my-gateway.com --name "我的网关" --with openrouter,aihubmix
+    --url https://my-gateway.com --name "我的网关" --price-in 0.2 --price-out 1.0 \
+    --with openrouter,aihubmix
 # → reports/gemini-2.5-flash-<日期>.html（自包含，可直接发给别人）
-#   测项：TTFT/吞吐多采样 · 成功率 · 工具调用 · 假流式 · 模型回显 · CJK · 长文本截断 · usage 指纹
+#   测项：TTFT/吞吐多采样 · 成功率 · 价格与倍率(÷官方价) · 工具调用 · 假流式 · 模型回显 · CJK · 长文本截断 · usage 指纹
+#   登记网关的价格自动取自 data/prices.json；自建网关用 --price-in/--price-out 让它也进价格对比。
 ```
 
 报告可公开到**报告广场**（[web/reports.html](web/reports.html)）：把 `report.json` 复制进

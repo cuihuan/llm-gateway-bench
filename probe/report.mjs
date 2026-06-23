@@ -9,15 +9,29 @@ export const REPORT_SCHEMA = 'gwbench-report/1';
 /** 把一个网关的原始探针结果（probeGateway 产出）压成报告里的一个 target。
  *  raw: { name, host, connMs?, region?, connectivity?, models:[{...summary, toolCall, cjk, needle}] }
  *  只取第一个被测模型（compare 每个目标只测一个逻辑模型）。 */
+/** 价格倍率 = 平均(网关入价/官方入价, 网关出价/官方出价)。缺任一价 → null。
+ *  与排行榜 priceIndex 同口径（docs/methodology.md），便于自测与公共基线对齐。 */
+export function priceIdxFor(price, official) {
+  if (!Array.isArray(price) || !Array.isArray(official)) return null;
+  const [pi, po] = price, [oi, oo] = official;
+  if (![pi, po, oi, oo].every((x) => typeof x === 'number') || oi <= 0 || oo <= 0) return null;
+  return Math.round(((pi / oi + po / oo) / 2) * 100) / 100;
+}
+
 export function buildTarget(raw) {
   const m = raw?.models?.[0] ?? null;
   const connMs = raw?.connMs ?? raw?.connectivity?.latencyMs ?? null;
+  // 价格 [入,出] USD/1M：registry 目标取自 prices.json 的对应网关列，ad-hoc 目标
+  // 可由 --price-in/--price-out 提供；official 为官方标价基线。缺则 null（不臆造）。
+  const price = Array.isArray(raw?.price) ? raw.price : null;
+  const official = Array.isArray(raw?.official) ? raw.official : null;
+  const priceIdx = priceIdxFor(price, official);
   if (!m) {
     return {
       name: raw?.name ?? '?', host: raw?.host ?? null, connMs,
       ttftMs: { p50: null, p95: null }, tokensPerSec: null, successRate: null,
       toolCall: null, burstStream: null, modelEcho: null, cjk: null, needle: null,
-      usage: null, error: raw?.error ?? 'no model probed',
+      usage: null, price, priceIdx, error: raw?.error ?? 'no model probed',
     };
   }
   const failed = m.success === 0;
@@ -35,6 +49,8 @@ export function buildTarget(raw) {
     cjk: m.cjk ? m.cjk.ok === true : null,
     needle: m.needle ? m.needle.ok === true : null,
     usage: m.usage ?? null,
+    price,
+    priceIdx,
     error: failed ? (m.errors?.[0] ?? 'all samples failed') : null,
   };
 }
@@ -46,14 +62,19 @@ const FLAG_SPEC = [
   { key: 'needle', when: (t) => t.needle === false, severity: 'warn', label: '长文本标记丢失（疑似上下文截断）' },
   { key: 'cjk', when: (t) => t.cjk === false, severity: 'warn', label: 'CJK 输出损坏（疑似量化降智）' },
   { key: 'toolCall', when: (t) => t.toolCall === false, severity: 'warn', label: '工具调用被剥离' },
+  // 便宜得反常（<0.5×官方）通常是逆向渠道——配合信任评级一起看（docs/methodology.md 价格指数）。
+  { key: 'cheapPrice', when: (t) => typeof t.priceIdx === 'number' && t.priceIdx < 0.5, severity: 'warn', label: '价格异常偏低（<0.5×官方，疑似逆向渠道）' },
   { key: 'error', when: (t) => t.error != null, severity: 'alert', label: '拨测失败' },
 ];
 
-/** 客观对比：谁最快 / 吞吐最高，以及每个目标触发的红旗。不做黑箱加权总分。 */
+const priceSum = (t) => (Array.isArray(t.price) && typeof t.price[0] === 'number' && typeof t.price[1] === 'number' ? t.price[0] + t.price[1] : null);
+
+/** 客观对比：谁最快 / 吞吐最高 / 最便宜，以及每个目标触发的红旗。不做黑箱加权总分。 */
 export function buildComparison(targets) {
   const list = Array.isArray(targets) ? targets : [];
   const withTtft = list.filter((t) => typeof t.ttftMs?.p50 === 'number' && t.successRate > 0);
   const withTps = list.filter((t) => typeof t.tokensPerSec === 'number' && t.successRate > 0);
+  const withPrice = list.filter((t) => priceSum(t) != null);
   const minBy = (arr, f) => (arr.length ? arr.reduce((a, b) => (f(b) < f(a) ? b : a)).name : null);
   const maxBy = (arr, f) => (arr.length ? arr.reduce((a, b) => (f(b) > f(a) ? b : a)).name : null);
   const flags = [];
@@ -65,6 +86,7 @@ export function buildComparison(targets) {
   return {
     fastestTtft: minBy(withTtft, (t) => t.ttftMs.p50),
     highestThroughput: maxBy(withTps, (t) => t.tokensPerSec),
+    cheapest: minBy(withPrice, (t) => priceSum(t)),
     flags,
   };
 }
@@ -101,12 +123,17 @@ export function renderReportHtml(report) {
 
   // —— 横向对比（compare）正文 ——
   const compareBody = () => {
+    const priceCell = (t) => (Array.isArray(t.price) && typeof t.price[0] === 'number' ? `${t.price[0]}/${t.price[1]}` : '—');
+    const idxCell = (t) => (typeof t.priceIdx === 'number'
+      ? `<span class="${t.priceIdx < 1 ? 'ok' : t.priceIdx > 1 ? 'bad' : ''}">${t.priceIdx}×</span>` : '—');
     const rows = targets.map((t) => `      <tr>
         <td class="name">${esc(t.name)}${t.host ? `<span class="host">${esc(t.host)}</span>` : ''}</td>
         <td class="r">${num(t.ttftMs?.p50, ' ms')}</td>
         <td class="r">${num(t.ttftMs?.p95, ' ms')}</td>
         <td class="r">${num(t.tokensPerSec, '')}</td>
         <td class="r">${typeof t.successRate === 'number' ? Math.round(t.successRate * 100) + '%' : '—'}</td>
+        <td class="r">${priceCell(t)}</td>
+        <td class="r">${idxCell(t)}</td>
         <td class="c">${tri(t.modelEcho)}</td>
         <td class="c">${tri(t.toolCall)}</td>
         <td class="c">${t.burstStream == null ? '<span class="na">—</span>' : tri(!t.burstStream)}</td>
@@ -118,13 +145,16 @@ export function renderReportHtml(report) {
     const winners = [
       cmp.fastestTtft ? `最快 TTFT：<b>${esc(cmp.fastestTtft)}</b>` : null,
       cmp.highestThroughput ? `吞吐最高：<b>${esc(cmp.highestThroughput)}</b>` : null,
+      cmp.cheapest ? `最便宜：<b>${esc(cmp.cheapest)}</b>` : null,
     ].filter(Boolean).join(' · ') || '（无足够成功样本判定）';
     const body = `  <table><thead><tr>
     <th>目标</th><th class="r">TTFT P50</th><th class="r">TTFT P95</th><th class="r">tok/s</th><th class="r">成功率</th>
+    <th class="r">价格 入/出</th><th class="r">倍率</th>
     <th class="c">模型回显</th><th class="c">工具调用</th><th class="c">真流式</th><th class="c">CJK</th><th class="c">长文本</th><th class="r">字/token</th>
   </tr></thead><tbody>
 ${rows}
   </tbody></table>
+  <p class="sub" style="margin:8px 0 0">价格＝USD/1M tokens（输入/输出）· 倍率＝该网关价 ÷ 官方价（<span class="ok">&lt;1×</span> 比官方便宜，<span class="bad">&gt;1×</span> 更贵；&lt;0.5× 多为逆向渠道，配合行为指纹一起看）。</p>
   ${flags ? `<ul class="flags">\n${flags}\n</ul>` : '<p class="sub" style="margin-top:18px">未触发红旗。</p>'}`;
     return { summary: `🏁 ${winners}`, body, metaExtra: `<div><span>每目标采样</span><b>${num(r.samplesPerTarget)}</b></div>` };
   };
