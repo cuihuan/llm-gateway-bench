@@ -91,10 +91,29 @@ export function buildComparison(targets) {
   };
 }
 
-/** 组装完整报告对象（report.json）。generatedAt/version 由调用方注入以便单测。 */
-export function buildReport({ kind = 'compare', model, region = null, samplesPerTarget = null, targets, generatedAt, version = '0.0.0' }) {
+/** 从聚合站点数据（web/data.json）提取公共基线参照（纯函数）：各网关持续拨测的
+ *  30d 成功率 / 典型 TTFT / 价格指数 / 最近拨测。让自测时即使没有别家 key，也能
+ *  对个大概。注意：网关级、跨模型聚合、按其探测地域——仅供参照，非本次实测。 */
+export function buildBaselineRef(siteData) {
+  const gws = Array.isArray(siteData?.gateways) ? siteData.gateways : [];
+  return gws
+    .filter((g) => g.uptimePct != null || g.speed?.ttftP50 != null || g.priceIdx != null)
+    .map((g) => ({
+      name: g.name, host: g.host ?? null,
+      uptimePct: g.uptimePct ?? null,
+      ttftP50: g.speed?.ttftP50 ?? null,
+      priceIdx: g.priceIdx ?? null,
+      region: g.region ?? null,
+      lastRun: g.lastRun ?? null,
+    }))
+    .sort((a, b) => (b.uptimePct ?? -1) - (a.uptimePct ?? -1));
+}
+
+/** 组装完整报告对象（report.json）。generatedAt/version 由调用方注入以便单测。
+ *  baseline 非空时附'公共基线参照'（不进 comparison 的胜者/红旗，只作参照）。 */
+export function buildReport({ kind = 'compare', model, region = null, samplesPerTarget = null, targets, baseline = null, generatedAt, version = '0.0.0' }) {
   const t = Array.isArray(targets) ? targets : [];
-  return {
+  const out = {
     schema: REPORT_SCHEMA,
     kind,
     generatedAt: generatedAt ?? null,
@@ -105,6 +124,8 @@ export function buildReport({ kind = 'compare', model, region = null, samplesPer
     targets: t,
     comparison: buildComparison(t),
   };
+  if (Array.isArray(baseline) && baseline.length) out.baseline = baseline;
+  return out;
 }
 
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -156,7 +177,20 @@ ${rows}
   </tbody></table>
   <p class="sub" style="margin:8px 0 0">价格＝USD/1M tokens（输入/输出）· 倍率＝该网关价 ÷ 官方价（<span class="ok">&lt;1×</span> 比官方便宜，<span class="bad">&gt;1×</span> 更贵；&lt;0.5× 多为逆向渠道，配合行为指纹一起看）。</p>
   ${flags ? `<ul class="flags">\n${flags}\n</ul>` : '<p class="sub" style="margin-top:18px">未触发红旗。</p>'}`;
-    return { summary: `🏁 ${winners}`, body, metaExtra: `<div><span>每目标采样</span><b>${num(r.samplesPerTarget)}</b></div>` };
+    const baseRows = (r.baseline ?? []).map((b) => `      <tr>
+        <td class="name">${esc(b.name)}${b.host ? `<span class="host">${esc(b.host)}</span>` : ''}</td>
+        <td class="r">${b.uptimePct != null ? b.uptimePct + '%' : '—'}</td>
+        <td class="r">${num(b.ttftP50, ' ms')}</td>
+        <td class="r">${b.priceIdx != null ? b.priceIdx + '×' : '—'}</td>
+        <td class="r">${esc(b.region ?? '—')}</td>
+      </tr>`).join('\n');
+    const baseSection = baseRows ? `
+  <h3 class="tname" style="margin-top:26px">公共基线参照 <span class="rel">持续拨测 · 网关级跨模型聚合 · 仅供参照，非本次实测</span></h3>
+  <table><thead><tr><th>网关</th><th class="r">30D 成功率</th><th class="r">典型 TTFT</th><th class="r">价格指数</th><th class="r">视角</th></tr></thead><tbody>
+${baseRows}
+  </tbody></table>
+  <p class="sub" style="margin:8px 0 0">没有别家 key 也能对个大概：项目持续拨测的公共数据，<b>跨模型聚合</b>、按各自探测地域，<b>不等同</b>于你本次实测的单模型结果。</p>` : '';
+    return { summary: `🏁 ${winners}`, body: body + baseSection, metaExtra: `<div><span>每目标采样</span><b>${num(r.samplesPerTarget)}</b></div>` };
   };
 
   // —— 长文本留存（longcontext）正文：每目标一张 深度×长度 通过/失败热图 ——

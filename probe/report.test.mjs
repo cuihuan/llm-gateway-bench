@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { buildTarget, buildComparison, buildReport, renderReportHtml, priceIdxFor } from './report.mjs';
+import { buildTarget, buildComparison, buildReport, renderReportHtml, priceIdxFor, buildBaselineRef } from './report.mjs';
 
 // 一个典型的 probeGateway 产出（含 summarize 的字段形状）。
 const okRaw = {
@@ -153,6 +153,35 @@ test('renderReportHtml: renders price + multiplier columns and cheapest winner',
   assert.ok(html.includes('0.15/0.6'), 'per-target price shown');
   assert.ok(html.includes('0.5×'), 'price multiplier shown');
   assert.ok(html.includes('最便宜'), 'cheapest winner shown');
+});
+
+test('buildBaselineRef: extracts gateway headline, sorts by uptime, skips empty', () => {
+  const ref = buildBaselineRef({ gateways: [
+    { name: 'A', host: 'a.io', uptimePct: 98.2, speed: { ttftP50: 600 }, priceIdx: 1.1, region: 'gh-us', lastRun: 't1' },
+    { name: 'B', host: 'b.io', uptimePct: 99.9, speed: { ttftP50: 500 }, priceIdx: 0.9, region: 'gh-us' },
+    { name: 'Empty', host: 'e.io' }, // no data → skipped
+  ] });
+  assert.equal(ref.length, 2);
+  assert.equal(ref[0].name, 'B'); // higher uptime first
+  assert.equal(ref[0].ttftP50, 500);
+  assert.equal(ref[1].name, 'A');
+});
+
+test('buildReport: attaches baseline only when non-empty', () => {
+  const withBase = buildReport({ model: 'm', generatedAt: 't', targets: [], baseline: [{ name: 'X', uptimePct: 99 }] });
+  assert.equal(withBase.baseline.length, 1);
+  const noBase = buildReport({ model: 'm', generatedAt: 't', targets: [], baseline: [] });
+  assert.ok(!('baseline' in noBase), 'empty baseline omitted');
+});
+
+test('renderReportHtml: renders public-baseline reference section when present', () => {
+  const r = buildReport({ model: 'm', generatedAt: 't', version: '0.2.0',
+    targets: [buildTarget(okRaw)],
+    baseline: [{ name: 'OpenRouter', host: 'openrouter.ai', uptimePct: 99.8, ttftP50: 510, priceIdx: 1.0, region: 'gh-us' }] });
+  const html = renderReportHtml(r);
+  assert.ok(html.includes('公共基线参照'), 'baseline section heading');
+  assert.ok(html.includes('99.8%'), 'baseline uptime shown');
+  assert.ok(html.includes('没有别家 key 也能对个大概'), 'honest caption');
 });
 
 test('renderReportHtml: includes serverless share affordance (download + share link)', () => {

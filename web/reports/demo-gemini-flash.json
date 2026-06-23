@@ -128,5 +128,25 @@
   },
   "demo": true,
   "title": "示例 · gemini-2.5-flash 三网关横评",
-  "note": "演示报告：含价格/倍率与红旗（某低价中转价格异常偏低+多项指纹不过）。数据为示意。"
+  "note": "演示报告：含价格/倍率与红旗（某低价中转价格异常偏低+多项指纹不过）。数据为示意。",
+  "baseline": [
+    {
+      "name": "OpenRouter",
+      "host": "openrouter.ai",
+      "uptimePct": 99.8,
+      "ttftP50": 510,
+      "priceIdx": 1,
+      "region": "gh-us",
+      "lastRun": "2026-06-23T03:00:00Z"
+    },
+    {
+      "name": "AiHubMix",
+      "host": "aihubmix.com",
+      "uptimePct": 99.2,
+      "ttftP50": 640,
+      "priceIdx": 0.98,
+      "region": "gh-us",
+      "lastRun": "2026-06-23T03:00:00Z"
+    }
+  ]
 }

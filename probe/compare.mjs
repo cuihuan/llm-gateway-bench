@@ -18,6 +18,7 @@
 //   --price-in <usd>    配合 --url：你网关该模型的输入价（USD/1M），让自建网关进入价格对比
 //   --price-out <usd>   配合 --url：你网关该模型的输出价（USD/1M）
 //   --samples <n>       每个目标的采样次数（默认 3）
+//   --no-baseline       不在报告里附'公共基线参照'（默认会附，让你没别家 key 也能对个大概）
 //   --region <label>    探测视角标签写进报告（默认取 PROBE_REGION 或 'local'）
 //   --out <path>        报告输出前缀（默认 reports/<model>-<时间戳>），产出 .json 与 .html
 //   -h, --help          显示本帮助
@@ -30,7 +31,7 @@
 
 import { readFile, mkdir, writeFile } from 'node:fs/promises';
 import { probeGateway } from './probe.mjs';
-import { buildTarget, buildReport, renderReportHtml } from './report.mjs';
+import { buildTarget, buildReport, renderReportHtml, buildBaselineRef } from './report.mjs';
 
 const args = process.argv.slice(2);
 const flag = (name, fallback = null) => {
@@ -131,8 +132,14 @@ async function main() {
   }
   if (!probed.length) { console.error('[compare] 所有目标都因缺 key 被跳过——没产出报告。'); process.exit(1); }
 
+  // 公共基线参照（默认带上，--no-baseline 关闭）：没有别家 key 也能对个大概。
+  let baseline = null;
+  if (!args.includes('--no-baseline')) {
+    try { baseline = buildBaselineRef(JSON.parse(await readFile(new URL('web/data.json', root), 'utf8'))); } catch {}
+  }
+
   const report = buildReport({
-    model, region, samplesPerTarget: samples, version,
+    model, region, samplesPerTarget: samples, version, baseline,
     generatedAt: new Date().toISOString(), targets: probed,
   });
 
