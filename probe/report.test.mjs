@@ -116,6 +116,15 @@ test('renderReportHtml: self-contained, embeds data, escapes, no secret leak', (
   assert.ok(!/sk-|Bearer/.test(html), 'rendered report must not contain secrets');
 });
 
+test('renderReportHtml: includes serverless share affordance (download + share link)', () => {
+  const r = buildReport({ model: 'm', generatedAt: 't', version: '0.2.0', targets: [buildTarget(okRaw)] });
+  const html = renderReportHtml(r);
+  assert.ok(html.includes('id="gw-dl"'), 'has download button');
+  assert.ok(html.includes('下载报告 JSON'));
+  assert.ok(html.includes('分享到报告广场'), 'has share-to-gallery link');
+  assert.ok(html.includes('createObjectURL'), 'download wired from embedded JSON');
+});
+
 test('renderReportHtml: escapes HTML-injection in target names', () => {
   const r = buildReport({ model: 'm', generatedAt: 't', targets: [
     buildTarget({ name: '<script>alert(1)</script>', host: 'x.io', models: [okRaw.models[0]] }),

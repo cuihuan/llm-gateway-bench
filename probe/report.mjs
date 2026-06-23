@@ -174,6 +174,8 @@ ${body}
   .rel{font-size:12px;color:var(--mut);font-weight:500;margin-left:8px}
   footer{margin-top:32px;color:var(--mut);font-size:12px;border-top:1px solid var(--bd);padding-top:16px}
   footer a{color:var(--ac)}
+  .acts{display:flex;gap:10px;flex-wrap:wrap;margin:0 0 12px}
+  .acts button,.acts a{font:600 13px/1 inherit;color:var(--ac);background:#eef2ff;border:1px solid #c7d2fe;border-radius:8px;padding:8px 13px;cursor:pointer;text-decoration:none}
 </style></head><body><div class="wrap">
   <h1>${esc(title)} · ${esc(r.model ?? '')}</h1>
   <p class="sub">黑盒拨测，key 不出本机；本报告自包含、可分享。schema ${esc(r.schema ?? REPORT_SCHEMA)}</p>
@@ -187,10 +189,15 @@ ${body}
   <div class="win">${summary}</div>
 ${body}
   <footer>
+    <div class="acts">
+      <button id="gw-dl" type="button">下载报告 JSON</button>
+      <a href="https://github.com/cuihuan/llm-gateway-bench#自助对比测你自己的网关-gwbench-compare" target="_blank" rel="noopener">分享到报告广场 →</a>
+    </div>
     由 <b>gwbench</b> 生成 · 黑盒拨测，不看声明看实测，可用自己的 key 复现。
     完整方法论与公共参照基线见 <a href="https://github.com/cuihuan/llm-gateway-bench">llm-gateway-bench</a>。
   </footer>
   <script type="application/json" id="gwbench-report">${JSON.stringify(report).replace(/</g, '\\u003c')}</script>
+  <script>(function(){var b=document.getElementById('gw-dl');if(!b)return;b.addEventListener('click',function(){var j=document.getElementById('gwbench-report').textContent;var u=URL.createObjectURL(new Blob([j],{type:'application/json'}));var a=document.createElement('a');a.href=u;a.download='gwbench-report.json';document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(u);},1000);});})();</script>
 </div></body></html>`;
 }
 
