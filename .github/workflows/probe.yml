@@ -21,6 +21,20 @@ jobs:
   probe:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    # 各网关 key 提到 job 级，供拨测与矩阵横评两个步骤共用（缺 key 的网关自动跳过）。
+    env:
+      SYNTHORAI_API_KEY: ${{ secrets.SYNTHORAI_API_KEY }}
+      OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+      AIHUBMIX_API_KEY: ${{ secrets.AIHUBMIX_API_KEY }}
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+      MOONSHOT_API_KEY: ${{ secrets.MOONSHOT_API_KEY }}
+      SILICONFLOW_API_KEY: ${{ secrets.SILICONFLOW_API_KEY }}
+      GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+      TOGETHER_API_KEY: ${{ secrets.TOGETHER_API_KEY }}
+      OHMYGPT_API_KEY: ${{ secrets.OHMYGPT_API_KEY }}
+      CLOSEAI_API_KEY: ${{ secrets.CLOSEAI_API_KEY }}
+      PROBE_REGION: gh-us
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -29,30 +43,20 @@ jobs:
       - name: Run unit tests
         run: npm test
       - name: Dial-test all gateways
-        env:
-          SYNTHORAI_API_KEY: ${{ secrets.SYNTHORAI_API_KEY }}
-          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
-          AIHUBMIX_API_KEY: ${{ secrets.AIHUBMIX_API_KEY }}
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
-          MOONSHOT_API_KEY: ${{ secrets.MOONSHOT_API_KEY }}
-          SILICONFLOW_API_KEY: ${{ secrets.SILICONFLOW_API_KEY }}
-          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
-          TOGETHER_API_KEY: ${{ secrets.TOGETHER_API_KEY }}
-          OHMYGPT_API_KEY: ${{ secrets.OHMYGPT_API_KEY }}
-          CLOSEAI_API_KEY: ${{ secrets.CLOSEAI_API_KEY }}
-          PROBE_REGION: gh-us
         run: node probe/probe.mjs --samples 3 --out data/results
       - name: Refresh price snapshot
         continue-on-error: true # 价格源临时不可用时沿用上一份快照，不阻塞拨测
         run: node probe/prices.mjs
       - name: Aggregate into web/data.json
         run: node probe/aggregate.mjs
+      - name: Build classic-model × gateway matrices（报告广场旗舰报告，≥2 网关才生成）
+        continue-on-error: true # 矩阵失败不阻塞拨测数据提交
+        run: node probe/matrix.mjs --samples 3
       - name: Commit results
         run: |
           git config user.name 'gateway-bench-bot'
           git config user.email 'actions@users.noreply.github.com'
-          git add data/results data/prices.json web/data.json
+          git add data/results data/prices.json web/data.json web/models.json web/report.mjs web/reports
           if git diff --cached --quiet; then echo "nothing to commit"; exit 0; fi
           git commit -m "data: probe run $(date -u +%FT%TZ)"
           git pull --rebase origin main   # 远端推进过也不丢本次拨测数据

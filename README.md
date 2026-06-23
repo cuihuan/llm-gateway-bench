@@ -29,6 +29,20 @@ PROBE_KEY=sk-你的key OPENROUTER_API_KEY=sk-or AIHUBMIX_API_KEY=sk-ah \
 `web/reports/` 提 PR，或 `node scripts/publish-report.mjs <report.json>` 自动归档 + 更新清单
 （发布前自动校验无密钥泄漏）。广场用与 CLI 完全相同的渲染逻辑呈现，分享报告与本地报告像素一致。
 
+## 经典模型 × 网关横评（平台旗舰报告）
+
+报告广场的核心内容：对每个**经典模型**，把它在**所有提供它的网关**上跑一遍全套黑盒，
+产出一份"该模型在各网关的实测效果"报告（速度 · 价格倍率 · 稳定性 · 行为指纹）。
+由维护者在 CI（配各网关 key）每 6 小时自动生成、随 cron 刷新：
+
+```bash
+npm run matrix                 # 用 data/tracked-models.json 的 aliases 决定哪些网关有该模型
+                               # 每个模型至少在 2 个网关有数据才生成（避免无意义的"横评"）
+```
+
+**给矩阵加一个网关**：在 [`data/tracked-models.json`](data/tracked-models.json) 给该模型补上
+这个网关的 alias（它在该网关叫什么），并在 CI Secrets 配好 key，下次 cron 即自动纳入横评。
+
 ## 它回答什么问题
 
 挑一个大模型网关/中转 API 时，工程师真正关心的按优先级是：

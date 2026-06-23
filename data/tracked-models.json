@@ -12,7 +12,7 @@
   {
     "id": "gemini-2.5-flash",
     "litellm": ["gemini-2.5-flash", "gemini/gemini-2.5-flash"],
-    "aliases": { "synthorai": "gemini-2.5-flash", "openrouter": "google/gemini-2.5-flash" }
+    "aliases": { "synthorai": "gemini-2.5-flash", "openrouter": "google/gemini-2.5-flash", "aihubmix": "gemini-2.5-flash" }
   },
   {
     "id": "deepseek-v4-flash",
