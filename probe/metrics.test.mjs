@@ -43,6 +43,20 @@ test('summarize: mixed success and failure samples', () => {
   assert.deepEqual(s.errors, ['HTTP 502', 'timeout']);
 });
 
+test('summarize: p95 is null below MIN_P95_SAMPLES, present at/above it', () => {
+  const ok = (ttftMs, totalMs) => ({ ok: true, ttftMs, totalMs, tokensPerSec: 50 });
+  // 3 个成功样本(默认采样数)→ p95 无意义,置 null;p50/avg 照常
+  const few = summarize([ok(100, 1000), ok(200, 2000), ok(300, 3000)]);
+  assert.equal(few.ttftMs.p95, null);
+  assert.equal(few.totalMs.p95, null);
+  assert.equal(few.ttftMs.p50, 200);     // 中位数仍可信
+  assert.equal(few.ttftMs.avg, 200);
+  // 5 个成功样本(达 MIN_P95_SAMPLES)→ p95 给出
+  const enough = summarize([ok(100, 1000), ok(200, 2000), ok(300, 3000), ok(400, 4000), ok(500, 5000)]);
+  assert.equal(enough.ttftMs.p95, percentile([100, 200, 300, 400, 500], 95)); // 480(线性插值)
+  assert.ok(enough.totalMs.p95 != null);
+});
+
 test('summarize: all failures yields null metrics, not NaN', () => {
   const s = summarize([{ ok: false, error: 'ECONNREFUSED' }]);
   assert.equal(s.successRate, 0);

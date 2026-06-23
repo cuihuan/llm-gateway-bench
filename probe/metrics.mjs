@@ -37,6 +37,10 @@ export function decodeTokensPerSec({ tokens, ttftMs, totalMs } = {}) {
   return round(((tokens - 1) / (decodeMs / 1000)), 1);
 }
 
+// 报告 p95 所需的最少成功样本数。低于此值的 p95 等同于 max,无统计意义 → 置 null。
+// 默认每模型采样 3 次远不够;真要可信 p95 需提高采样或用滚动窗口聚合。
+export const MIN_P95_SAMPLES = 5;
+
 /**
  * Aggregate raw samples for one (gateway, model) pair into a summary row.
  * Each sample: { ok: boolean, ttftMs?: number, tokensPerSec?: number, totalMs?: number, error?: string }
@@ -49,13 +53,17 @@ export function summarize(samples) {
   const tps = pick('tokensPerSec');
   const total = pick('totalMs');
   const avg = (a) => (a.length ? a.reduce((x, y) => x + y, 0) / a.length : null);
+  // p95 在样本太少时无统计意义(n≤4 时 p95 几乎就是 max,被单个慢样本绑架)——
+  // 与其报一个误导的数,不如置 null。p50/avg 在小样本下仍可用,照常给。
+  // 要拿到可信 p95 应提高每模型采样数(见 docs/methodology.md)。
+  const p95 = (a) => (a.length >= MIN_P95_SAMPLES ? round(percentile(a, 95)) : null);
   return {
     samples: n,
     success: okSamples.length,
     successRate: n ? round(okSamples.length / n, 4) : null,
-    ttftMs: { avg: round(avg(ttft)), p50: round(percentile(ttft, 50)), p95: round(percentile(ttft, 95)) },
+    ttftMs: { avg: round(avg(ttft)), p50: round(percentile(ttft, 50)), p95: p95(ttft) },
     tokensPerSec: { avg: round(avg(tps)), p50: round(percentile(tps, 50)) },
-    totalMs: { avg: round(avg(total)), p95: round(percentile(total, 95)) },
+    totalMs: { avg: round(avg(total)), p95: p95(total) },
     // 流式响应里是否带 usage（计费透明度信号；缺 usage 的网关 tok/s 只能按 chunk 数估）
     usageReportedRate: okSamples.length
       ? round(okSamples.filter((s) => s.usageReported === true).length / okSamples.length, 2)
