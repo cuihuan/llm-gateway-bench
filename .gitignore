@@ -6,5 +6,7 @@ node_modules/
 .DS_Store
 # local-only probe output (CI publishes to data/results/)
 out/
+# local-only compare reports (publish by copying into web/reports/)
+reports/
 # local recorder logs (scripts/record.sh via launchd)
 logs/

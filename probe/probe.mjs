@@ -268,6 +268,29 @@ async function probeNeedle(gw, model, key) {
   }
 }
 
+/**
+ * 跑完一个网关的全套黑盒探针：连通性 + 每个模型的流式多采样 / 工具调用 /
+ * CJK / needle。compare.mjs 与 main() 共用同一实现（单一来源——上线拨测的
+ * 就是被对比的）。进度打到 stderr；samples 为每模型采样次数。
+ * 返回 { connectivity, models:[{ model, ...summary, toolCall, cjk, needle }] }。
+ */
+export async function probeGateway(gw, key, { samples = SAMPLES } = {}) {
+  const connectivity = await probeConnectivity(gw, key);
+  console.error(`[conn] ${gw.id}: ${connectivity.ok ? `${connectivity.latencyMs}ms, ${connectivity.modelCount ?? '?'} models` : connectivity.error}`);
+  const models = [];
+  for (const model of gw.probeModels ?? []) {
+    const ss = [];
+    for (let i = 0; i < samples; i++) ss.push(await probeChatOnce(gw, model, key));
+    const summary = summarize(ss);
+    const toolCall = await probeToolCall(gw, model, key);
+    const cjk = await probeCjk(gw, model, key);
+    const needle = await probeNeedle(gw, model, key);
+    console.error(`[chat] ${gw.id}/${model}: ok ${summary.success}/${summary.samples}, ttft p50 ${summary.ttftMs.p50}ms, ${summary.tokensPerSec.avg} tok/s, tool ${toolCall.ok ? '✓' : '✗'}, cjk ${cjk.ok ? '✓' : `✗(${cjk.error})`}, needle ${needle.ok ? '✓' : `✗(${needle.error})`}`);
+    models.push({ model, ...summary, toolCall, cjk, needle });
+  }
+  return { connectivity, models };
+}
+
 async function main() {
   if (args.includes('--help') || args.includes('-h')) { console.log(usage()); return; }
   const adhoc = adhocGateway({ url: flag('url', null), model: flag('model', null), name: flag('name', null), authEnv: flag('auth-env', null) });
@@ -288,19 +311,7 @@ async function main() {
       results.push({ gateway: gw.id, skipped: true, reason: `missing ${gw.authEnv}` });
       continue;
     }
-    const connectivity = await probeConnectivity(gw, key);
-    console.error(`[conn] ${gw.id}: ${connectivity.ok ? `${connectivity.latencyMs}ms, ${connectivity.modelCount ?? '?'} models` : connectivity.error}`);
-    const models = [];
-    for (const model of gw.probeModels ?? []) {
-      const samples = [];
-      for (let i = 0; i < SAMPLES; i++) samples.push(await probeChatOnce(gw, model, key));
-      const summary = summarize(samples);
-      const toolCall = await probeToolCall(gw, model, key);
-      const cjk = await probeCjk(gw, model, key);
-      const needle = await probeNeedle(gw, model, key);
-      console.error(`[chat] ${gw.id}/${model}: ok ${summary.success}/${summary.samples}, ttft p50 ${summary.ttftMs.p50}ms, ${summary.tokensPerSec.avg} tok/s, tool ${toolCall.ok ? '✓' : '✗'}, cjk ${cjk.ok ? '✓' : `✗(${cjk.error})`}, needle ${needle.ok ? '✓' : `✗(${needle.error})`}`);
-      models.push({ model, ...summary, toolCall, cjk, needle });
-    }
+    const { connectivity, models } = await probeGateway(gw, key, { samples: SAMPLES });
     results.push({ gateway: gw.id, skipped: false, connectivity, models });
   }
   if (results.every((r) => r.skipped)) {
