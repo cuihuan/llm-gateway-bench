@@ -159,11 +159,14 @@ export function buildGap(targets, baseline, mineName) {
   const upC = [...cand(list, (t) => ({ name: t.name, v: typeof t.successRate === 'number' ? t.successRate * 100 : null })), ...cand(base, (b) => ({ name: b.name, v: b.uptimePct }))];
   // 价格按倍率(÷官方价)对标，把"官方价 1.0×"作为候选锚点——这样只测了自己一家时，
   // 也能看出"你比官方/比最好贵多少"，而不是孤家寡人地自称最优。
-  const idxC = [
+  const idxAll = [
     ...cand(list, (t) => ({ name: t.name, v: typeof t.priceIdx === 'number' ? t.priceIdx : null })),
     ...cand(base, (b) => ({ name: b.name, v: typeof b.priceIdx === 'number' ? b.priceIdx : null })),
     { name: '官方价', v: 1 },
   ];
+  // 价格"最好"排除 <0.5× 的疑似逆向渠道（不拿盗版价当标杆，否则正规网关全显得很贵）。
+  const idxLegit = idxAll.filter((c) => c.v >= 0.5);
+  const idxC = idxLegit.length ? idxLegit : idxAll;
 
   const mineV = {
     price: typeof mine.priceIdx === 'number' ? mine.priceIdx : null,
