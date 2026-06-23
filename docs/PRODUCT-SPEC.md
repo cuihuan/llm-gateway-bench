@@ -100,11 +100,15 @@ web/reports/<id>.json  ──►  web/reports.html 广场静态渲染  ← 柱�
 
 - **Phase 0 · 规格**：本文。✅
 - **Phase 1 · 工具 MVP**：抽 `probeGateway()`；`compare.mjs` 对比运行器；
-  `report.mjs` 纯函数（`buildComparison` + `renderReportHtml`）+ 单测；npm script。← 进行中
-- **Phase 2 · 报告广场**：`web/reports.html` 静态渲染 `web/reports/*.json`；导航接入；范例报告。
-- **Phase 3 · 长文本报告**：多深度 needle（8K/32K/128K）拨测 + 专版报告分类（旗舰免费样例）。
-- **Phase 4 · 分享与支付**：薄上传端点 + 广场提交流；付费托管拨测 / Pro 报告；封装 SDK 统一客户端。
-- **Phase 5 · 引流**：报告/榜单 CTA 深链到主项目；分享卡片 OG 图。
+  `report.mjs` 纯函数（`buildComparison` + `renderReportHtml`）+ 单测；`npm run compare`。✅
+- **Phase 2 · 报告广场**：`web/reports.html` 静态渲染 `web/reports/*.json`（iframe srcdoc 复用
+  `renderReportHtml`，与 CLI 像素一致）；`scripts/publish-report.mjs` 归档+清单；导航接入；范例报告。✅
+- **Phase 3 · 长文本报告**：`longcontext.mjs` 多长度×多深度 needle 热图，kind=longcontext
+  复用报告广场；`npm run longcontext`；范例报告。✅
+- **Phase 4 · 网站与变现脚手架**：`pricing.html` 四层定价（自助免费/托管拨测/Pro 托管/封装 SDK）；
+  首页自助对比 CTA。✅（脚手架）
+  - **Phase 4b · 分享与支付（待定后端）**：一键上传端点 + 广场提交流；接入支付通道。⏳ 需定后端架构。
+- **Phase 5 · 引流**：报告/榜单/定价页 CTA 深链到主项目；分享卡片 OG 图。⏳ 需主项目 URL（pricing.html 已留占位）。
 
 ## 7. 不变量（工程红线，沿用现状并扩展）
 
