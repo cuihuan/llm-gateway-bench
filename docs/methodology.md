@@ -65,7 +65,7 @@
 | 指标 | 定义 |
 |---|---|
 | TTFT | 流式请求发起到首个内容 token 的耗时，报 p50/p95 |
-| 吞吐 tok/s | 首 token 之后的生成速率（completion_tokens ÷ 生成耗时） |
+| 吞吐 tok/s | 解码吞吐 = **首 token 之后**生成的 token 数 ÷ **首 token 之后**的解码时间，即 `(completion_tokens − 1) ÷ (total − ttft)`。对齐 llmperf / Artificial Analysis 口径（"after the first token"），不把首 token 计进分子却把它的耗时从分母里减掉——否则会系统性高估，且模型越慢虚高越明显 |
 | 非流式延迟 | 工具调用探测（非流式）的整请求耗时 p50 |
 
 方法论沿用 llmperf 社区惯例：小 prompt（带随机请求 id 防网关侧缓存）、限定 max_tokens、

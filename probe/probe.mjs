@@ -12,7 +12,7 @@
 // "not tested" from "failed".
 
 import { readFile, mkdir, writeFile } from 'node:fs/promises';
-import { summarize, evalToolCall, evalModelEcho, evalCjkIntegrity, evalNeedle, extractCachedTokens, evalCache } from './metrics.mjs';
+import { summarize, decodeTokensPerSec, evalToolCall, evalModelEcho, evalCjkIntegrity, evalNeedle, extractCachedTokens, evalCache } from './metrics.mjs';
 
 const args = process.argv.slice(2);
 function flag(name, fallback) {
@@ -168,14 +168,15 @@ async function probeChatOnce(gw, model, key) {
     }
     const totalMs = performance.now() - t0;
     if (ttftMs === null) return { ok: false, error: 'no content received', totalMs: Math.round(totalMs) };
-    const genMs = totalMs - ttftMs;
     // Fall back to chunk count when the gateway omits usage in streams.
     const tokens = completionTokens ?? chunks;
     return {
       ok: true,
       ttftMs: Math.round(ttftMs),
       totalMs: Math.round(totalMs),
-      tokensPerSec: genMs > 0 ? Math.round((tokens / (genMs / 1000)) * 10) / 10 : null,
+      // 解码吞吐(对标 llmperf/AA):首 token 之后的 token ÷ 首 token 之后的时间。
+      // 用原始浮点 ttftMs/totalMs(非四舍五入值)算,避免短回复上的取整误差。
+      tokensPerSec: decodeTokensPerSec({ tokens, ttftMs, totalMs }),
       usageReported: completionTokens !== null,
       chunks,
       // 首个内容 chunk 到末个内容 chunk 的时间窗——假流式检测的核心指纹

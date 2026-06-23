@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { percentile, summarize, stabilityOverTime, evalToolCall, isBurstStream, evalModelEcho, evalCjkIntegrity, evalNeedle, extractCachedTokens, evalCache } from './metrics.mjs';
+import { percentile, summarize, decodeTokensPerSec, stabilityOverTime, evalToolCall, isBurstStream, evalModelEcho, evalCjkIntegrity, evalNeedle, extractCachedTokens, evalCache } from './metrics.mjs';
 // 模型层价格价值计算的单一来源（浏览器与单测共用同一份）
 import { taskCost, tokensForBudget, valuePerDollar } from '../web/calc.mjs';
 
@@ -11,6 +11,20 @@ test('percentile: empty and basic cases', () => {
   assert.equal(percentile([3, 1, 2], 0), 1); // unsorted input
   assert.equal(percentile([3, 1, 2], 100), 3);
   assert.throws(() => percentile([1], 101), RangeError);
+});
+
+test('decodeTokensPerSec: rate uses tokens-after-first ÷ decode time (llmperf/AA)', () => {
+  // 41 token,首字 500ms,总 2500ms → 解码窗 2000ms,(41-1)/2s = 20 tok/s
+  assert.equal(decodeTokensPerSec({ tokens: 41, ttftMs: 500, totalMs: 2500 }), 20);
+  // 旧口径会算成 41/2s = 20.5,慢模型上偏差更大:此处差 2.5%,ttft 越大差越多
+  assert.equal(decodeTokensPerSec({ tokens: 11, ttftMs: 1000, totalMs: 2000 }), 10); // (11-1)/1s
+  // 单 token 无法区分首/后续 → 不测速
+  assert.equal(decodeTokensPerSec({ tokens: 1, ttftMs: 100, totalMs: 200 }), null);
+  // 解码窗 ≤0(首字几乎等于总时延,典型假流式/一次性返回)→ null
+  assert.equal(decodeTokensPerSec({ tokens: 10, ttftMs: 500, totalMs: 500 }), null);
+  // 非法输入 → null,不抛
+  assert.equal(decodeTokensPerSec({ tokens: undefined, ttftMs: 1, totalMs: 2 }), null);
+  assert.equal(decodeTokensPerSec({}), null);
 });
 
 test('summarize: mixed success and failure samples', () => {

@@ -22,6 +22,22 @@ function round(x, digits = 1) {
 }
 
 /**
+ * 解码吞吐(output / decode tokens-per-second)。对标 llmperf 与 Artificial Analysis:
+ * 速率 = **首 token 之后**生成的 token 数 ÷ **首 token 之后**的解码时间,而不是
+ * 全部 token ÷ 解码时间。后者分子含首 token、分母却已减掉首 token 区间(genMs =
+ * totalMs - ttftMs),口径不对齐会系统性高估 tok/s——模型越慢、ttft 占比越大,虚高越明显。
+ * AA 原话:"average number of tokens received per second, after the first token"。
+ * tokens<2(无法区分首/后续 token)或解码时间≤0 时无法测速 → null。
+ */
+export function decodeTokensPerSec({ tokens, ttftMs, totalMs } = {}) {
+  if (typeof tokens !== 'number' || tokens < 2) return null;
+  if (typeof ttftMs !== 'number' || typeof totalMs !== 'number') return null;
+  const decodeMs = totalMs - ttftMs;
+  if (!(decodeMs > 0)) return null;
+  return round(((tokens - 1) / (decodeMs / 1000)), 1);
+}
+
+/**
  * Aggregate raw samples for one (gateway, model) pair into a summary row.
  * Each sample: { ok: boolean, ttftMs?: number, tokensPerSec?: number, totalMs?: number, error?: string }
  */
