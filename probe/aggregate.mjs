@@ -9,8 +9,9 @@
 //   - No black-box composite score. priceIdx is the only derived number:
 //     geometric mean of (gateway price ÷ official price) over comparable models.
 
-import { readFile, readdir, writeFile } from 'node:fs/promises';
+import { readFile, readdir, writeFile, mkdir } from 'node:fs/promises';
 import { percentile } from './metrics.mjs';
+import { buildPriceMatrixReport } from './report.mjs';
 
 const WINDOW_DAYS = 30;
 
@@ -309,6 +310,28 @@ async function main() {
     await writeFile(new URL('web/report.mjs', root), src);
     console.log('web/report.mjs: mirrored from probe/report.mjs');
   } catch (e) { console.error('[aggregate] report.mjs mirror skipped:', e.message); }
+
+  // 价格横评（真实数据，无需 key）：把 data/prices.json 的公开定价 pivot 成一份
+  // '经典模型 × 网关'价格对比报告，作为报告广场的真实旗舰报告（非 demo）。随价格刷新。
+  try {
+    if (prices) {
+      let version = '0.0.0';
+      try { version = JSON.parse(await readFile(new URL('package.json', root), 'utf8')).version; } catch {}
+      const pm = buildPriceMatrixReport(prices, { gateways, generatedAt: new Date().toISOString(), version });
+      await mkdir(new URL('web/reports', root), { recursive: true });
+      await writeFile(new URL('web/reports/price-matrix.json', root), JSON.stringify(pm, null, 2));
+      let idx = null;
+      try { idx = JSON.parse(await readFile(new URL('web/reports/index.json', root), 'utf8')); } catch {}
+      const entry = {
+        id: 'price-matrix', kind: 'pricematrix', model: null, region: '公开定价 API',
+        generatedAt: pm.generatedAt, demo: false, title: '经典模型 × 网关 · 价格横评（公开定价，无需 key）',
+        targetCount: pm.rows.length, fastestTtft: null, cheapest: null, flagCount: 0, source: 'baseline',
+      };
+      const reports = [entry, ...((idx?.reports ?? []).filter((x) => x.id !== 'price-matrix'))];
+      await writeFile(new URL('web/reports/index.json', root), JSON.stringify({ schema: idx?.schema ?? 'gwbench-reports-index/1', updatedAt: pm.generatedAt, reports }, null, 2));
+      console.log(`web/reports/price-matrix.json: ${pm.rows.length} models × ${pm.gateways.length} gateways`);
+    }
+  } catch (e) { console.error('[aggregate] price-matrix skipped:', e.message); }
 }
 
 if (process.argv[1] && import.meta.url.endsWith(process.argv[1].split('/').pop())) {

@@ -109,6 +109,34 @@ export function buildBaselineRef(siteData) {
     .sort((a, b) => (b.uptimePct ?? -1) - (a.uptimePct ?? -1));
 }
 
+/** 由公开定价快照（data/prices.json）构造'经典模型 × 网关 价格横评'报告（纯函数）。
+ *  价格来自公开定价 API（litellm 官方 / synthorai / openrouter），**无需任何 key**——
+ *  所以这份横评是真实数据、可立即上线。每模型标出最便宜的网关。 */
+export function buildPriceMatrixReport(prices, { gateways = [], region = '公开定价 API', generatedAt, version = '0.0.0' } = {}) {
+  const gwName = new Map((gateways ?? []).map((g) => [g.id, g.name]));
+  const models = Array.isArray(prices?.models) ? prices.models : [];
+  const ids = [...new Set(models.flatMap((m) => Object.keys(m.cells ?? {})))];
+  const rows = models.map((m) => {
+    const cells = {};
+    let cheapest = null, cheapestSum = Infinity;
+    for (const [id, cell] of Object.entries(m.cells ?? {})) {
+      if (!Array.isArray(cell) || typeof cell[0] !== 'number') { cells[id] = null; continue; }
+      cells[id] = { price: cell, idx: priceIdxFor(cell, m.official ?? null) };
+      const sum = cell[0] + cell[1];
+      if (sum < cheapestSum) { cheapestSum = sum; cheapest = id; }
+    }
+    return { model: m.model, official: Array.isArray(m.official) ? m.official : null, cells, cheapest };
+  });
+  return {
+    schema: REPORT_SCHEMA, kind: 'pricematrix',
+    generatedAt: generatedAt ?? null, tool: { name: 'gwbench', version },
+    model: null, region,
+    fetchedAt: prices?.fetchedAt ?? null, sources: prices?.sources ?? null,
+    gateways: ids.map((id) => ({ id, name: gwName.get(id) ?? id })),
+    rows,
+  };
+}
+
 /** 组装完整报告对象（report.json）。generatedAt/version 由调用方注入以便单测。
  *  baseline 非空时附'公共基线参照'（不进 comparison 的胜者/红旗，只作参照）。 */
 export function buildReport({ kind = 'compare', model, region = null, samplesPerTarget = null, targets, baseline = null, generatedAt, version = '0.0.0' }) {
@@ -139,8 +167,9 @@ export function renderReportHtml(report) {
   const r = report ?? {};
   const targets = Array.isArray(r.targets) ? r.targets : [];
   const isLC = r.kind === 'longcontext';
-  const cmp = r.comparison ?? (isLC ? {} : buildComparison(targets));
-  const title = isLC ? '长文本上下文留存报告' : '网关对比报告';
+  const isPM = r.kind === 'pricematrix';
+  const cmp = r.comparison ?? (isLC || isPM ? {} : buildComparison(targets));
+  const title = isPM ? '经典模型 × 网关 · 价格横评' : isLC ? '长文本上下文留存报告' : '网关对比报告';
 
   // —— 横向对比（compare）正文 ——
   const compareBody = () => {
@@ -213,11 +242,37 @@ ${body}
     return { summary, body: grids || '<p class="sub">无数据</p>', metaExtra };
   };
 
-  const { summary, body, metaExtra } = isLC ? longContextBody() : compareBody();
+  // —— 价格横评（pricematrix）正文：模型 × 网关 价格矩阵，每行最便宜网关高亮 ——
+  const priceMatrixBody = () => {
+    const gws = r.gateways ?? [];
+    const head = gws.map((g) => `<th class="r">${esc(g.name)}</th>`).join('');
+    const rows = (r.rows ?? []).map((row) => {
+      const cells = gws.map((g) => {
+        const c = row.cells?.[g.id];
+        if (!c || !Array.isArray(c.price)) return '<td class="r"><span class="na">—</span></td>';
+        const idx = typeof c.idx === 'number' ? ` <span class="${c.idx < 1 ? 'ok' : c.idx > 1 ? 'bad' : ''}">${c.idx}×</span>` : '';
+        return `<td class="r${row.cheapest === g.id ? ' cheap' : ''}">${c.price[0]}/${c.price[1]}${idx}</td>`;
+      }).join('');
+      const off = Array.isArray(row.official) ? `${row.official[0]}/${row.official[1]}` : '—';
+      return `      <tr><td class="name">${esc(row.model)}</td><td class="r">${off}</td>${cells}</tr>`;
+    }).join('\n');
+    const srcs = r.sources ? Object.values(r.sources).map((s) => esc(String(s).replace(/^https?:\/\//, '').split('/')[0])).join(' · ') : '公开定价 API';
+    const body = `  <table><thead><tr><th>模型</th><th class="r">官方价</th>${head}</tr></thead><tbody>
+${rows}
+  </tbody></table>
+  <p class="sub" style="margin:8px 0 0">价格＝USD/1M tokens（输入/输出）· 倍率＝网关价 ÷ 官方价（<span class="ok">&lt;1×</span> 便宜，<span class="bad">&gt;1×</span> 更贵）· <span class="cheap" style="padding:1px 6px;border-radius:4px">绿底</span>＝该模型最便宜的网关。数据源公开定价 API，<b>无需 key</b>。</p>`;
+    return {
+      summary: `📊 ${r.rows?.length ?? 0} 个经典模型 × ${gws.length} 个网关 · 价格横评（公开定价，无需 key 即可对比）`,
+      body,
+      metaExtra: `<div><span>数据源</span><b>${srcs}</b></div><div><span>采集时间</span><b>${esc((r.fetchedAt ?? '—').slice(0, 16).replace('T', ' '))}</b></div>`,
+    };
+  };
+
+  const { summary, body, metaExtra } = isPM ? priceMatrixBody() : isLC ? longContextBody() : compareBody();
   return `<!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>${esc(title)} · ${esc(r.model ?? '')} · gwbench</title>
+<title>${esc(title)}${r.model ? ' · ' + esc(r.model) : ''} · gwbench</title>
 <style>
   :root{--ac:#6366f1;--bd:#e5e7eb;--mut:#6b7280;--ok:#16a34a;--bad:#dc2626;--warn:#d97706}
   *{box-sizing:border-box}body{font:14px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif;color:#111827;margin:0;background:#f9fafb}
@@ -236,16 +291,17 @@ ${body}
   .flag.alert{background:#fef2f2;border:1px solid #fecaca}.flag.warn{background:#fffbeb;border:1px solid #fde68a}
   table.lc{margin:0 0 18px}.tname{font-size:15px;margin:18px 0 6px}.tname .host{display:inline;margin-left:6px}
   .rel{font-size:12px;color:var(--mut);font-weight:500;margin-left:8px}
+  td.cheap{background:#ecfdf5;font-weight:700}
   footer{margin-top:32px;color:var(--mut);font-size:12px;border-top:1px solid var(--bd);padding-top:16px}
   footer a{color:var(--ac)}
   .acts{display:flex;gap:10px;flex-wrap:wrap;margin:0 0 12px}
   .acts button,.acts a{font:600 13px/1 inherit;color:var(--ac);background:#eef2ff;border:1px solid #c7d2fe;border-radius:8px;padding:8px 13px;cursor:pointer;text-decoration:none}
 </style></head><body><div class="wrap">
-  <h1>${esc(title)} · ${esc(r.model ?? '')}</h1>
-  <p class="sub">黑盒拨测，key 不出本机；本报告自包含、可分享。schema ${esc(r.schema ?? REPORT_SCHEMA)}</p>
+  <h1>${esc(title)}${r.model ? ' · ' + esc(r.model) : ''}</h1>
+  <p class="sub">${isPM ? '价格来自公开定价 API，无需 key；' : '黑盒拨测，key 不出本机；'}本报告自包含、可分享。schema ${esc(r.schema ?? REPORT_SCHEMA)}</p>
   <div class="meta">
-    <div><span>逻辑模型</span><b>${esc(r.model ?? '—')}</b></div>
-    <div><span>探测视角</span><b>${esc(r.region ?? '—')}</b></div>
+    <div><span>${isPM ? '覆盖模型' : '逻辑模型'}</span><b>${isPM ? (r.rows?.length ?? 0) + ' 个' : esc(r.model ?? '—')}</b></div>
+    <div><span>${isPM ? '数据性质' : '探测视角'}</span><b>${esc(r.region ?? '—')}</b></div>
     ${metaExtra}
     <div><span>生成时间</span><b>${esc(r.generatedAt ?? '—')}</b></div>
     <div><span>工具</span><b>${esc(r.tool?.name ?? 'gwbench')} ${esc(r.tool?.version ?? '')}</b></div>

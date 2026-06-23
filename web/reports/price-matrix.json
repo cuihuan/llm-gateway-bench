@@ -1,0 +1,122 @@
+{
+  "schema": "gwbench-report/1",
+  "kind": "pricematrix",
+  "generatedAt": "2026-06-23T07:44:33.402Z",
+  "tool": {
+    "name": "gwbench",
+    "version": "0.2.0"
+  },
+  "model": null,
+  "region": "公开定价 API",
+  "fetchedAt": "2026-06-13T12:55:33.774Z",
+  "sources": {
+    "official": "litellm",
+    "synthorai": "https://synthorai.io/api/pricing",
+    "openrouter": "https://openrouter.ai/api/v1/models"
+  },
+  "gateways": [
+    {
+      "id": "synthorai",
+      "name": "Synthorai"
+    },
+    {
+      "id": "openrouter",
+      "name": "OpenRouter"
+    }
+  ],
+  "rows": [
+    {
+      "model": "claude-sonnet-4-5",
+      "official": [
+        3,
+        15
+      ],
+      "cells": {
+        "synthorai": {
+          "price": [
+            3,
+            15
+          ],
+          "idx": 1
+        },
+        "openrouter": {
+          "price": [
+            3,
+            15
+          ],
+          "idx": 1
+        }
+      },
+      "cheapest": "synthorai"
+    },
+    {
+      "model": "claude-haiku-4-5",
+      "official": [
+        1,
+        5
+      ],
+      "cells": {
+        "synthorai": {
+          "price": [
+            1,
+            5
+          ],
+          "idx": 1
+        },
+        "openrouter": {
+          "price": [
+            1,
+            5
+          ],
+          "idx": 1
+        }
+      },
+      "cheapest": "synthorai"
+    },
+    {
+      "model": "gemini-2.5-flash",
+      "official": [
+        0.3,
+        2.5
+      ],
+      "cells": {
+        "synthorai": {
+          "price": [
+            0.3,
+            2.5
+          ],
+          "idx": 1
+        },
+        "openrouter": {
+          "price": [
+            0.3,
+            2.5
+          ],
+          "idx": 1
+        }
+      },
+      "cheapest": "synthorai"
+    },
+    {
+      "model": "deepseek-v4-flash",
+      "official": null,
+      "cells": {
+        "synthorai": {
+          "price": [
+            0.138,
+            0.275
+          ],
+          "idx": null
+        },
+        "openrouter": {
+          "price": [
+            0.098,
+            0.196
+          ],
+          "idx": null
+        }
+      },
+      "cheapest": "openrouter"
+    }
+  ]
+}

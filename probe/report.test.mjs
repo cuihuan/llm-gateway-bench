@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { buildTarget, buildComparison, buildReport, renderReportHtml, priceIdxFor, buildBaselineRef } from './report.mjs';
+import { buildTarget, buildComparison, buildReport, renderReportHtml, priceIdxFor, buildBaselineRef, buildPriceMatrixReport } from './report.mjs';
 
 // 一个典型的 probeGateway 产出（含 summarize 的字段形状）。
 const okRaw = {
@@ -172,6 +172,40 @@ test('buildReport: attaches baseline only when non-empty', () => {
   assert.equal(withBase.baseline.length, 1);
   const noBase = buildReport({ model: 'm', generatedAt: 't', targets: [], baseline: [] });
   assert.ok(!('baseline' in noBase), 'empty baseline omitted');
+});
+
+test('buildPriceMatrixReport: real public pricing → model×gateway matrix, cheapest per row', () => {
+  const prices = {
+    fetchedAt: '2026-06-13T12:55:33Z',
+    sources: { official: 'litellm', synthorai: 'https://synthorai.io/api/pricing', openrouter: 'https://openrouter.ai/api/v1/models' },
+    models: [
+      { model: 'gemini-2.5-flash', official: [0.3, 2.5], cells: { synthorai: [0.3, 2.5], openrouter: [0.3, 2.5] } },
+      { model: 'deepseek-v4-flash', official: null, cells: { synthorai: [0.138, 0.275], openrouter: [0.098, 0.196] } },
+    ],
+  };
+  const pm = buildPriceMatrixReport(prices, { gateways: [{ id: 'synthorai', name: 'Synthorai' }, { id: 'openrouter', name: 'OpenRouter' }], generatedAt: 't', version: '0.2.0' });
+  assert.equal(pm.kind, 'pricematrix');
+  assert.deepEqual(pm.gateways.map((g) => g.name), ['Synthorai', 'OpenRouter']);
+  assert.equal(pm.rows.length, 2);
+  // deepseek: openrouter cheaper (0.098+0.196 < 0.138+0.275)
+  assert.equal(pm.rows.find((r) => r.model === 'deepseek-v4-flash').cheapest, 'openrouter');
+  // gemini: idx vs official = 1.0
+  assert.equal(pm.rows[0].cells.synthorai.idx, 1);
+  // no official → idx null but price still present
+  assert.equal(pm.rows[1].cells.openrouter.idx, null);
+  assert.deepEqual(pm.rows[1].cells.openrouter.price, [0.098, 0.196]);
+});
+
+test('renderReportHtml: renders pricematrix table, no-key caption, cheapest highlight', () => {
+  const prices = { fetchedAt: '2026-06-13T12:55:33Z', sources: { official: 'litellm' },
+    models: [{ model: 'deepseek-v4-flash', official: null, cells: { synthorai: [0.138, 0.275], openrouter: [0.098, 0.196] } }] };
+  const pm = buildPriceMatrixReport(prices, { gateways: [{ id: 'synthorai', name: 'Synthorai' }, { id: 'openrouter', name: 'OpenRouter' }], generatedAt: 't', version: '0.2.0' });
+  const html = renderReportHtml(pm);
+  assert.ok(html.includes('价格横评'), 'pricematrix title');
+  assert.ok(html.includes('无需 key'), 'no-key honesty caption');
+  assert.ok(html.includes('class="r cheap"'), 'cheapest cell highlighted');
+  assert.ok(html.includes('deepseek-v4-flash'));
+  assert.ok(!/sk-|Bearer/.test(html));
 });
 
 test('renderReportHtml: renders public-baseline reference section when present', () => {

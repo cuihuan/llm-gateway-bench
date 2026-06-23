@@ -43,6 +43,10 @@ npm run matrix                 # 用 data/tracked-models.json 的 aliases 决定
 **给矩阵加一个网关**：在 [`data/tracked-models.json`](data/tracked-models.json) 给该模型补上
 这个网关的 alias（它在该网关叫什么），并在 CI Secrets 配好 key，下次 cron 即自动纳入横评。
 
+其中**价格横评无需任何 key**：`aggregate` 会把 [`data/prices.json`](data/prices.json)（公开定价 API：
+litellm 官方 / synthorai / openrouter）pivot 成一份真实的"经典模型 × 网关价格对比"报告
+（`web/reports/price-matrix.json`），标出每个模型最便宜的网关，随价格刷新——这是报告广场里**当下就有真实数据**的旗舰报告。
+
 ## 它回答什么问题
 
 挑一个大模型网关/中转 API 时，工程师真正关心的按优先级是：

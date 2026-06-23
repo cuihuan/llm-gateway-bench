@@ -1,7 +1,21 @@
 {
   "schema": "gwbench-reports-index/1",
-  "updatedAt": "2026-06-23T04:00:00Z",
+  "updatedAt": "2026-06-23T07:44:33.402Z",
   "reports": [
+    {
+      "id": "price-matrix",
+      "kind": "pricematrix",
+      "model": null,
+      "region": "公开定价 API",
+      "generatedAt": "2026-06-23T07:44:33.402Z",
+      "demo": false,
+      "title": "经典模型 × 网关 · 价格横评（公开定价，无需 key）",
+      "targetCount": 4,
+      "fastestTtft": null,
+      "cheapest": null,
+      "flagCount": 0,
+      "source": "baseline"
+    },
     {
       "id": "demo-longcontext-gemini",
       "kind": "longcontext",
