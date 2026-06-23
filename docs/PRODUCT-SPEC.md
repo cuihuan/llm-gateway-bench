@@ -105,6 +105,11 @@ web/reports/<id>.json  ──►  web/reports.html 广场静态渲染  ← 柱�
   `renderReportHtml`，与 CLI 像素一致）；`scripts/publish-report.mjs` 归档+清单；导航接入；范例报告。✅
 - **Phase 3 · 长文本报告**：`longcontext.mjs` 多长度×多深度 needle 热图，kind=longcontext
   复用报告广场；`npm run longcontext`；范例报告。✅
+- **Phase 3b · 经典模型 × 网关横评（旗舰报告，用户重中之重）**：
+  - **价格横评** kind=pricematrix：`aggregate` 由 data/prices.json（公开定价，**无需 key**）pivot 成真实
+    "模型×网关价格对比"（`web/reports/price-matrix.json`），标每模型最便宜网关，随价格刷新。✅ 真实数据已上线。
+  - **速度/稳定/指纹横评** `npm run matrix`（`probe/matrix.mjs`）：每经典模型在所有有 key 的网关跑全套黑盒，
+    ≥2 网关才生成，接入 6h CI。✅ 引擎就绪；**需在 CI 配多家网关 key + tracked-models 补 alias 才出真实数据**。
 - **Phase 4 · 网站与变现脚手架**：`pricing.html` 四层定价（自助免费/托管拨测/Pro 托管/封装 SDK）；
   首页自助对比 CTA。✅
   - **Phase 4b · 分享与支付（无服务器变现）**：决策＝保持无服务器；报告内置'下载 JSON / 分享到广场'入口
