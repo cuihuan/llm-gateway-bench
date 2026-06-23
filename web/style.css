@@ -256,6 +256,15 @@ article-list, .list { padding: 18px 0 8px; }
 #lb tr.toppick td { background: var(--accent-soft); }
 #lb tr.toppick td:first-child { box-shadow: inset 3px 0 0 var(--accent); }
 .pick-star { color: #f59e0b; font-weight: 700; }
+/* 多视角 lens 标签栏 */
+.lenses { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin: 0 0 12px;
+  border-bottom: 1px solid var(--border); padding-bottom: 0; }
+.lens { font: 600 13.5px/1 var(--sans); color: var(--muted); background: none; border: 0;
+  border-bottom: 2px solid transparent; padding: 9px 12px; cursor: pointer; transition: color .12s; margin-bottom: -1px; }
+.lens:hover { color: var(--accent); }
+.lens.on { color: var(--accent-strong); border-bottom-color: var(--accent); }
+.lens-hint { margin-left: auto; font-size: 12px; color: var(--faint); }
+@media (max-width: 640px){ .lens-hint { display: none; } }
 
 /* 首页/页面 CTA 按钮 */
 .hero-cta { display: flex; flex-wrap: wrap; gap: 12px; margin: 22px 0 4px; }

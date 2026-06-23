@@ -92,18 +92,16 @@
     </div>
     <div class="verdict" id="verdict"></div>
   </div>
+  <div class="lenses" id="lenses">
+    <button class="lens on" data-lens="rank">排行</button>
+    <button class="lens" data-lens="price">价格</button>
+    <button class="lens" data-lens="stab">稳定</button>
+    <button class="lens" data-lens="fp">行为体检</button>
+    <button class="lens" data-lens="lite">简表</button>
+    <span class="lens-hint" id="lens-hint"></span>
+  </div>
   <div class="tablebox"><table id="lb">
-    <thead><tr>
-      <th>网关</th>
-      <th>信任评级</th>
-      <th>数据留存</th>
-      <th class="r sortable" data-k="priceIdx">价格指数 <span class="arr">↕</span></th>
-      <th class="sortable" data-k="uptime">稳定性 30D <span class="arr">↓</span></th>
-      <th class="r sortable" data-k="ttft">TTFT P50 <span class="arr">↕</span></th>
-      <th class="r sortable" data-k="tps">TOK/S <span class="arr">↕</span></th>
-      <th class="r sortable" data-k="models">模型数 <span class="arr">↕</span></th>
-      <th>TTFT 30D</th>
-    </tr></thead>
+    <thead></thead>
     <tbody></tbody>
   </table></div>
   <p class="fn">信任评级三档：<span class="bdg ok">直连已验证</span> 通过对拍验证；<span class="bdg warn">声明未验证</span> 网关自声明、暂无对拍证据；<span class="bdg unk">未验证</span> 无声明或拒测。详见下节。</p>
@@ -378,6 +376,42 @@ function trendChart(vals,w=460,h=64){
 const ERR_META = { '429':{c:'var(--warn)',label:'429 限流'}, '5xx':{c:'var(--bad)',label:'5xx 故障'},
   timeout:{c:'#a371f7',label:'超时'}, other:{c:'var(--faint)',label:'其他'} };
 
+// 行为指纹格子：ok/total，全过=绿，部分=橙，全挂=红
+const fpCell = (s)=> s==null ? '<td class="muted">—</td>'
+  : `<td><span class="num ${s.ok===s.total?'good':s.ok>0?'warn':'bad'}">${s.ok}/${s.total}</span></td>`;
+const errCellMini = (g)=>{
+  const e=g.errors||{}; const parts=[];
+  for(const [k,meta] of Object.entries(ERR_META)) if(e[k]) parts.push(`<span style="color:${meta.c}">${meta.label.split(' ')[0]} ${e[k]}</span>`);
+  return `<td class="num" style="font-size:11.5px">${parts.join(' · ')||'<span class="good">无失败</span>'}</td>`;
+};
+// 多视角：同一份网关、同一套筛选/排序，切换列组（借鉴 helpaio 的简表/Bench/可用切换）。
+// 每列可带 sort（点表头/被 chip 联动排序）。name 列由 renderLB 统一加（含榜首 ★）。
+const COL = {
+  trust:  { th:'信任评级', cell:g=>`<td>${bdg(g.trust.level, esc(g.trust.levelText))}</td>` },
+  retain: { th:'数据留存', cell:g=>`<td>${bdg(g.trust.prompt.bdg??'unk', esc(g.trust.prompt.text))}</td>` },
+  price:  { th:'价格指数', r:true, sort:'priceIdx', cell:g=>`<td class="r num ${priceCls(g.priceIdx)}">${g.priceIdx==null?'—':fmt(g.priceIdx,2)+'×'}</td>` },
+  uptime: { th:'稳定性 30D', sort:'uptime', cell:g=>`<td><span class="num ${uptimeCls(g.uptime)}">${g.uptime==null?'—':fmt(g.uptime,2)+'%'}</span>&nbsp; ${strip(g.daysArr)}</td>` },
+  uptime7:{ th:'近 7D', r:true, sort:'uptime7', cell:g=>`<td class="r num ${uptimeCls(g.uptime7)}">${g.uptime7==null?'—':fmt(g.uptime7,2)+'%'}</td>` },
+  ttft:   { th:'TTFT P50', r:true, sort:'ttft', cell:g=>`<td class="r num">${g.ttft==null?'—':fmt(g.ttft)+' ms'}</td>` },
+  tps:    { th:'TOK/S', r:true, sort:'tps', cell:g=>`<td class="r num">${fmt(g.tps)}</td>` },
+  models: { th:'模型数', r:true, sort:'models', cell:g=>`<td class="r num">${fmt(g.models)}</td>` },
+  trend:  { th:'TTFT 30D', cell:g=>`<td>${spark(g.trend)}</td>` },
+  errs:   { th:'错误画像', cell:g=>errCellMini(g) },
+  echo:   { th:'模型回显', cell:g=>fpCell(g.integrity?.modelEcho) },
+  tool:   { th:'工具调用', cell:g=>fpCell(g.toolCalls) },
+  burst:  { th:'真流式', cell:g=>g.streamBurst==null?'<td class="muted">—</td>':`<td><span class="num ${g.streamBurst.suspect===0?'good':'bad'}">${g.streamBurst.total-g.streamBurst.suspect}/${g.streamBurst.total}</span></td>` },
+  cjk:    { th:'CJK', cell:g=>fpCell(g.integrity?.cjk) },
+  needle: { th:'上下文', cell:g=>fpCell(g.integrity?.needle) },
+  fp:     { th:'合规命中', r:true, sort:'fpScore', cell:g=>`<td class="r num ${g.fpScore==null?'muted':g.fpScore>=0.999?'good':g.fpScore>=0.8?'warn':'bad'}">${g.fpScore==null?'—':Math.round(g.fpScore*100)+'%'}</td>` },
+};
+const LENSES = {
+  rank:  { cols:['trust','retain','price','uptime','ttft','tps','models','trend'], hint:'综合各维度概览' },
+  price: { cols:['price','tps','models','uptime'], hint:'价格指数=网关价÷官方价，点"更便宜"排序' },
+  stab:  { cols:['uptime','uptime7','ttft','errs'], hint:'30/7 天成功率与错误画像' },
+  fp:    { cols:['echo','tool','burst','cjk','needle','fp'], hint:'黑盒行为指纹，绿=全过' },
+  lite:  { cols:['price','uptime','ttft'], hint:'最少列，快速扫一眼' },
+};
+
 // 时段画像：按 UTC 小时的 TTFT 柱状图，最慢柱标红。括号注 UTC，下方给本地换算提示。
 function hourlyChart(hourly){
   const pts = (hourly||[]).filter(h=>h.ttftP50!=null);
@@ -413,61 +447,49 @@ function render(site, isDemo){
   $('#m-gw').textContent = site.gateways.length+' 个';
   $('#m-region').textContent = site.region;
 
-  // ---- 排行榜：速选（按优先级实时重排 + 筛选 + 当前第一高亮）。null 永远排末尾 ----
-  let sortKey='uptime', sortAsc=false, fProto='', fCat='';
+  // ---- 排行榜：速选 + 多视角（同一份数据/筛选/排序，切换列组）。null 永远排末尾 ----
+  let sortKey='uptime', sortAsc=false, fProto='', fCat='', lens='rank';
   const PRI_LABEL = { uptime:'稳定', priceIdx:'价格', ttft:'速度', fpScore:'合规', tps:'吞吐', models:'模型数' };
   const metricStr = (g,k)=> k==='priceIdx'?(g.priceIdx==null?'—':fmt(g.priceIdx,2)+'×')
     : k==='ttft'?(g.ttft==null?'—':fmt(g.ttft)+'ms') : k==='uptime'?(g.uptime==null?'—':fmt(g.uptime,2)+'%')
     : k==='fpScore'?(g.fpScore==null?'—':Math.round(g.fpScore*100)+'%') : k==='tps'?fmt(g.tps) : fmt(g.models);
+  const doSort = (th)=>{ const k=th.dataset.k; if(!k) return; if(sortKey===k) sortAsc=!sortAsc; else { sortKey=k; sortAsc=false; } renderLB(); };
   const renderLB = ()=>{
-    const list = site.gateways.filter(g=> (!fProto||g.protocols===fProto) && (!fCat||g.category===fCat));
-    const rows = list.sort((a,b)=>{
-      const av=a[sortKey], bv=b[sortKey];
-      if(av==null&&bv==null) return 0;
-      if(av==null) return 1; if(bv==null) return -1;
-      return (av-bv)*(sortAsc?1:-1);
-    });
+    const cols = LENSES[lens].cols;
+    $('#lb thead').innerHTML = '<tr><th>网关</th>'+cols.map(id=>{const c=COL[id];
+      return `<th class="${c.r?'r ':''}${c.sort?'sortable':''}"${c.sort?` data-k="${c.sort}"`:''}>${c.th}${c.sort?' <span class="arr">↕</span>':''}</th>`;
+    }).join('')+'</tr>';
+    $('#lens-hint').textContent = LENSES[lens].hint;
+    const rows = site.gateways
+      .filter(g=> (!fProto||g.protocols===fProto) && (!fCat||g.category===fCat))
+      .sort((a,b)=>{ const av=a[sortKey],bv=b[sortKey]; if(av==null&&bv==null)return 0; if(av==null)return 1; if(bv==null)return -1; return (av-bv)*(sortAsc?1:-1); });
     const top = (rows[0] && rows[0][sortKey]!=null) ? rows[0] : null;
     $('#verdict').innerHTML = rows.length
       ? (top ? `最看重<b>${PRI_LABEL[sortKey]}</b> → 当前第一 <b>${esc(top.name)}</b>（${metricStr(top,sortKey)}）<span class="muted">· ${rows.length} 个网关参与排序</span>`
              : `<span class="muted">该维度暂无数据</span>`)
       : `<span class="muted">当前筛选下无网关</span>`;
-    $('#lb tbody').innerHTML = rows.map(g=>`<tr class="${g===top?'toppick':''}">
-      <td><div class="gw-name">${g===top?'<span class="pick-star" title="当前优先级下第一">★</span> ':''}<a href="${safeUrl(g.website)??'#'}" target="_blank" rel="noopener">${esc(g.name)}</a></div>
-          <div class="gw-sub">${esc(g.host)} · ${esc(g.category)}</div></td>
-      <td>${bdg(g.trust.level, esc(g.trust.levelText))}</td>
-      <td>${bdg(g.trust.prompt.bdg??'unk', esc(g.trust.prompt.text))}</td>
-      <td class="r num ${priceCls(g.priceIdx)}">${g.priceIdx==null?'—':fmt(g.priceIdx,2)+'×'}</td>
-      <td><span class="num ${uptimeCls(g.uptime)}">${g.uptime==null?'—':fmt(g.uptime,2)+'%'}</span>&nbsp; ${strip(g.daysArr)}</td>
-      <td class="r num">${g.ttft==null?'—':fmt(g.ttft)+' ms'}</td>
-      <td class="r num">${fmt(g.tps)}</td>
-      <td class="r num">${fmt(g.models)}</td>
-      <td>${spark(g.trend)}</td>
-    </tr>`).join('');
+    $('#lb tbody').innerHTML = rows.map(g=>{
+      const nameCell = `<td><div class="gw-name">${g===top?'<span class="pick-star" title="当前优先级下第一">★</span> ':''}<a href="${safeUrl(g.website)??'#'}" target="_blank" rel="noopener">${esc(g.name)}</a></div><div class="gw-sub">${esc(g.host)} · ${esc(g.category)}</div></td>`;
+      return `<tr class="${g===top?'toppick':''}">${nameCell}${cols.map(id=>COL[id].cell(g)).join('')}</tr>`;
+    }).join('');
     document.querySelectorAll('#lb thead th.sortable').forEach(th=>{
       const active = th.dataset.k===sortKey;
       th.classList.toggle('sorted', active);
       th.setAttribute('aria-sort', active ? (sortAsc?'ascending':'descending') : 'none');
-      const arr = th.querySelector('.arr'); if(arr) arr.textContent = active ? (sortAsc?'▲':'▼') : '↕';
+      const arr=th.querySelector('.arr'); if(arr) arr.textContent = active ? (sortAsc?'▲':'▼') : '↕';
+      th.setAttribute('tabindex','0'); th.setAttribute('role','columnheader'); th.setAttribute('title','点击或回车按此列排序');
+      th.onclick = ()=>doSort(th);
+      th.onkeydown = (e)=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); doSort(th); } };
     });
-    // 同步优先级 chip 高亮（与当前排序键/方向一致的那个点亮）
     document.querySelectorAll('#pri-chips .chip').forEach(c=>
       c.classList.toggle('on', c.dataset.k===sortKey && (c.dataset.asc==='1')===sortAsc));
   };
-  const applySort = (k, asc)=>{ sortKey=k; sortAsc=asc; renderLB(); };
-  // 优先级 chip
   document.querySelectorAll('#pri-chips .chip').forEach(c=>
-    c.addEventListener('click', ()=> applySort(c.dataset.k, c.dataset.asc==='1')));
-  // 筛选
+    c.addEventListener('click', ()=>{ sortKey=c.dataset.k; sortAsc=c.dataset.asc==='1'; renderLB(); }));
   $('#f-proto').addEventListener('change', e=>{ fProto=e.target.value; renderLB(); });
   $('#f-cat').addEventListener('change', e=>{ fCat=e.target.value; renderLB(); });
-  // 表头点击仍可排序（与 chip 联动）
-  const doSort = (th)=>{ const k=th.dataset.k; if(sortKey===k) sortAsc=!sortAsc; else { sortKey=k; sortAsc=false; } renderLB(); };
-  document.querySelectorAll('#lb thead th.sortable').forEach(th=>{
-    th.setAttribute('tabindex','0'); th.setAttribute('role','columnheader'); th.setAttribute('title','点击或回车按此列排序');
-    th.addEventListener('click',()=>doSort(th));
-    th.addEventListener('keydown',(e)=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); doSort(th); } });
-  });
+  document.querySelectorAll('#lenses .lens').forEach(b=>
+    b.addEventListener('click', ()=>{ lens=b.dataset.lens; document.querySelectorAll('#lenses .lens').forEach(x=>x.classList.toggle('on',x===b)); renderLB(); }));
   renderLB();
 
   // ---- 信任与合规 ----
@@ -489,9 +511,7 @@ function render(site, isDemo){
     $('#trust .tablebox').after(el);
   }
 
-  // ---- 行为体检 ----
-  const fpCell = (s)=> s==null ? '<td class="muted">—</td>'
-    : `<td><span class="num ${s.ok===s.total?'good':s.ok>0?'warn':'bad'}">${s.ok}/${s.total}</span></td>`;
+  // ---- 行为体检（fpCell 已在模块级定义，供速选视角与本表共用） ----
   $('#fp-tbl tbody').innerHTML = site.gateways.map(g=>{
     const it=g.integrity, cpt=(g.usageByModel||[]).map(u=>u.charsPerToken).filter(v=>v!=null);
     const cptCell = cpt.length ? `<td class="num muted">${(cpt.reduce((a,b)=>a+b,0)/cpt.length).toFixed(2)} 字/tok</td>` : '<td class="muted">—</td>';
