@@ -6,11 +6,52 @@ test('classifyError: maps error strings to classes', () => {
   assert.equal(classifyError('HTTP 403 {"error":"model_not_allowed"}'), 'auth');
   assert.equal(classifyError('HTTP 401 unauthorized'), 'auth');
   assert.equal(classifyError('HTTP 429 too many requests'), '429');
+  assert.equal(classifyError('HTTP 400 bad request'), 'user');     // 其余 4xx = 用户/配置侧
+  assert.equal(classifyError('HTTP 404 model not found'), 'user');
+  assert.equal(classifyError('HTTP 422 unprocessable'), 'user');
   assert.equal(classifyError('HTTP 502 bad gateway'), '5xx');
   assert.equal(classifyError('timeout'), 'timeout');
   assert.equal(classifyError('This operation was aborted'), 'timeout');
   assert.equal(classifyError('ECONNRESET'), 'other');
   assert.equal(classifyError(undefined), 'other');
+});
+
+test('rollupGateway: non-auth 4xx (model absent / bad request) excluded from uptime like auth', () => {
+  // 404「该网关没有这个模型」是配置问题,不是宕机——对齐 OpenRouter 口径,排除出分母
+  const r = rollupGateway([
+    run('2026-06-10T06:00:00.000Z', [
+      { model: 'a', samples: 3, success: 3, ttftMs: { p50: 600 }, tokensPerSec: { avg: 70 }, errors: [] },
+      { model: 'b', samples: 3, success: 0, ttftMs: {}, tokensPerSec: {}, errors: ['HTTP 404 model not found'] },
+    ]),
+  ], '2026-06-10');
+  assert.equal(r.uptimePct, 100);          // model b 全部排除,不算宕机
+  assert.equal(r.authExcluded, 3);         // 3 个样本计入"排除出可用率"
+  assert.equal(r.probes, 3);
+  assert.deepEqual(r.errors, { '429': 0, '5xx': 0, timeout: 0, other: 0 }); // user 不进 errors
+});
+
+test('rollupGateway: 4xx-user mixed with real 5xx — only the 5xx counts against uptime', () => {
+  const r = rollupGateway([
+    run('2026-06-10T06:00:00.000Z', [
+      { model: 'a', samples: 3, success: 0, ttftMs: {}, tokensPerSec: {}, errors: ['HTTP 400 bad', 'HTTP 502 down', 'HTTP 404 absent'] },
+    ]),
+  ], '2026-06-10');
+  assert.equal(r.authExcluded, 2);   // 400 + 404 排除
+  assert.equal(r.probes, 1);         // 只剩 1 个真实样本
+  assert.equal(r.uptimePct, 0);      // 那个样本是真实 5xx 故障
+  assert.equal(r.errors['5xx'], 1);
+});
+
+test('rollupGateway: 429 stays counted as a real availability signal (not excluded)', () => {
+  const r = rollupGateway([
+    run('2026-06-10T06:00:00.000Z', [
+      { model: 'a', samples: 4, success: 2, ttftMs: { p50: 600 }, tokensPerSec: { avg: 70 }, errors: ['HTTP 429 rate limited', 'HTTP 429 rate limited'] },
+    ]),
+  ], '2026-06-10');
+  assert.equal(r.authExcluded, 0);   // 429 不排除
+  assert.equal(r.probes, 4);
+  assert.equal(r.uptimePct, 50);     // 2/4
+  assert.equal(r.errors['429'], 2);
 });
 
 const run = (startedAt, models, conn = { ok: true, latencyMs: 100, modelCount: 10 }) =>

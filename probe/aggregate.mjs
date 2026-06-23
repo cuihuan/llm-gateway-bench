@@ -3,9 +3,11 @@
 // into web/data.json — the single file the static leaderboard renders from.
 //
 // Fairness rules encoded here (mirrored in docs/methodology.md):
-//   - 401/403 from the prober's own key (e.g. model whitelist) are EXCLUDED from
-//     stability stats and disclosed separately — they are prober config issues,
-//     not gateway failures.
+//   - User-side errors are EXCLUDED from uptime and disclosed separately
+//     (authExcluded): 401/403 from the prober's own key (model whitelist) AND
+//     other 4xx (400/404/422…: model absent on this gateway, unsupported param,
+//     bad probe usage). These are prober/config issues, not gateway outages —
+//     same convention as OpenRouter's uptime. 429 stays counted (real signal).
 //   - No black-box composite score. priceIdx is the only derived number:
 //     geometric mean of (gateway price ÷ official price) over comparable models.
 
@@ -19,10 +21,18 @@ export function classifyError(msg) {
   if (typeof msg !== 'string') return 'other';
   if (/HTTP 4(01|03)\b/.test(msg)) return 'auth';
   if (/HTTP 429\b/.test(msg)) return '429';
+  // 其余 4xx(400/404/422…)是请求/配置问题——模型在该网关不存在、参数不支持、
+  // 探针用法不当——不是网关宕机。对齐 OpenRouter uptime 口径(排除用户侧 4xx),
+  // 与 auth 一样不计入可用率分母。429 仍单列保留(限流是真实可用性信号)。
+  if (/HTTP 4\d\d\b/.test(msg)) return 'user';
   if (/HTTP 5\d\d\b/.test(msg)) return '5xx';
   if (/timeout|timed? ?out|aborted/i.test(msg)) return 'timeout';
   return 'other';
 }
+
+// 计入"排除出可用率分母"的错误类:鉴权(401/403)+ 其余用户侧 4xx。
+// 这些是探针/配置问题,不是网关故障——计入会冤枉网关。
+const EXCLUDED_FROM_UPTIME = new Set(['auth', 'user']);
 
 const dayOf = (iso) => iso.slice(0, 10);
 const round = (x, d = 0) => (x == null ? null : Math.round(x * 10 ** d) / 10 ** d);
@@ -63,20 +73,21 @@ export function rollupGateway(runEntries, today) {
       const classes = (m.errors ?? []).map(classifyError);
       const failed = m.samples - m.success;
       // errors[] is capped at 5 per model by metrics.summarize(); when every
-      // captured error is auth, attribute ALL failures to auth (prober key
-      // problem, not gateway), otherwise count auth errors one by one.
-      const authN = classes.length > 0 && classes.every((c) => c === 'auth')
+      // captured error is a user-side problem (auth or other 4xx), attribute
+      // ALL failures to it (prober/config issue, not a gateway outage),
+      // otherwise count the excluded classes one by one.
+      const excludedN = classes.length > 0 && classes.every((c) => EXCLUDED_FROM_UPTIME.has(c))
         ? failed
-        : classes.filter((c) => c === 'auth').length;
-      authExcluded += authN;
-      const counted = m.samples - authN;
+        : classes.filter((c) => EXCLUDED_FROM_UPTIME.has(c)).length;
+      authExcluded += excludedN;
+      const counted = m.samples - excludedN;
       if (counted <= 0) continue;
       probes += counted;
       bucket.total += counted;
       bucket.ok += m.success;
       hbucket.total += counted;
       hbucket.ok += m.success;
-      for (const c of classes) { if (c !== 'auth') errors[c]++; }
+      for (const c of classes) { if (!EXCLUDED_FROM_UPTIME.has(c)) errors[c]++; }
       if (typeof m.ttftMs?.p50 === 'number') { bucket.ttfts.push(m.ttftMs.p50); hbucket.ttfts.push(m.ttftMs.p50); }
     }
   }
