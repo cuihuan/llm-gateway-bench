@@ -30,7 +30,7 @@ export function buildTarget(raw) {
     return {
       name: raw?.name ?? '?', host: raw?.host ?? null, connMs,
       ttftMs: { p50: null, p95: null }, tokensPerSec: null, successRate: null,
-      toolCall: null, burstStream: null, modelEcho: null, cjk: null, needle: null,
+      toolCall: null, burstStream: null, modelEcho: null, cjk: null, needle: null, cache: null,
       usage: null, price, priceIdx, error: raw?.error ?? 'no model probed',
     };
   }
@@ -48,6 +48,8 @@ export function buildTarget(raw) {
     modelEcho: m.modelEchoRate == null ? null : m.modelEchoRate === 1,
     cjk: m.cjk ? m.cjk.ok === true : null,
     needle: m.needle ? m.needle.ok === true : null,
+    // 提示缓存：true 命中/false 不支持/null 不上报或未测
+    cache: m.cache ? (m.cache.supported ?? null) : null,
     usage: m.usage ?? null,
     price,
     priceIdx,
@@ -199,9 +201,11 @@ export function buildGap(targets, baseline, mineName) {
   if (mine.burstStream === true) failed.push('真流式');
   const integrity = failed.length ? { ok: false, failed } : { ok: true };
 
+  const cache = { mine: mine.cache ?? null, anySupported: list.some((t) => t.cache === true) };
   const parts = dims.map((d) => (d.verdict === '最优' ? `${d.label}最优` : d.verdict === '持平' ? `${d.label}持平` : `${d.label}落后${d.behindPct}%`));
   parts.push(integrity.ok ? '指纹全过' : `指纹漏:${failed.join('/')}`);
-  return { mine: mineName, dims, integrity, summary: parts.join(' · ') };
+  if (cache.mine === true) parts.push('缓存命中'); else if (cache.mine === false) parts.push('无缓存');
+  return { mine: mineName, dims, integrity, cache, summary: parts.join(' · ') };
 }
 
 /** 组装完整报告对象（report.json）。generatedAt/version 由调用方注入以便单测。
@@ -260,6 +264,7 @@ export function renderReportHtml(report) {
         <td class="c">${t.burstStream == null ? '<span class="na">—</span>' : tri(!t.burstStream)}</td>
         <td class="c">${tri(t.cjk)}</td>
         <td class="c">${tri(t.needle)}</td>
+        <td class="c">${tri(t.cache)}</td>
         <td class="r">${num(t.usage?.charsPerToken, '')}</td>
       </tr>`).join('\n');
     const flags = (cmp.flags ?? []).map((f) => `<li class="flag ${esc(f.severity)}"><b>${esc(f.target)}</b> · ${esc(f.label)}</li>`).join('\n');
@@ -281,13 +286,14 @@ ${g.dims.map((d) => `      <div class="gap-cell ${d.verdict === '落后' ? 'bad'
       </div>`).join('\n')}
     </div>
     <div class="gap-int ${g.integrity.ok ? 'ok' : 'bad'}">${g.integrity.ok ? '✓ 合规指纹全过' : '✗ 指纹漏过：' + esc(g.integrity.failed.join('、'))}</div>
+    ${g.cache ? `<div class="gap-int ${g.cache.mine === true ? 'ok' : g.cache.mine === false ? 'bad' : ''}">${g.cache.mine === true ? '✓ 命中提示缓存（重复 prompt 更省）' : g.cache.mine === false ? ('✗ 未命中提示缓存' + (g.cache.anySupported ? '（有网关支持，这台没有）' : '')) : '— 提示缓存未测 / 网关不上报'}</div>` : ''}
     <p class="sub" style="margin:10px 0 0">价格为该模型实测对比；速度/稳定的"最好"含公共基线（网关级聚合）参照。|差距|&lt;8% 记持平。</p>
   </div>
 ` : '';
     const body = gapCard + `  <table><thead><tr>
     <th>目标</th><th class="r">TTFT P50</th><th class="r">TTFT P95</th><th class="r">tok/s</th><th class="r">成功率</th>
     <th class="r">价格 入/出</th><th class="r">倍率</th>
-    <th class="c">模型回显</th><th class="c">工具调用</th><th class="c">真流式</th><th class="c">CJK</th><th class="c">长文本</th><th class="r">字/token</th>
+    <th class="c">模型回显</th><th class="c">工具调用</th><th class="c">真流式</th><th class="c">CJK</th><th class="c">长文本</th><th class="c">缓存</th><th class="r">字/token</th>
   </tr></thead><tbody>
 ${rows}
   </tbody></table>

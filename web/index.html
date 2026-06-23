@@ -144,7 +144,7 @@
   <p class="sub">每项都是固定脚本可复现的黑盒探测：<b>模型回显</b>响应 model 字段是否与请求一致（揪偷换）·<b>工具调用</b>是否被剥离 ·<b>流式真实</b>是否憋完再吐装流式 ·<b>CJK 完整</b>中文输出是否损坏（量化降智 tell）·<b>上下文</b>长文本里的标记是否被悄悄截断。绿=全部探测模型通过，红=有模型未通过，—=暂无可判定数据。</p>
   <div class="tablebox"><table id="fp-tbl">
     <thead><tr>
-      <th>网关</th><th>模型回显</th><th>工具调用</th><th>流式真实</th><th>CJK 完整</th><th>上下文</th><th>usage 指纹</th>
+      <th>网关</th><th>模型回显</th><th>工具调用</th><th>流式真实</th><th>CJK 完整</th><th>上下文</th><th>缓存</th><th>usage 指纹</th>
     </tr></thead>
     <tbody></tbody>
   </table></div>
@@ -269,6 +269,7 @@ function adapt(raw){
     toolCalls:g.toolCalls ?? null,
     streamBurst:g.streamBurst ?? null,
     integrity:g.integrity ?? null,
+    cache:g.cache ?? null,
     fpScore: fpScoreOf(g),
     usageByModel:g.usageByModel ?? [],
     hourly:g.hourly ?? [],
@@ -345,6 +346,8 @@ DEMO.gateways.forEach((g,gi)=>{
   // 演示：aihubmix 故意展示 CJK 不通过（量化降智）以示意红态
   g.integrity = { modelEcho:{ok:n,total:n}, cjk:{ok: gi===2?n-1:n, total:n}, needle:{ok:n,total:n} };
   g.category = g.id==='openai-direct' ? '官方直连' : '网关';
+  // 演示：synthorai/官方直连 命中提示缓存，其余不支持（示意缓存维度的红/绿）
+  g.cache = { supported: (gi===0||g.id==='openai-direct')?n:0, reported:n, total:n };
   g.fpScore = fpScoreOf(g);
   g.usageByModel = g.probeModels.map(m=>({ model:m.split('/').pop(), charsPerToken: 3.5+(gi*0.3)%1.5, promptTokens: 30+gi }));
   const rnd = seeded(gi*7+3);
@@ -422,13 +425,15 @@ const COL = {
   burst:  { th:'真流式', cell:g=>g.streamBurst==null?'<td class="muted">—</td>':`<td><span class="num ${g.streamBurst.suspect===0?'good':'bad'}">${g.streamBurst.total-g.streamBurst.suspect}/${g.streamBurst.total}</span></td>` },
   cjk:    { th:'CJK', cell:g=>fpCell(g.integrity?.cjk) },
   needle: { th:'上下文', cell:g=>fpCell(g.integrity?.needle) },
+  cache:  { th:'缓存', cell:g=> (g.cache==null||!g.cache.reported) ? '<td class="muted">—</td>'
+    : `<td><span class="num ${g.cache.supported===g.cache.reported?'good':g.cache.supported>0?'warn':'bad'}">${g.cache.supported}/${g.cache.reported}</span></td>` },
   fp:     { th:'合规命中', r:true, sort:'fpScore', cell:g=>`<td class="r num ${g.fpScore==null?'muted':g.fpScore>=0.999?'good':g.fpScore>=0.8?'warn':'bad'}">${g.fpScore==null?'—':Math.round(g.fpScore*100)+'%'}</td>` },
 };
 const LENSES = {
   rank:  { cols:['trust','retain','price','uptime','ttft','tps','models','trend'], hint:'综合各维度概览' },
   price: { cols:['price','tps','models','uptime'], hint:'价格指数=网关价÷官方价，点"更便宜"排序' },
   stab:  { cols:['uptime','uptime7','ttft','errs'], hint:'30/7 天成功率与错误画像' },
-  fp:    { cols:['echo','tool','burst','cjk','needle','fp'], hint:'黑盒行为指纹，绿=全过' },
+  fp:    { cols:['echo','tool','burst','cjk','needle','cache','fp'], hint:'黑盒行为指纹，绿=全过；缓存=命中/上报数' },
   lite:  { cols:['price','uptime','ttft'], hint:'最少列，快速扫一眼' },
 };
 
@@ -578,6 +583,7 @@ function render(site, isDemo){
       ${g.streamBurst==null?'<td class="muted">—</td>':`<td><span class="num ${g.streamBurst.suspect===0?'good':'bad'}">${g.streamBurst.total-g.streamBurst.suspect}/${g.streamBurst.total}</span></td>`}
       ${fpCell(it?.cjk)}
       ${fpCell(it?.needle)}
+      ${(g.cache==null||!g.cache.reported)?'<td class="muted">—</td>':`<td><span class="num ${g.cache.supported===g.cache.reported?'good':g.cache.supported>0?'warn':'bad'}">${g.cache.supported}/${g.cache.reported}</span></td>`}
       ${cptCell}
     </tr>`;
   }).join('');

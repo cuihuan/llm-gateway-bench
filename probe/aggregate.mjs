@@ -168,6 +168,14 @@ export function rollupGateway(runEntries, today) {
     needle: snap((m) => m.needle?.ok, (m) => m.needle),
   } : null;
 
+  // 提示缓存快照（最近一次运行）：在上报缓存口径的模型里，有几个观察到缓存命中。
+  // reported<总数 = 部分模型不上报缓存口径；supported<reported = 上报但未命中。
+  let cache = null;
+  if (latest) {
+    const reported = (latest.models ?? []).filter((m) => m.cache && m.cache.reported);
+    if (reported.length) cache = { supported: reported.filter((m) => m.cache.supported).length, reported: reported.length, total: (latest.models ?? []).length };
+  }
+
   let ttftP50 = null, ttftP95 = null, tps = null;
   if (latestOk) {
     const rows = (latestOk.models ?? []).filter((m) => m.success > 0);
@@ -191,6 +199,7 @@ export function rollupGateway(runEntries, today) {
     streamBurst,
     usageByModel,
     integrity,
+    cache,
     hourly,
     peakDrift,
     connMs: latest?.connectivity?.latencyMs ?? null,

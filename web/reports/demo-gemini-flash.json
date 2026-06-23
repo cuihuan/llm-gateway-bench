@@ -25,6 +25,7 @@
       "modelEcho": true,
       "cjk": true,
       "needle": true,
+      "cache": true,
       "usage": {
         "promptTokens": 21,
         "charsPerToken": 3.8
@@ -51,6 +52,7 @@
       "modelEcho": true,
       "cjk": true,
       "needle": true,
+      "cache": true,
       "usage": {
         "promptTokens": 21,
         "charsPerToken": 3.8
@@ -77,6 +79,7 @@
       "modelEcho": false,
       "cjk": false,
       "needle": false,
+      "cache": false,
       "usage": {
         "promptTokens": 21,
         "charsPerToken": 2.1
@@ -198,9 +201,13 @@
     "integrity": {
       "ok": true
     },
-    "summary": "价格落后30.6% · TTFT最优 · 吞吐最优 · 稳定性最优 · 指纹全过"
+    "cache": {
+      "mine": true,
+      "anySupported": true
+    },
+    "summary": "价格落后30.6% · TTFT最优 · 吞吐最优 · 稳定性最优 · 指纹全过 · 缓存命中"
   },
   "demo": true,
   "title": "示例 · gemini-2.5-flash 三网关横评",
-  "note": "演示：含差距体检（你 vs 最好）、价格/倍率、红旗。数据为示意。"
+  "note": "演示：差距体检(含缓存)、价格/倍率、行为指纹、红旗。数据为示意。"
 }

@@ -154,6 +154,36 @@ export function evalNeedle(text, needle) {
 }
 
 /**
+ * 从 usage 里抽取"命中缓存的 prompt token 数"（黑盒提示缓存信号）。兼容三种上报口径：
+ * OpenAI `prompt_tokens_details.cached_tokens` · DeepSeek `prompt_cache_hit_tokens` ·
+ * Anthropic 风格 `cache_read_input_tokens`。都没有 → null（该网关不上报，无法判定）。
+ */
+export function extractCachedTokens(usage) {
+  if (!usage || typeof usage !== 'object') return null;
+  const d = usage.prompt_tokens_details;
+  if (d && typeof d.cached_tokens === 'number') return d.cached_tokens;
+  if (typeof usage.prompt_cache_hit_tokens === 'number') return usage.prompt_cache_hit_tokens;
+  if (typeof usage.cache_read_input_tokens === 'number') return usage.cache_read_input_tokens;
+  return null;
+}
+
+/**
+ * 提示缓存判定：同一长 prompt 连发两次，看第二次是否命中缓存。
+ * cachedSecond=null（不上报）→ supported:null（无法判定）；=0（上报但没命中）→ false；
+ * >0 → true。附命中占比与 TTFT 加速（第二次相对第一次快多少）。纯函数，便于单测。
+ */
+export function evalCache({ cachedSecond, promptTokens, ttftFirst, ttftSecond } = {}) {
+  if (typeof cachedSecond !== 'number') {
+    return { reported: false, supported: null, cachedTokens: null, cachedFrac: null, ttftSpeedupPct: null };
+  }
+  const cachedFrac = (typeof promptTokens === 'number' && promptTokens > 0)
+    ? Math.round((cachedSecond / promptTokens) * 100) / 100 : null;
+  const ttftSpeedupPct = (typeof ttftFirst === 'number' && typeof ttftSecond === 'number' && ttftFirst > 0)
+    ? Math.round(((ttftFirst - ttftSecond) / ttftFirst) * 100) : null;
+  return { reported: true, supported: cachedSecond > 0, cachedTokens: cachedSecond, cachedFrac, ttftSpeedupPct };
+}
+
+/**
  * Merge a list of daily summaries into a long-run stability view.
  * Each entry: { date: 'YYYY-MM-DD', successRate, ttftP50 }
  * Returns { days, uptimePct, ttftP50TrendMs } where uptimePct is the mean

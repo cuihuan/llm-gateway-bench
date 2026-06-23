@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { percentile, summarize, stabilityOverTime, evalToolCall, isBurstStream, evalModelEcho, evalCjkIntegrity, evalNeedle } from './metrics.mjs';
+import { percentile, summarize, stabilityOverTime, evalToolCall, isBurstStream, evalModelEcho, evalCjkIntegrity, evalNeedle, extractCachedTokens, evalCache } from './metrics.mjs';
 // 模型层价格价值计算的单一来源（浏览器与单测共用同一份）
 import { taskCost, tokensForBudget, valuePerDollar } from '../web/calc.mjs';
 
@@ -177,4 +177,26 @@ test('stabilityOverTime: averages daily success rates equally', () => {
 
 test('stabilityOverTime: no valid days', () => {
   assert.deepEqual(stabilityOverTime([]), { days: 0, uptimePct: null, ttftP50TrendMs: [] });
+});
+
+test('extractCachedTokens: handles OpenAI / DeepSeek / Anthropic shapes; null when absent', () => {
+  assert.equal(extractCachedTokens({ prompt_tokens_details: { cached_tokens: 1024 } }), 1024);
+  assert.equal(extractCachedTokens({ prompt_cache_hit_tokens: 512 }), 512);     // DeepSeek
+  assert.equal(extractCachedTokens({ cache_read_input_tokens: 256 }), 256);     // Anthropic-style
+  assert.equal(extractCachedTokens({ prompt_tokens: 1500 }), null);             // not reported
+  assert.equal(extractCachedTokens(null), null);
+});
+
+test('evalCache: supported when 2nd call reports cached>0; tiers + speedup', () => {
+  const hit = evalCache({ cachedSecond: 1280, promptTokens: 1500, ttftFirst: 800, ttftSecond: 400 });
+  assert.equal(hit.reported, true); assert.equal(hit.supported, true);
+  assert.equal(hit.cachedTokens, 1280); assert.equal(hit.cachedFrac, 0.85);
+  assert.equal(hit.ttftSpeedupPct, 50);
+
+  const miss = evalCache({ cachedSecond: 0, promptTokens: 1500 });
+  assert.equal(miss.reported, true); assert.equal(miss.supported, false);
+
+  const unknown = evalCache({ cachedSecond: null, promptTokens: 1500 });
+  assert.equal(unknown.reported, false); assert.equal(unknown.supported, null);
+  assert.equal(unknown.cachedFrac, null);
 });

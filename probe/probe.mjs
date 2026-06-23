@@ -12,7 +12,7 @@
 // "not tested" from "failed".
 
 import { readFile, mkdir, writeFile } from 'node:fs/promises';
-import { summarize, evalToolCall, evalModelEcho, evalCjkIntegrity, evalNeedle } from './metrics.mjs';
+import { summarize, evalToolCall, evalModelEcho, evalCjkIntegrity, evalNeedle, extractCachedTokens, evalCache } from './metrics.mjs';
 
 const args = process.argv.slice(2);
 function flag(name, fallback) {
@@ -285,10 +285,38 @@ export async function probeGateway(gw, key, { samples = SAMPLES } = {}) {
     const toolCall = await probeToolCall(gw, model, key);
     const cjk = await probeCjk(gw, model, key);
     const needle = await probeNeedle(gw, model, key);
-    console.error(`[chat] ${gw.id}/${model}: ok ${summary.success}/${summary.samples}, ttft p50 ${summary.ttftMs.p50}ms, ${summary.tokensPerSec.avg} tok/s, tool ${toolCall.ok ? '✓' : '✗'}, cjk ${cjk.ok ? '✓' : `✗(${cjk.error})`}, needle ${needle.ok ? '✓' : `✗(${needle.error})`}`);
-    models.push({ model, ...summary, toolCall, cjk, needle });
+    const cache = await probeCache(gw, model, key);
+    const cacheStr = cache.ok ? (cache.supported === true ? '✓' : cache.supported === false ? '✗' : '?') : `✗(${cache.error})`;
+    console.error(`[chat] ${gw.id}/${model}: ok ${summary.success}/${summary.samples}, ttft p50 ${summary.ttftMs.p50}ms, ${summary.tokensPerSec.avg} tok/s, tool ${toolCall.ok ? '✓' : '✗'}, cjk ${cjk.ok ? '✓' : `✗(${cjk.error})`}, needle ${needle.ok ? '✓' : `✗(${needle.error})`}, cache ${cacheStr}`);
+    models.push({ model, ...summary, toolCall, cjk, needle, cache });
   }
   return { connectivity, models };
+}
+
+// 提示缓存探针：同一条长 prompt（≥~1K token，缓存才生效）连发两次，看第二次 usage
+// 是否报告命中缓存 token。固定且两次完全一致——这正是缓存命中的前提。
+const CACHE_PROMPT = 'Read the following reference text carefully, then reply with only the word OK.\n\n'
+  + 'The quick brown fox jumps over the lazy dog while an API gateway caches the prompt prefix. '.repeat(130);
+async function probeCache(gw, model, key) {
+  const once = async () => {
+    const t0 = performance.now();
+    const res = await timedFetch(`${gw.baseUrl}/v1/chat/completions`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model, messages: [{ role: 'user', content: CACHE_PROMPT }], max_tokens: 4 }),
+    });
+    if (!res.ok) { const t = await res.text().catch(() => ''); return { ok: false, error: `HTTP ${res.status} ${t.slice(0, 80)}` }; }
+    const body = await res.json().catch(() => null);
+    return { ok: true, usage: body?.usage ?? null, ttft: Math.round(performance.now() - t0) };
+  };
+  try {
+    const a = await once(); if (!a.ok) return { ok: false, error: a.error };
+    const b = await once(); if (!b.ok) return { ok: false, error: b.error };
+    const v = evalCache({ cachedSecond: extractCachedTokens(b.usage), promptTokens: b.usage?.prompt_tokens, ttftFirst: a.ttft, ttftSecond: b.ttft });
+    return { ok: true, ...v };
+  } catch (e) {
+    return { ok: false, error: String(e?.message ?? e) };
+  }
 }
 
 async function main() {

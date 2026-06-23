@@ -91,6 +91,20 @@ test('buildComparison: picks cheapest by in+out and flags <0.5x as reverse-chann
   assert.equal(cheapFlag.severity, 'warn');
 });
 
+test('buildTarget + buildGap: cache dimension (supported/none/unknown)', () => {
+  const withCache = buildTarget({ name: 'C', host: 'c.io', models: [{
+    samples: 2, success: 2, successRate: 1, ttftMs: { p50: 300 }, tokensPerSec: { avg: 50 }, errors: [],
+    cache: { ok: true, reported: true, supported: true, cachedTokens: 1200 },
+  }] });
+  assert.equal(withCache.cache, true);
+  const noCache = buildTarget({ name: 'N', host: 'n.io', models: [{ samples: 1, success: 1, successRate: 1, ttftMs: { p50: 300 }, tokensPerSec: { avg: 50 }, errors: [], cache: { ok: true, reported: true, supported: false } }] });
+  assert.equal(noCache.cache, false);
+  assert.equal(buildTarget(okRaw).cache, null); // okRaw has no cache field
+  const gap = buildGap([withCache], [{ name: 'X', ttftP50: 500, tps: 40, uptimePct: 99 }], 'C');
+  assert.equal(gap.cache.mine, true);
+  assert.ok(gap.summary.includes('缓存命中'));
+});
+
 test('buildComparison: picks fastest TTFT and highest throughput', () => {
   const cmp = buildComparison([
     { name: 'A', ttftMs: { p50: 800 }, tokensPerSec: 30, successRate: 1 },
