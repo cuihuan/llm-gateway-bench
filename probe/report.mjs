@@ -4,7 +4,7 @@
 // 并渲染一份自包含 HTML。**绝不接触 key / Authorization / baseUrl**——
 // 入参只给 host，报告只留 host（隐私红线）。
 
-const REPORT_SCHEMA = 'gwbench-report/1';
+export const REPORT_SCHEMA = 'gwbench-report/1';
 
 /** 把一个网关的原始探针结果（probeGateway 产出）压成报告里的一个 target。
  *  raw: { name, host, connMs?, region?, connectivity?, models:[{...summary, toolCall, cjk, needle}] }
@@ -88,14 +88,20 @@ export function buildReport({ kind = 'compare', model, region = null, samplesPer
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const num = (v, suffix = '') => (typeof v === 'number' ? `${v}${suffix}` : '—');
 const tri = (v) => (v === true ? '<span class="ok">✓</span>' : v === false ? '<span class="bad">✗</span>' : '<span class="na">—</span>');
+const fmtLen = (n) => (typeof n === 'number' ? (n >= 1000 ? `${+(n / 1000).toFixed(n % 1000 ? 1 : 0)}K` : String(n)) : '—');
 
 /** 渲染自包含 HTML 报告：内嵌数据 + 内联样式，file:// 直接打开，可发给别人。
  *  纯字符串构建，无 I/O。报告里出现的目标信息只有 host（无 key/baseUrl）。 */
 export function renderReportHtml(report) {
   const r = report ?? {};
   const targets = Array.isArray(r.targets) ? r.targets : [];
-  const cmp = r.comparison ?? buildComparison(targets);
-  const rows = targets.map((t) => `      <tr>
+  const isLC = r.kind === 'longcontext';
+  const cmp = r.comparison ?? (isLC ? {} : buildComparison(targets));
+  const title = isLC ? '长文本上下文留存报告' : '网关对比报告';
+
+  // —— 横向对比（compare）正文 ——
+  const compareBody = () => {
+    const rows = targets.map((t) => `      <tr>
         <td class="name">${esc(t.name)}${t.host ? `<span class="host">${esc(t.host)}</span>` : ''}</td>
         <td class="r">${num(t.ttftMs?.p50, ' ms')}</td>
         <td class="r">${num(t.ttftMs?.p95, ' ms')}</td>
@@ -108,15 +114,46 @@ export function renderReportHtml(report) {
         <td class="c">${tri(t.needle)}</td>
         <td class="r">${num(t.usage?.charsPerToken, '')}</td>
       </tr>`).join('\n');
-  const flags = (cmp.flags ?? []).map((f) => `<li class="flag ${esc(f.severity)}"><b>${esc(f.target)}</b> · ${esc(f.label)}</li>`).join('\n');
-  const winners = [
-    cmp.fastestTtft ? `最快 TTFT：<b>${esc(cmp.fastestTtft)}</b>` : null,
-    cmp.highestThroughput ? `吞吐最高：<b>${esc(cmp.highestThroughput)}</b>` : null,
-  ].filter(Boolean).join(' · ') || '（无足够成功样本判定）';
+    const flags = (cmp.flags ?? []).map((f) => `<li class="flag ${esc(f.severity)}"><b>${esc(f.target)}</b> · ${esc(f.label)}</li>`).join('\n');
+    const winners = [
+      cmp.fastestTtft ? `最快 TTFT：<b>${esc(cmp.fastestTtft)}</b>` : null,
+      cmp.highestThroughput ? `吞吐最高：<b>${esc(cmp.highestThroughput)}</b>` : null,
+    ].filter(Boolean).join(' · ') || '（无足够成功样本判定）';
+    const body = `  <table><thead><tr>
+    <th>目标</th><th class="r">TTFT P50</th><th class="r">TTFT P95</th><th class="r">tok/s</th><th class="r">成功率</th>
+    <th class="c">模型回显</th><th class="c">工具调用</th><th class="c">真流式</th><th class="c">CJK</th><th class="c">长文本</th><th class="r">字/token</th>
+  </tr></thead><tbody>
+${rows}
+  </tbody></table>
+  ${flags ? `<ul class="flags">\n${flags}\n</ul>` : '<p class="sub" style="margin-top:18px">未触发红旗。</p>'}`;
+    return { summary: `🏁 ${winners}`, body, metaExtra: `<div><span>每目标采样</span><b>${num(r.samplesPerTarget)}</b></div>` };
+  };
+
+  // —— 长文本留存（longcontext）正文：每目标一张 深度×长度 通过/失败热图 ——
+  const longContextBody = () => {
+    const lengths = (r.lengths ?? []).slice().sort((a, b) => a - b);
+    const depths = r.depths ?? [];
+    const grids = targets.map((t) => {
+      const map = new Map((t.grid ?? []).map((c) => [`${c.lengthTokens}|${c.depthPct}`, c.ok]));
+      const head = lengths.map((l) => `<th class="c">${fmtLen(l)}</th>`).join('');
+      const body = depths.map((d) => `<tr><td>${esc(d)}%</td>${lengths.map((l) => `<td class="c">${tri(map.has(`${l}|${d}`) ? map.get(`${l}|${d}`) : null)}</td>`).join('')}</tr>`).join('\n');
+      const rel = typeof t.maxReliableLen === 'number' ? fmtLen(t.maxReliableLen) : '—';
+      return `  <h3 class="tname">${esc(t.name)}${t.host ? `<span class="host">${esc(t.host)}</span>` : ''} <span class="rel">可靠上限 ${rel}</span></h3>
+  <table class="lc"><thead><tr><th>深度＼长度</th>${head}</tr></thead><tbody>
+${body}
+  </tbody></table>`;
+    }).join('\n');
+    const trunc = cmp.truncators ?? [];
+    const summary = `📏 上下文最可靠：<b>${esc(cmp.bestContext ?? '—')}</b> · 出现截断：<b>${trunc.length ? esc(trunc.join('、')) : '无'}</b>`;
+    const metaExtra = `<div><span>长度档</span><b>${lengths.map(fmtLen).join(' · ') || '—'}</b></div><div><span>深度档</span><b>${depths.map((d) => d + '%').join(' · ') || '—'}</b></div>`;
+    return { summary, body: grids || '<p class="sub">无数据</p>', metaExtra };
+  };
+
+  const { summary, body, metaExtra } = isLC ? longContextBody() : compareBody();
   return `<!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>网关对比报告 · ${esc(r.model ?? '')} · gwbench</title>
+<title>${esc(title)} · ${esc(r.model ?? '')} · gwbench</title>
 <style>
   :root{--ac:#6366f1;--bd:#e5e7eb;--mut:#6b7280;--ok:#16a34a;--bad:#dc2626;--warn:#d97706}
   *{box-sizing:border-box}body{font:14px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif;color:#111827;margin:0;background:#f9fafb}
@@ -133,26 +170,22 @@ export function renderReportHtml(report) {
   .ok{color:var(--ok);font-weight:700}.bad{color:var(--bad);font-weight:700}.na{color:#9ca3af}
   ul.flags{list-style:none;padding:0;margin:18px 0 0}.flag{padding:8px 12px;border-radius:8px;margin:6px 0;font-size:13px}
   .flag.alert{background:#fef2f2;border:1px solid #fecaca}.flag.warn{background:#fffbeb;border:1px solid #fde68a}
+  table.lc{margin:0 0 18px}.tname{font-size:15px;margin:18px 0 6px}.tname .host{display:inline;margin-left:6px}
+  .rel{font-size:12px;color:var(--mut);font-weight:500;margin-left:8px}
   footer{margin-top:32px;color:var(--mut);font-size:12px;border-top:1px solid var(--bd);padding-top:16px}
   footer a{color:var(--ac)}
 </style></head><body><div class="wrap">
-  <h1>网关对比报告 · ${esc(r.model ?? '')}</h1>
+  <h1>${esc(title)} · ${esc(r.model ?? '')}</h1>
   <p class="sub">黑盒拨测，key 不出本机；本报告自包含、可分享。schema ${esc(r.schema ?? REPORT_SCHEMA)}</p>
   <div class="meta">
     <div><span>逻辑模型</span><b>${esc(r.model ?? '—')}</b></div>
     <div><span>探测视角</span><b>${esc(r.region ?? '—')}</b></div>
-    <div><span>每目标采样</span><b>${num(r.samplesPerTarget)}</b></div>
+    ${metaExtra}
     <div><span>生成时间</span><b>${esc(r.generatedAt ?? '—')}</b></div>
     <div><span>工具</span><b>${esc(r.tool?.name ?? 'gwbench')} ${esc(r.tool?.version ?? '')}</b></div>
   </div>
-  <div class="win">🏁 ${winners}</div>
-  <table><thead><tr>
-    <th>目标</th><th class="r">TTFT P50</th><th class="r">TTFT P95</th><th class="r">tok/s</th><th class="r">成功率</th>
-    <th class="c">模型回显</th><th class="c">工具调用</th><th class="c">真流式</th><th class="c">CJK</th><th class="c">长文本</th><th class="r">字/token</th>
-  </tr></thead><tbody>
-${rows}
-  </tbody></table>
-  ${flags ? `<ul class="flags">\n${flags}\n</ul>` : '<p class="sub" style="margin-top:18px">未触发红旗。</p>'}
+  <div class="win">${summary}</div>
+${body}
   <footer>
     由 <b>gwbench</b> 生成 · 黑盒拨测，不看声明看实测，可用自己的 key 复现。
     完整方法论与公共参照基线见 <a href="https://github.com/cuihuan/llm-gateway-bench">llm-gateway-bench</a>。

@@ -1,7 +1,20 @@
 {
   "schema": "gwbench-reports-index/1",
-  "updatedAt": "2026-06-23T03:30:00Z",
+  "updatedAt": "2026-06-23T04:00:00Z",
   "reports": [
+    {
+      "id": "demo-longcontext-gemini",
+      "kind": "longcontext",
+      "model": "gemini-2.5-flash",
+      "region": "local-cn",
+      "generatedAt": "2026-06-23T04:00:00Z",
+      "demo": true,
+      "title": "示例 · gemini-2.5-flash 长文本留存（4K–128K）",
+      "targetCount": 2,
+      "fastestTtft": null,
+      "flagCount": 1,
+      "source": "baseline"
+    },
     {
       "id": "demo-gemini-flash",
       "kind": "compare",

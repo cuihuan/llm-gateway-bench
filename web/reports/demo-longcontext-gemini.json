@@ -1,0 +1,181 @@
+{
+  "schema": "gwbench-report/1",
+  "kind": "longcontext",
+  "generatedAt": "2026-06-23T04:00:00Z",
+  "tool": {
+    "name": "gwbench",
+    "version": "0.2.0"
+  },
+  "model": "gemini-2.5-flash",
+  "region": "local-cn",
+  "lengths": [
+    4000,
+    16000,
+    64000,
+    128000
+  ],
+  "depths": [
+    10,
+    50,
+    90
+  ],
+  "targets": [
+    {
+      "name": "OpenRouter",
+      "host": "openrouter.ai",
+      "grid": [
+        {
+          "lengthTokens": 4000,
+          "depthPct": 10,
+          "ok": true
+        },
+        {
+          "lengthTokens": 4000,
+          "depthPct": 50,
+          "ok": true
+        },
+        {
+          "lengthTokens": 4000,
+          "depthPct": 90,
+          "ok": true
+        },
+        {
+          "lengthTokens": 16000,
+          "depthPct": 10,
+          "ok": true
+        },
+        {
+          "lengthTokens": 16000,
+          "depthPct": 50,
+          "ok": true
+        },
+        {
+          "lengthTokens": 16000,
+          "depthPct": 90,
+          "ok": true
+        },
+        {
+          "lengthTokens": 64000,
+          "depthPct": 10,
+          "ok": true
+        },
+        {
+          "lengthTokens": 64000,
+          "depthPct": 50,
+          "ok": true
+        },
+        {
+          "lengthTokens": 64000,
+          "depthPct": 90,
+          "ok": true
+        },
+        {
+          "lengthTokens": 128000,
+          "depthPct": 10,
+          "ok": true
+        },
+        {
+          "lengthTokens": 128000,
+          "depthPct": 50,
+          "ok": true
+        },
+        {
+          "lengthTokens": 128000,
+          "depthPct": 90,
+          "ok": true
+        }
+      ],
+      "lengthsTested": [
+        4000,
+        16000,
+        64000,
+        128000
+      ],
+      "maxReliableLen": 128000,
+      "error": null
+    },
+    {
+      "name": "某低价中转",
+      "host": "cheap-relay.example.cn",
+      "grid": [
+        {
+          "lengthTokens": 4000,
+          "depthPct": 10,
+          "ok": true
+        },
+        {
+          "lengthTokens": 4000,
+          "depthPct": 50,
+          "ok": true
+        },
+        {
+          "lengthTokens": 4000,
+          "depthPct": 90,
+          "ok": true
+        },
+        {
+          "lengthTokens": 16000,
+          "depthPct": 10,
+          "ok": true
+        },
+        {
+          "lengthTokens": 16000,
+          "depthPct": 50,
+          "ok": true
+        },
+        {
+          "lengthTokens": 16000,
+          "depthPct": 90,
+          "ok": true
+        },
+        {
+          "lengthTokens": 64000,
+          "depthPct": 10,
+          "ok": false
+        },
+        {
+          "lengthTokens": 64000,
+          "depthPct": 50,
+          "ok": false
+        },
+        {
+          "lengthTokens": 64000,
+          "depthPct": 90,
+          "ok": false
+        },
+        {
+          "lengthTokens": 128000,
+          "depthPct": 10,
+          "ok": false
+        },
+        {
+          "lengthTokens": 128000,
+          "depthPct": 50,
+          "ok": false
+        },
+        {
+          "lengthTokens": 128000,
+          "depthPct": 90,
+          "ok": false
+        }
+      ],
+      "lengthsTested": [
+        4000,
+        16000,
+        64000,
+        128000
+      ],
+      "maxReliableLen": 16000,
+      "error": null
+    }
+  ],
+  "comparison": {
+    "bestContext": "OpenRouter",
+    "truncators": [
+      "某低价中转"
+    ]
+  },
+  "demo": true,
+  "title": "示例 · gemini-2.5-flash 长文本留存（4K–128K）",
+  "note": "演示报告：某低价中转在 16K 以上悄悄截断上下文，needle 丢失。数据为示意。"
+}
