@@ -138,8 +138,10 @@ async function main() {
     try { baseline = buildBaselineRef(JSON.parse(await readFile(new URL('web/data.json', root), 'utf8'))); } catch {}
   }
 
+  // "你的网关"＝ad-hoc(--url) 目标；差距体检以它为主角对标最好的网关。
+  const mine = adhoc ? (probed.find((p) => p.host === host(adhoc.url))?.name ?? null) : null;
   const report = buildReport({
-    model, region, samplesPerTarget: samples, version, baseline,
+    model, region, samplesPerTarget: samples, version, baseline, mine,
     generatedAt: new Date().toISOString(), targets: probed,
   });
 
@@ -149,6 +151,7 @@ async function main() {
   await writeFile(new URL(`${out}.json`, root), JSON.stringify(report, null, 2));
   await writeFile(new URL(`${out}.html`, root), renderReportHtml(report));
   const cmp = report.comparison;
+  if (report.gap) console.error(`[gap] ${report.gap.mine} vs 最好：${report.gap.summary}`);
   console.error(`[compare] ${probed.length} 个目标 · 最快 ${cmp.fastestTtft ?? '—'} · 吞吐最高 ${cmp.highestThroughput ?? '—'} · 最便宜 ${cmp.cheapest ?? '—'} · 红旗 ${cmp.flags.length}`);
   console.log(`${out}.html`);
   console.log(`${out}.json`);

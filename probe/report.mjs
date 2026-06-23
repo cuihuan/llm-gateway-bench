@@ -102,6 +102,7 @@ export function buildBaselineRef(siteData) {
       name: g.name, host: g.host ?? null,
       uptimePct: g.uptimePct ?? null,
       ttftP50: g.speed?.ttftP50 ?? null,
+      tps: g.speed?.tps ?? null,
       priceIdx: g.priceIdx ?? null,
       region: g.region ?? null,
       lastRun: g.lastRun ?? null,
@@ -137,9 +138,72 @@ export function buildPriceMatrixReport(prices, { gateways = [], region = '公开
   };
 }
 
+const r2 = (x) => (typeof x === 'number' ? Math.round(x * 100) / 100 : null);
+const r1 = (x) => (typeof x === 'number' ? Math.round(x * 10) / 10 : null);
+
+/**
+ * 差距体检（核心）：把"你的网关"（mineName）逐维度对标"最好的网关"。
+ * 每个维度的候选值取自本次实测目标 + 公共基线参照（速度/稳定）；最优=候选里的极值
+ * （含你自己，故要么你最优、要么落后最优 X%）。返回 { mine, dims[], integrity, summary }。
+ * 这是用户第一眼要的答案：我差在哪、差多少。
+ */
+export function buildGap(targets, baseline, mineName) {
+  const list = Array.isArray(targets) ? targets : [];
+  const base = Array.isArray(baseline) ? baseline : [];
+  const mine = list.find((t) => t.name === mineName);
+  if (!mine) return null;
+
+  const cand = (arr, pick) => arr.map(pick).filter((c) => c && typeof c.v === 'number');
+  const ttftC = [...cand(list.filter((t) => t.successRate > 0), (t) => ({ name: t.name, v: t.ttftMs?.p50 })), ...cand(base, (b) => ({ name: b.name, v: b.ttftP50 }))];
+  const tpsC = [...cand(list.filter((t) => t.successRate > 0), (t) => ({ name: t.name, v: t.tokensPerSec })), ...cand(base, (b) => ({ name: b.name, v: b.tps }))];
+  const upC = [...cand(list, (t) => ({ name: t.name, v: typeof t.successRate === 'number' ? t.successRate * 100 : null })), ...cand(base, (b) => ({ name: b.name, v: b.uptimePct }))];
+  // 价格按倍率(÷官方价)对标，把"官方价 1.0×"作为候选锚点——这样只测了自己一家时，
+  // 也能看出"你比官方/比最好贵多少"，而不是孤家寡人地自称最优。
+  const idxC = [
+    ...cand(list, (t) => ({ name: t.name, v: typeof t.priceIdx === 'number' ? t.priceIdx : null })),
+    ...cand(base, (b) => ({ name: b.name, v: typeof b.priceIdx === 'number' ? b.priceIdx : null })),
+    { name: '官方价', v: 1 },
+  ];
+
+  const mineV = {
+    price: typeof mine.priceIdx === 'number' ? mine.priceIdx : null,
+    ttft: typeof mine.ttftMs?.p50 === 'number' ? mine.ttftMs.p50 : null,
+    tps: typeof mine.tokensPerSec === 'number' ? mine.tokensPerSec : null,
+    uptime: typeof mine.successRate === 'number' ? mine.successRate * 100 : null,
+  };
+
+  const mk = (key, label, lower, unit, v, cands) => {
+    if (v == null || !cands.length) return null;
+    const best = cands.reduce((a, b) => (lower ? (b.v < a.v ? b : a) : (b.v > a.v ? b : a)));
+    const isBest = lower ? v <= best.v + 1e-9 : v >= best.v - 1e-9;
+    const behindPct = isBest ? 0 : (lower ? (v - best.v) / best.v : (best.v - v) / best.v) * 100;
+    const verdict = isBest ? '最优' : (behindPct < 8 ? '持平' : '落后');
+    return { key, label, unit, lower, yours: r2(v), best: r2(best.v), bestName: best.name, behindPct: r1(behindPct), verdict };
+  };
+
+  const dims = [
+    mk('price', '价格', true, '×', mineV.price, idxC),
+    mk('ttft', 'TTFT', true, ' ms', mineV.ttft, ttftC),
+    mk('tps', '吞吐', false, ' tok/s', mineV.tps, tpsC),
+    mk('uptime', '稳定性', false, '%', mineV.uptime, upC),
+  ].filter(Boolean);
+
+  const failed = [];
+  if (mine.modelEcho === false) failed.push('模型回显');
+  if (mine.cjk === false) failed.push('CJK');
+  if (mine.needle === false) failed.push('长文本');
+  if (mine.toolCall === false) failed.push('工具调用');
+  if (mine.burstStream === true) failed.push('真流式');
+  const integrity = failed.length ? { ok: false, failed } : { ok: true };
+
+  const parts = dims.map((d) => (d.verdict === '最优' ? `${d.label}最优` : d.verdict === '持平' ? `${d.label}持平` : `${d.label}落后${d.behindPct}%`));
+  parts.push(integrity.ok ? '指纹全过' : `指纹漏:${failed.join('/')}`);
+  return { mine: mineName, dims, integrity, summary: parts.join(' · ') };
+}
+
 /** 组装完整报告对象（report.json）。generatedAt/version 由调用方注入以便单测。
- *  baseline 非空时附'公共基线参照'（不进 comparison 的胜者/红旗，只作参照）。 */
-export function buildReport({ kind = 'compare', model, region = null, samplesPerTarget = null, targets, baseline = null, generatedAt, version = '0.0.0' }) {
+ *  baseline 非空时附'公共基线参照'；mine 给定时附'差距体检'（你 vs 最好）。 */
+export function buildReport({ kind = 'compare', model, region = null, samplesPerTarget = null, targets, baseline = null, mine = null, generatedAt, version = '0.0.0' }) {
   const t = Array.isArray(targets) ? targets : [];
   const out = {
     schema: REPORT_SCHEMA,
@@ -153,6 +217,10 @@ export function buildReport({ kind = 'compare', model, region = null, samplesPer
     comparison: buildComparison(t),
   };
   if (Array.isArray(baseline) && baseline.length) out.baseline = baseline;
+  if (mine) {
+    const gap = buildGap(t, baseline, mine);
+    if (gap) { out.mine = mine; out.gap = gap; }
+  }
   return out;
 }
 
@@ -197,7 +265,23 @@ export function renderReportHtml(report) {
       cmp.highestThroughput ? `吞吐最高：<b>${esc(cmp.highestThroughput)}</b>` : null,
       cmp.cheapest ? `最便宜：<b>${esc(cmp.cheapest)}</b>` : null,
     ].filter(Boolean).join(' · ') || '（无足够成功样本判定）';
-    const body = `  <table><thead><tr>
+    const g = r.gap;
+    const gapCard = g ? `  <div class="gap">
+    <div class="gap-h">差距体检 · 你的网关 <b>${esc(g.mine)}</b> vs 最好的网关</div>
+    <div class="gap-sum">${esc(g.summary)}</div>
+    <div class="gap-grid">
+${g.dims.map((d) => `      <div class="gap-cell ${d.verdict === '落后' ? 'bad' : d.verdict === '最优' ? 'ok' : ''}">
+        <div class="gd-label">${esc(d.label)}</div>
+        <div class="gd-v">你 ${d.yours}${esc(d.unit)}</div>
+        <div class="gd-b">最好 ${d.best}${esc(d.unit)} · ${esc(d.bestName)}</div>
+        <div class="gd-verdict">${d.verdict === '最优' ? '🏆 最优' : d.verdict === '持平' ? '≈ 持平' : '▼ 落后 ' + d.behindPct + '%'}</div>
+      </div>`).join('\n')}
+    </div>
+    <div class="gap-int ${g.integrity.ok ? 'ok' : 'bad'}">${g.integrity.ok ? '✓ 合规指纹全过' : '✗ 指纹漏过：' + esc(g.integrity.failed.join('、'))}</div>
+    <p class="sub" style="margin:10px 0 0">价格为该模型实测对比；速度/稳定的"最好"含公共基线（网关级聚合）参照。|差距|&lt;8% 记持平。</p>
+  </div>
+` : '';
+    const body = gapCard + `  <table><thead><tr>
     <th>目标</th><th class="r">TTFT P50</th><th class="r">TTFT P95</th><th class="r">tok/s</th><th class="r">成功率</th>
     <th class="r">价格 入/出</th><th class="r">倍率</th>
     <th class="c">模型回显</th><th class="c">工具调用</th><th class="c">真流式</th><th class="c">CJK</th><th class="c">长文本</th><th class="r">字/token</th>
@@ -292,6 +376,14 @@ ${rows}
   table.lc{margin:0 0 18px}.tname{font-size:15px;margin:18px 0 6px}.tname .host{display:inline;margin-left:6px}
   .rel{font-size:12px;color:var(--mut);font-weight:500;margin-left:8px}
   td.cheap{background:#ecfdf5;font-weight:700}
+  .gap{background:#fff;border:1px solid var(--bd);border-radius:12px;padding:16px;margin:0 0 18px}
+  .gap-h{font-size:15px;font-weight:700}.gap-sum{color:var(--mut);font-size:13px;margin:4px 0 12px}
+  .gap-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+  .gap-cell{border:1px solid var(--bd);border-radius:9px;padding:10px}
+  .gap-cell.bad{border-color:#fecaca;background:#fef2f2}.gap-cell.ok{border-color:#a7f3d0;background:#ecfdf5}
+  .gd-label{font-size:11px;color:var(--mut);text-transform:uppercase}.gd-v{font-weight:700;font-size:15px;margin-top:2px}
+  .gd-b{font-size:12px;color:var(--mut)}.gd-verdict{font-size:13px;font-weight:700;margin-top:4px}
+  .gap-int{margin-top:12px;font-size:13px;font-weight:600}.gap-int.ok{color:var(--ok)}.gap-int.bad{color:var(--bad)}
   footer{margin-top:32px;color:var(--mut);font-size:12px;border-top:1px solid var(--bd);padding-top:16px}
   footer a{color:var(--ac)}
   .acts{display:flex;gap:10px;flex-wrap:wrap;margin:0 0 12px}
