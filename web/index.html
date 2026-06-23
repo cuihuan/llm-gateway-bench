@@ -19,7 +19,7 @@
 
 <nav><div class="wrap">
   <div class="logo">LLM Gateway Bench<span>大模型网关评测</span></div>
-  <a class="lnk" href="#suite">评测集</a>
+  <a class="lnk" href="#recommend">帮我选</a>
   <a class="lnk" href="#leaderboard">网关排行</a>
   <a class="lnk" href="#fingerprint">行为体检</a>
   <a class="lnk" href="#price">价格</a>
@@ -68,6 +68,26 @@
       <p>同一个模型，不同中转/网关的<b>合规与安全</b>（<a href="#fingerprint">行为体检</a>）· <b>价格</b>是否虚高（<a href="#price">价格矩阵</a>）· <b>稳定性</b>会不会崩（<a href="#stability">30 天时序</a>）——黑盒实测，不看声明。</p></div>
     <div class="pain"><div class="no">方法 · 全开源</div><h3>凭什么可信？</h3>
       <p>拨测脚本、判定阈值、原始数据逐次 commit，可用自己的 key 复现；不做黑箱加权总分。完整分析框架见 <a href="articles.html">知识库</a>。</p></div>
+  </div>
+</div></section>
+
+<section id="recommend"><div class="wrap">
+  <h2>帮我选网关<span class="anchor">勾选你看重的，给你一个有理由的推荐——按所选维度的排名聚合，每项排名都摊开，不藏加权</span></h2>
+  <div class="wizard">
+    <div class="wz-row"><span class="pk-label">我看重</span>
+      <div class="chips" id="rec-dims">
+        <button class="chip on" data-r="price">便宜</button>
+        <button class="chip on" data-r="stab">稳定</button>
+        <button class="chip" data-r="fast">快</button>
+        <button class="chip" data-r="fp">合规</button>
+        <button class="chip" data-r="many">模型全</button>
+      </div>
+    </div>
+    <div class="wz-row"><span class="pk-label">类型</span>
+      <select id="rec-cat"><option value="">不限</option><option>网关</option><option>官方直连</option><option>供应商</option></select>
+      <span class="muted" style="font-size:12px">多选取并重；可与下方榜单联动查看</span>
+    </div>
+    <div class="rec-out" id="rec-out"></div>
   </div>
 </div></section>
 
@@ -491,6 +511,42 @@ function render(site, isDemo){
   document.querySelectorAll('#lenses .lens').forEach(b=>
     b.addEventListener('click', ()=>{ lens=b.dataset.lens; document.querySelectorAll('#lenses .lens').forEach(x=>x.classList.toggle('on',x===b)); renderLB(); }));
   renderLB();
+
+  // ---- 帮我选网关：按所选维度的"维度内排名"聚合（透明，逐维排名摊开，不做隐藏加权）----
+  const RDIMS = { price:{label:'便宜',k:'priceIdx',asc:true}, stab:{label:'稳定',k:'uptime',asc:false},
+    fast:{label:'快',k:'ttft',asc:true}, fp:{label:'合规',k:'fpScore',asc:false}, many:{label:'模型全',k:'models',asc:false} };
+  const recommend = ()=>{
+    const sel = [...document.querySelectorAll('#rec-dims .chip.on')].map(c=>c.dataset.r);
+    const cat = $('#rec-cat').value, out = $('#rec-out');
+    if(!sel.length){ out.innerHTML = '<span class="muted">勾选至少一个你看重的维度。</span>'; return; }
+    const pool = site.gateways.filter(g=> !cat || g.category===cat);
+    if(!pool.length){ out.innerHTML = '<span class="muted">该类型下暂无网关。</span>'; return; }
+    const rank = {};                                   // id -> { dim: 维度内位次(1最好) }
+    for(const d of sel){ const {k,asc}=RDIMS[d];
+      pool.filter(g=>g[k]!=null).sort((a,b)=>(a[k]-b[k])*(asc?1:-1)).forEach((g,i)=>{ (rank[g.id]=rank[g.id]||{})[d]=i+1; });
+    }
+    const worst = pool.length + 1;
+    const scored = pool.map(g=>{ let sum=0,have=0;
+      for(const d of sel){ const r=rank[g.id]?.[d]; if(r!=null){sum+=r;have++;} else sum+=worst; }
+      return { g, sum, have };
+    }).filter(x=>x.have>0).sort((a,b)=> a.sum-b.sum || a.g.name.localeCompare(b.g.name));
+    if(!scored.length){ out.innerHTML = '<span class="muted">所选维度暂无数据（多为缺 key 未拨测）。</span>'; return; }
+    const top = scored[0];
+    const why = sel.map(d=>{ const r=rank[top.g.id]?.[d]; return `${RDIMS[d].label} <b>${r?('#'+r):'—'}</b>`; }).join(' · ');
+    const list = scored.slice(0,3).map((x,i)=>`<tr class="${i===0?'toppick':''}">
+      <td><div class="gw-name">${i===0?'<span class="pick-star">★</span> ':''}<a href="${safeUrl(x.g.website)??'#'}" target="_blank" rel="noopener">${esc(x.g.name)}</a></div>
+          <div class="gw-sub">${esc(x.g.host)} · ${esc(x.g.category)}</div></td>
+      ${sel.map(d=>{ const r=rank[x.g.id]?.[d]; return `<td class="r num">${r?('#'+r):'—'} <span class="muted" style="font-size:11px">${metricStr(x.g,RDIMS[d].k)}</span></td>`; }).join('')}
+    </tr>`).join('');
+    out.innerHTML = `
+      <div class="rec-pick">按你看重的 <b>${sel.map(d=>RDIMS[d].label).join('、')}</b>${cat?`（${esc(cat)}）`:''} → 推荐 <b class="rec-name">${esc(top.g.name)}</b> —— ${why}</div>
+      <div class="tablebox" style="margin-top:10px"><table class="rec-tbl"><thead><tr><th>候选（前 3）</th>${sel.map(d=>`<th class="r">${RDIMS[d].label}</th>`).join('')}</tr></thead><tbody>${list}</tbody></table></div>
+      <p class="fn">位次 = 在该维度内从优到劣的排名（#1 最好，括号是实测值）；综合 = 所选维度位次相加取最小，完全透明。<a href="reports.html">＋ 测我自己的网关，看和它差多少 →</a></p>`;
+  };
+  document.querySelectorAll('#rec-dims .chip').forEach(c=>
+    c.addEventListener('click', ()=>{ c.classList.toggle('on'); recommend(); }));
+  $('#rec-cat').addEventListener('change', recommend);
+  recommend();
 
   // ---- 信任与合规 ----
   $('#trust-tbl tbody').innerHTML = site.gateways.map(g=>{const t=g.trust;return `<tr>

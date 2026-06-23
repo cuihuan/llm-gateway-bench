@@ -265,6 +265,17 @@ article-list, .list { padding: 18px 0 8px; }
 .lens.on { color: var(--accent-strong); border-bottom-color: var(--accent); }
 .lens-hint { margin-left: auto; font-size: 12px; color: var(--faint); }
 @media (max-width: 640px){ .lens-hint { display: none; } }
+/* 帮我选 向导 */
+.wizard { background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 16px 18px; box-shadow: var(--shadow); margin-top: 8px; }
+.wz-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.wz-row + .wz-row { margin-top: 10px; }
+.wizard select { font: 500 13px var(--sans); color: var(--text); background: var(--panel);
+  border: 1px solid var(--border); border-radius: 9px; padding: 7px 11px; cursor: pointer; }
+.rec-out { margin-top: 14px; padding-top: 13px; border-top: 1px dashed var(--border); }
+.rec-pick { font-size: 15px; line-height: 1.7; }
+.rec-pick b { color: var(--text); } .rec-name { color: var(--accent-strong) !important; font-size: 16.5px; }
+.rec-tbl th, .rec-tbl td { padding: 8px 10px; }
 
 /* 首页/页面 CTA 按钮 */
 .hero-cta { display: flex; flex-wrap: wrap; gap: 12px; margin: 22px 0 4px; }
