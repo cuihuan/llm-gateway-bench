@@ -5,6 +5,28 @@
 > **① 选哪个模型最值**（模型层：价格价值 · 权威 benchmark · 分场景 · 质量性价比）·
 > **② 走哪个网关靠谱**（网关层：合规安全 · 价格 · 稳定性，全部黑盒拨测、不看声明）。
 
+> 重构方向见 [docs/PRODUCT-SPEC.md](docs/PRODUCT-SPEC.md)：从"维护者替你测好的榜单"
+> 翻转为"任何人都能自测的**工具** + 可分享的**报告平台**"，公共榜单退为权威参照基线。
+
+## 自助对比：测你自己的网关（`gwbench compare`）
+
+要接一个新网关 / 中转，没法横向比一比？这就是那个工具。同一个逻辑模型，把
+**你自己的网关**和 OpenRouter、AiHubMix 等放一起，一把跑完整套黑盒拨测，产出
+一份**自包含、可分享的报告**（`report.html` + `report.json`）。**key 只从环境变量读，
+绝不入报告、绝不出本机。**
+
+```bash
+PROBE_KEY=sk-你的key OPENROUTER_API_KEY=sk-or AIHUBMIX_API_KEY=sk-ah \
+  npm run compare -- --model gemini-2.5-flash \
+    --url https://my-gateway.com --name "我的网关" --with openrouter,aihubmix
+# → reports/gemini-2.5-flash-<日期>.html（自包含，可直接发给别人）
+#   测项：TTFT/吞吐多采样 · 成功率 · 工具调用 · 假流式 · 模型回显 · CJK · 长文本截断 · usage 指纹
+```
+
+报告可公开到**报告广场**（[web/reports.html](web/reports.html)）：把 `report.json` 复制进
+`web/reports/` 提 PR，或 `node scripts/publish-report.mjs <report.json>` 自动归档 + 更新清单
+（发布前自动校验无密钥泄漏）。广场用与 CLI 完全相同的渲染逻辑呈现，分享报告与本地报告像素一致。
+
 ## 它回答什么问题
 
 挑一个大模型网关/中转 API 时，工程师真正关心的按优先级是：

@@ -23,10 +23,12 @@ jobs:
           node-version: 22
       - name: Unit tests（metrics / aggregate / prices / probe / data 契约）
         run: npm test
-      - name: Aggregate smoke（聚合不崩 + 产出 web/data.json、web/models.json）
+      - name: Aggregate smoke（聚合不崩 + 产出 web/data.json、web/models.json、web/report.mjs）
         run: |
           node probe/aggregate.mjs
           test -s web/data.json || { echo 'web/data.json 未生成或为空'; exit 1; }
           test -s web/models.json || { echo 'web/models.json 未生成或为空'; exit 1; }
-      - name: JS 语法检查（probe/*.mjs）
-        run: for f in probe/*.mjs; do node --check "$f"; done
+          test -s web/report.mjs || { echo 'web/report.mjs 未镜像或为空'; exit 1; }
+          diff -q probe/report.mjs web/report.mjs || { echo 'web/report.mjs 与 probe/report.mjs 不一致（请重跑 aggregate 并提交）'; exit 1; }
+      - name: JS 语法检查（probe/*.mjs + scripts/*.mjs）
+        run: for f in probe/*.mjs scripts/*.mjs; do node --check "$f"; done
