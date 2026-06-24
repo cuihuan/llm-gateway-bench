@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Main pages + the deep-dive articles (slugs from web/articles.json). Hand-maintained;
+     update when adding a page or article. -->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://cuihuan.github.io/llm-gateway-bench/</loc><changefreq>daily</changefreq><priority>1.0</priority></url>
+  <url><loc>https://cuihuan.github.io/llm-gateway-bench/evals.html</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://cuihuan.github.io/llm-gateway-bench/pricing.html</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://cuihuan.github.io/llm-gateway-bench/reports.html</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://cuihuan.github.io/llm-gateway-bench/articles.html</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://cuihuan.github.io/llm-gateway-bench/article.html?slug=choosing-a-gateway</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://cuihuan.github.io/llm-gateway-bench/article.html?slug=model-substitution</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://cuihuan.github.io/llm-gateway-bench/article.html?slug=billing-traps</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://cuihuan.github.io/llm-gateway-bench/article.html?slug=stability-and-exit-risk</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://cuihuan.github.io/llm-gateway-bench/article.html?slug=price-index</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://cuihuan.github.io/llm-gateway-bench/article.html?slug=methodology-trust</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://cuihuan.github.io/llm-gateway-bench/article.html?slug=self-host-probing</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://cuihuan.github.io/llm-gateway-bench/article.html?slug=openai-compat-pitfalls</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+</urlset>

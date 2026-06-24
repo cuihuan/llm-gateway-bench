@@ -1,0 +1,26 @@
+# LLM Gateway Bench
+
+> An open, user-perspective, **black-box** benchmark for LLM API gateways / relays. It doesn't trust claims — it measures behavior: latency (TTFT/throughput), success rate, price multiple, and trust/fidelity fingerprints (model-echo to catch silent model substitution, fake-streaming, inflated token usage, CJK/quantization tells, context truncation, prompt-cache). Serverless and reproducible: raw probe data is committed to the repo and anyone can reproduce results with their own key.
+
+Methodology is the product: probe scripts, prompts, thresholds, raw data and aggregation are all open. Metric definitions align with llmperf / Artificial Analysis / OpenRouter (e.g. decode throughput = tokens after the first ÷ decode time; uptime excludes user-side 4xx). The leaderboard shows per-dimension columns — no black-box composite score.
+
+## Core
+- [Live dashboard](https://cuihuan.github.io/llm-gateway-bench/): "pick-for-me" selector, gateway leaderboard, behavior fingerprints, price comparison, and a gap-check ("my gateway vs the best").
+- [Model evaluations](https://cuihuan.github.io/llm-gateway-bench/evals.html): which model is the best value (price-value + authoritative benchmarks).
+- [Price comparison](https://cuihuan.github.io/llm-gateway-bench/pricing.html): classic-model × gateway public pricing.
+- [Report gallery](https://cuihuan.github.io/llm-gateway-bench/reports.html): shareable per-run reports (model × gateway, long-context, price).
+- [Source & methodology (README + docs)](https://github.com/cuihuan/llm-gateway-bench): how each metric is measured, the detection toolbox, and how to run it yourself.
+
+## Knowledge base (articles)
+- [Choosing a gateway — a complete framework](https://cuihuan.github.io/llm-gateway-bench/article.html?slug=choosing-a-gateway)
+- [Model substitution & silent downgrade: how to detect it black-box](https://cuihuan.github.io/llm-gateway-bench/article.html?slug=model-substitution)
+- [Billing traps: inflated tokens, fake streaming, context truncation](https://cuihuan.github.io/llm-gateway-bench/article.html?slug=billing-traps)
+- [Stability & exit-scam risk: time series is the moat](https://cuihuan.github.io/llm-gateway-bench/article.html?slug=stability-and-exit-risk)
+- [How the price index is computed and read](https://cuihuan.github.io/llm-gateway-bench/article.html?slug=price-index)
+- [How we probe and why it's trustworthy](https://cuihuan.github.io/llm-gateway-bench/article.html?slug=methodology-trust)
+- [Self-hosting the probe in your own environment](https://cuihuan.github.io/llm-gateway-bench/article.html?slug=self-host-probing)
+- [OpenAI-compatible ≠ behavior-identical: protocol-layer pitfalls](https://cuihuan.github.io/llm-gateway-bench/article.html?slug=openai-compat-pitfalls)
+
+## Companion tools (same author)
+- [awesome-ai-gateway](https://github.com/cuihuan/awesome-ai-gateway): curated list of 100+ AI gateways + reproducible cost benchmark + scorecard — to *pick* a gateway.
+- [modelprobe](https://github.com/cuihuan/modelprobe): tiny dependency-free Go availability prober — per model, is it up and how fast.
