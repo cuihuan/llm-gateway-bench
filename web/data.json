@@ -1,11 +1,11 @@
 {
-  "generatedAt": "2026-06-24T07:29:44.772Z",
+  "generatedAt": "2026-06-24T13:06:01.618Z",
   "demo": false,
   "windowDays": 30,
   "regions": [
     "gh-us"
   ],
-  "runCount": 65,
+  "runCount": 66,
   "gateways": [
     {
       "id": "synthorai",
@@ -48,12 +48,12 @@
         "gh-us": {
           "uptimePct": 100,
           "uptime7dPct": 100,
-          "probes": 195,
-          "ttftP50": 1836,
-          "connMs": 380
+          "probes": 198,
+          "ttftP50": 1661,
+          "connMs": 368
         }
       },
-      "probes": 195,
+      "probes": 198,
       "uptimePct": 100,
       "uptime7dPct": 100,
       "daysArr": [
@@ -184,11 +184,11 @@
         "timeout": 0,
         "other": 0
       },
-      "authExcluded": 585,
+      "authExcluded": 594,
       "speed": {
-        "ttftP50": 1836,
+        "ttftP50": 1661,
         "ttftP95": null,
-        "tps": 368,
+        "tps": 343,
         "trend": [
           {
             "date": "2026-06-10",
@@ -248,14 +248,14 @@
           },
           {
             "date": "2026-06-24",
-            "ttftP50": 2052
+            "ttftP50": 1836
           }
         ]
       },
       "toolCalls": {
         "ok": 1,
         "total": 4,
-        "nonStreamMs": 78
+        "nonStreamMs": 27
       },
       "streamBurst": {
         "suspect": 0,
@@ -264,7 +264,7 @@
       "usageByModel": [
         {
           "model": "deepseek-v4-flash",
-          "charsPerToken": 1.98,
+          "charsPerToken": 1.85,
           "promptTokens": 32
         }
       ],
@@ -334,9 +334,9 @@
         },
         {
           "hour": 13,
-          "ttftP50": 2143,
+          "ttftP50": 1973,
           "okRate": 100,
-          "n": 21
+          "n": 24
         },
         {
           "hour": 14,
@@ -366,10 +366,10 @@
         "worstOkRateHour": 1,
         "worstOkRate": 100
       },
-      "connMs": 380,
+      "connMs": 368,
       "connOk": true,
       "modelCount": 45,
-      "lastRun": "2026-06-24T07:29:25.800Z"
+      "lastRun": "2026-06-24T13:05:42.716Z"
     },
     {
       "id": "openrouter",
@@ -2225,7 +2225,7 @@
     }
   ],
   "prices": {
-    "fetchedAt": "2026-06-24T07:29:44.703Z",
+    "fetchedAt": "2026-06-24T13:06:01.555Z",
     "unit": "USD per 1M tokens [input, output]",
     "sources": {
       "official": "litellm",
