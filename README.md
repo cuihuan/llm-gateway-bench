@@ -175,6 +175,9 @@ GitHub Actions (每 6h cron / every 6h)
 我们的位置 / Where we sit:**用户视角、黑盒、可信度优先**地评测 OpenAI 兼容网关/中转——无服务器、数据即仓库。借鉴各家**思路**,实现独立。
 *User-perspective, black-box, trust-first benchmarking of OpenAI-compatible relays — serverless, data-as-repo. We borrow ideas, build our own.*
 
+**配套工具(同一作者)/ Companion tools (same author)** — 先选网关:[awesome-ai-gateway](https://github.com/cuihuan/awesome-ai-gateway)(精选清单 + 可复现成本评测 + 合规/安全评分卡);只想知道"某模型在不在线、多快":[modelprobe](https://github.com/cuihuan/modelprobe)(零依赖 Go 拨测,丢进 CI/cron)。本项目专注**用你自己的 key 黑盒实测网关行为**——三者构成"选 → 测行为 → 探可用"的评测工具套件。
+*Pick a gateway with [awesome-ai-gateway](https://github.com/cuihuan/awesome-ai-gateway); check raw uptime with [modelprobe](https://github.com/cuihuan/modelprobe); this project measures gateway behavior black-box. Together: pick → benchmark → probe.*
+
 - **模型/供应商 benchmark / Model & provider benchmarks** — [Artificial Analysis](https://artificialanalysis.ai)(质量/价格/速度跨供应商,金标准)、[LMArena](https://lmarena.ai)(人类偏好 Elo)、[OpenRouter Rankings](https://openrouter.ai/rankings)(真实流量)、[LiveBench](https://livebench.ai)、[BFCL 函数调用榜](https://gorilla.cs.berkeley.edu/leaderboard.html)。
 - **保真/反欺诈 / Fidelity & anti-fraud** — [K2 Vendor Verifier](https://github.com/MoonshotAI/K2-Vendor-Verifier)(同模型跨供应商工具调用对拍)、api-check(`system_fingerprint` 一致性)。
 - **网关/路由生态 / Gateway & router landscape** — [OpenRouter](https://openrouter.ai)(聚合器,注意 5.5% 充值费)、[LiteLLM](https://github.com/BerriAI/litellm)(开源自托管,100+ 供应商)、[Portkey](https://portkey.ai)、[Helicone](https://helicone.ai)、Eden AI。
