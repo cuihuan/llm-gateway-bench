@@ -1,13 +1,13 @@
 {
   "schema": "gwbench-reports-index/1",
-  "updatedAt": "2026-06-24T18:55:44.013Z",
+  "updatedAt": "2026-06-25T01:19:40.496Z",
   "reports": [
     {
       "id": "price-matrix",
       "kind": "pricematrix",
       "model": null,
       "region": "公开定价 API",
-      "generatedAt": "2026-06-24T18:55:44.013Z",
+      "generatedAt": "2026-06-25T01:19:40.496Z",
       "demo": false,
       "title": "经典模型 × 网关 · 价格横评（公开定价，无需 key）",
       "targetCount": 4,
