@@ -20,44 +20,45 @@ function flag(name, fallback) {
   return i >= 0 ? args[i + 1] : fallback;
 }
 
-/** CLI 用法说明（--help / -h） */
+/** CLI usage text (--help / -h) */
 export function usage() {
-  return `llm-gateway-bench 拨测器 — 黑盒拨测 OpenAI 兼容网关/端点
+  return `llm-gateway-bench prober — black-box probing of OpenAI-compatible gateways/endpoints
 
-用法:
-  node probe/probe.mjs [选项]
+Usage:
+  node probe/probe.mjs [options]
 
-选项:
-  --gateway <id>     只测 data/gateways.json 里的某个网关（默认全测）
-  --url <baseUrl>    临时拨测任意端点，免改配置；key 从环境变量读（见 --auth-env）
-  --model <id[,id]>  配合 --url：要拨测的模型，逗号分隔
-  --auth-env <NAME>  配合 --url：存 key 的环境变量名（默认 PROBE_KEY）
-  --name <name>      配合 --url：结果里显示的网关名（默认取 host）
-  --samples <n>      每个模型的采样次数（默认 3，多采样取分位数）
-  --out <dir>        结果落盘目录（默认 out/；--url 模式默认只打印不落盘）
-  -h, --help         显示本帮助
+Options:
+  --gateway <id>     Probe only one gateway in data/gateways.json (default: all)
+  --url <baseUrl>    Probe an arbitrary endpoint without editing config; key read from env (see --auth-env)
+  --model <id[,id]>  With --url: the models to probe, comma-separated
+  --auth-env <NAME>  With --url: name of the env var holding the key (default PROBE_KEY)
+  --name <name>      With --url: gateway name shown in results (default: host)
+  --samples <n>      Number of samples per model (default 3; multiple samples for percentiles)
+  --out <dir>        Directory to write results to (default out/; --url mode prints only, no write)
+  -h, --help         Show this help
 
-环境:
-  <网关>.authEnv     各网关的 key 环境变量名见 data/gateways.json（缺 key 自动跳过）
-  PROBE_REGION       探测地域标签，写进结果（如 gh-us / local-cn）
+Environment:
+  <gateway>.authEnv  Each gateway's key env var name is in data/gateways.json (missing key → auto-skipped)
+  PROBE_REGION       Probe region label written into results (e.g. gh-us / local-cn)
 
-示例:
-  # 临时测某端点的一个模型（结果打到 stdout，不落盘）
+Examples:
+  # Probe one model on an arbitrary endpoint (results to stdout, not written to disk)
   PROBE_KEY=sk-... node probe/probe.mjs --url https://api.example.com --model gpt-4o-mini --samples 3
-  # 测配置里的某网关并落盘，供聚合
+  # Probe one configured gateway and write to disk, for aggregation
   SYNTHORAI_API_KEY=sk-... node probe/probe.mjs --gateway synthorai --out data/results
 
-每次拨测同时测：流式 TTFT/吞吐、成功率、工具调用转发、假流式、CJK 完整性、
-上下文截断、模型回显、usage 重算。判定逻辑见 probe/metrics.mjs（纯函数+单测）。`;
+Each probe also measures: streaming TTFT/throughput, success rate, tool-call forwarding, fake
+streaming, CJK integrity, context truncation, model echo, usage recompute. The verdict logic lives
+in probe/metrics.mjs (pure functions + unit tests).`;
 }
 const SAMPLES = Number(flag('samples', 3));
 const OUT_DIR = flag('out', 'out');
 const ONLY_GATEWAY = flag('gateway', null);
 
 /**
- * 临时网关：用 --url 直接拨测任意 OpenAI 兼容端点，免改 data/gateways.json。
- * key 从环境变量读（默认 PROBE_KEY，可用 --auth-env 指定），不走命令行避免泄露。
- * 返回 gateway 对象，或 url 缺失时 null。
+ * Ad-hoc gateway: probe any OpenAI-compatible endpoint directly via --url, without editing
+ * data/gateways.json. The key is read from an env var (default PROBE_KEY, override with --auth-env),
+ * never passed on the command line to avoid leaking it. Returns a gateway object, or null when url is missing.
  */
 export function adhocGateway({ url, model, name, authEnv } = {}) {
   if (!url) return null;
@@ -73,9 +74,10 @@ export function adhocGateway({ url, model, name, authEnv } = {}) {
   };
 }
 const TIMEOUT_MS = 60_000;
-// llmperf 惯例：让模型生成到 max_tokens 上限的固定任务，而不是一句 "pong"——
-// 否则输出只有 2-3 个 chunk，tok/s 是除以几毫秒的噪声，假流式检测也凑不够样本。
-// 随机串防网关侧缓存（docs/research.md 工程红线）。
+// llmperf convention: have the model generate a fixed task up to max_tokens, rather than a single
+// "pong" — otherwise the output is only 2-3 chunks, tok/s is noise divided by a few ms, and the
+// fake-streaming detector can't gather enough samples. The random string defeats gateway-side
+// caching (docs/research.md engineering red line).
 const probePrompt = () => `List the numbers from one to fifty as English words, comma separated, no other text. Ignore this request id: ${Math.random().toString(36).slice(2, 8)}`;
 const MAX_TOKENS = 64;
 
@@ -174,20 +176,20 @@ async function probeChatOnce(gw, model, key) {
       ok: true,
       ttftMs: Math.round(ttftMs),
       totalMs: Math.round(totalMs),
-      // 解码吞吐(对标 llmperf/AA):首 token 之后的 token ÷ 首 token 之后的时间。
-      // 用原始浮点 ttftMs/totalMs(非四舍五入值)算,避免短回复上的取整误差。
+      // Decode throughput (aligned with llmperf/AA): tokens after the first ÷ time after the first.
+      // Computed with the raw float ttftMs/totalMs (not the rounded values) to avoid rounding error on short replies.
       tokensPerSec: decodeTokensPerSec({ tokens, ttftMs, totalMs }),
       usageReported: completionTokens !== null,
       chunks,
-      // 首个内容 chunk 到末个内容 chunk 的时间窗——假流式检测的核心指纹
+      // Time window from the first content chunk to the last — the core fingerprint for fake-streaming detection
       streamWindowMs: Math.round(lastContentAt - (t0 + ttftMs)),
-      // usage 重算指纹：固定 prompt 下网关上报的 token 数 + 实收正文字符数。
-      // 同模型若某网关 charsPerToken 异常偏低 = 虚报 token；promptTokens 远超
-      // 同模型基线 = 隐藏 system prompt 注入。需基线对照，先把原始信号沉淀进数据。
+      // usage recompute fingerprint: token count the gateway reports under a fixed prompt + received output chars.
+      // For the same model, an abnormally low charsPerToken on one gateway = inflated tokens; a promptTokens far
+      // above the same model's baseline = hidden system-prompt injection. Needs a baseline; first capture the raw signal.
       promptTokens,
       completionTokens,
       outputChars,
-      // 模型回显：响应里的 model 字段，与请求 model 比对揪偷换（零成本）
+      // Model echo: the model field in the response, compared with the requested model to catch substitution (zero-cost)
       modelEcho: evalModelEcho(reportedModel, model),
     };
   } catch (e) {
@@ -224,7 +226,7 @@ async function probeToolCall(gw, model, key) {
   }
 }
 
-// 一发非流式补全，取回正文文本（CJK / needle 探针共用）。
+// One non-stream completion that returns the body text (shared by the CJK / needle probes).
 async function chatOnceText(gw, model, key, userContent, maxTokens) {
   const res = await timedFetch(`${gw.baseUrl}/v1/chat/completions`, {
     method: 'POST',
@@ -239,10 +241,11 @@ async function chatOnceText(gw, model, key, userContent, maxTokens) {
   return { ok: true, text: body?.choices?.[0]?.message?.content ?? '' };
 }
 
-// CJK 输出完整性探针（量化/降智 tell）：要求一句中文，检查未损坏。
+// CJK output integrity probe (a quantization/degradation tell): ask for one Chinese sentence and check it isn't corrupted.
+// The Chinese instruction is written as \u escapes so the source stays ASCII (the probe still asks for Chinese output).
 async function probeCjk(gw, model, key) {
   try {
-    const r = await chatOnceText(gw, model, key, `用中文写一句关于今天天气的话，只输出这句话。忽略请求号 ${Math.random().toString(36).slice(2, 8)}`, 64);
+    const r = await chatOnceText(gw, model, key, `\u7528\u4e2d\u6587\u5199\u4e00\u53e5\u5173\u4e8e\u4eca\u5929\u5929\u6c14\u7684\u8bdd\uff0c\u53ea\u8f93\u51fa\u8fd9\u53e5\u8bdd\u3002 Ignore this request id: ${Math.random().toString(36).slice(2, 8)}`, 64);
     if (!r.ok) return { ok: false, error: r.error };
     const v = evalCjkIntegrity(r.text);
     return v.ok ? { ok: true } : { ok: false, error: v.reason };
@@ -251,11 +254,11 @@ async function probeCjk(gw, model, key) {
   }
 }
 
-// 上下文截断探针：长填充里埋唯一 UUID needle，要求原样回读；截断则丢失。
+// Context-truncation probe: embed a unique UUID needle in long filler and ask it to be read back; truncation loses it.
 async function probeNeedle(gw, model, key) {
   const needle = `NDL-${Math.random().toString(36).slice(2, 10).toUpperCase()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
-  // ~3.5K token 的填充（每行约 11 token × 320 行）；needle 埋在前 12% 处——
-  // 若网关从尾部保留窗口截断，needle 会落在切点前而丢失。
+  // ~3.5K tokens of filler (about 11 tokens/line × 320 lines); the needle is embedded at ~12% depth —
+  // if the gateway truncates with a tail-retained window, the needle falls before the cut and is lost.
   const filler = Array.from({ length: 320 }, (_, i) => `Line ${i + 1}: the quick brown fox jumps over the lazy dog repeatedly.`);
   filler.splice(40, 0, `IMPORTANT MARKER — remember this exact code: ${needle}`);
   const content = `${filler.join('\n')}\n\nQuestion: what is the exact code in the IMPORTANT MARKER line above? Reply with only the code.`;
@@ -270,10 +273,11 @@ async function probeNeedle(gw, model, key) {
 }
 
 /**
- * 跑完一个网关的全套黑盒探针：连通性 + 每个模型的流式多采样 / 工具调用 /
- * CJK / needle。compare.mjs 与 main() 共用同一实现（单一来源——上线拨测的
- * 就是被对比的）。进度打到 stderr；samples 为每模型采样次数。
- * 返回 { connectivity, models:[{ model, ...summary, toolCall, cjk, needle }] }。
+ * Run the full black-box probe suite for one gateway: connectivity + per-model streaming multi-sample /
+ * tool call / CJK / needle. compare.mjs and main() share the same implementation (single source of
+ * truth — what's probed in production is what's compared). Progress goes to stderr; samples is the
+ * per-model sample count.
+ * Returns { connectivity, models:[{ model, ...summary, toolCall, cjk, needle }] }.
  */
 export async function probeGateway(gw, key, { samples = SAMPLES } = {}) {
   const connectivity = await probeConnectivity(gw, key);
@@ -294,8 +298,9 @@ export async function probeGateway(gw, key, { samples = SAMPLES } = {}) {
   return { connectivity, models };
 }
 
-// 提示缓存探针：同一条长 prompt（≥~1K token，缓存才生效）连发两次，看第二次 usage
-// 是否报告命中缓存 token。固定且两次完全一致——这正是缓存命中的前提。
+// Prompt-cache probe: send the same long prompt twice (≥~1K tokens, the threshold for caching to kick in)
+// and check whether the second call's usage reports cached tokens. Fixed and byte-identical across the two
+// calls — exactly the precondition for a cache hit.
 const CACHE_PROMPT = 'Read the following reference text carefully, then reply with only the word OK.\n\n'
   + 'The quick brown fox jumps over the lazy dog while an API gateway caches the prompt prefix. '.repeat(130);
 async function probeCache(gw, model, key) {
@@ -324,7 +329,7 @@ async function main() {
   if (args.includes('--help') || args.includes('-h')) { console.log(usage()); return; }
   const adhoc = adhocGateway({ url: flag('url', null), model: flag('model', null), name: flag('name', null), authEnv: flag('auth-env', null) });
   if (adhoc && !adhoc.probeModels.length) {
-    console.error('[probe] --url 需要配合 --model <id[,id2]>（要拨测哪个模型）');
+    console.error('[probe] --url requires --model <id[,id2]> (which model(s) to probe)');
     process.exit(1);
   }
   const gateways = adhoc
@@ -356,7 +361,7 @@ async function main() {
     samplesPerModel: SAMPLES,
     results,
   };
-  // 临时拨测（--url）只打印结果，不污染 data/results；显式 --out 仍会落盘。
+  // Ad-hoc probing (--url) only prints results and never pollutes data/results; an explicit --out still writes to disk.
   if (adhoc && flag('out', null) === null) {
     console.log(JSON.stringify(run, null, 2));
     return;
@@ -367,7 +372,7 @@ async function main() {
   console.log(file);
 }
 
-// 仅作为脚本直接运行时执行 main；被 import（如单测）时不自动跑。
+// Run main only when invoked directly as a script; not when imported (e.g. by unit tests).
 if (process.argv[1] && import.meta.url.endsWith(process.argv[1].split('/').pop())) {
   main().catch((e) => {
     console.error(e);

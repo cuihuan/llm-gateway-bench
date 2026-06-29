@@ -11,7 +11,7 @@
   "samplesPerTarget": 3,
   "targets": [
     {
-      "name": "我的网关（自建）",
+      "name": "My Gateway (self-hosted)",
       "host": "my-gateway.example.com",
       "connMs": 172,
       "ttftMs": {
@@ -65,7 +65,7 @@
       "error": null
     },
     {
-      "name": "某低价中转",
+      "name": "A Cheap Relay",
       "host": "cheap-relay.example.cn",
       "connMs": 560,
       "ttftMs": {
@@ -93,39 +93,39 @@
     }
   ],
   "comparison": {
-    "fastestTtft": "我的网关（自建）",
-    "highestThroughput": "我的网关（自建）",
-    "cheapest": "某低价中转",
+    "fastestTtft": "My Gateway (self-hosted)",
+    "highestThroughput": "My Gateway (self-hosted)",
+    "cheapest": "A Cheap Relay",
     "flags": [
       {
-        "target": "某低价中转",
+        "target": "A Cheap Relay",
         "flag": "modelEcho",
         "severity": "alert",
-        "label": "模型回显不符（疑似偷换）"
+        "label": "Model echo mismatch (suspected substitution)"
       },
       {
-        "target": "某低价中转",
+        "target": "A Cheap Relay",
         "flag": "burstStream",
         "severity": "warn",
-        "label": "疑似假流式（憋完再吐）"
+        "label": "Suspected fake streaming (buffered then dumped)"
       },
       {
-        "target": "某低价中转",
+        "target": "A Cheap Relay",
         "flag": "needle",
         "severity": "warn",
-        "label": "长文本标记丢失（疑似上下文截断）"
+        "label": "Long-text marker lost (suspected context truncation)"
       },
       {
-        "target": "某低价中转",
+        "target": "A Cheap Relay",
         "flag": "cjk",
         "severity": "warn",
-        "label": "CJK 输出损坏（疑似量化降智）"
+        "label": "CJK output corrupted (suspected quantization degradation)"
       },
       {
-        "target": "某低价中转",
+        "target": "A Cheap Relay",
         "flag": "cheapPrice",
         "severity": "warn",
-        "label": "价格异常偏低（<0.5×官方，疑似逆向渠道）"
+        "label": "Abnormally low price (<0.5× official, suspected reverse-engineered channel)"
       }
     ]
   },
@@ -149,20 +149,20 @@
       "region": "gh-us"
     }
   ],
-  "mine": "我的网关（自建）",
+  "mine": "My Gateway (self-hosted)",
   "gap": {
-    "mine": "我的网关（自建）",
+    "mine": "My Gateway (self-hosted)",
     "dims": [
       {
         "key": "price",
-        "label": "价格",
+        "label": "Price",
         "unit": "×",
         "lower": true,
         "yours": 1.28,
         "best": 0.98,
         "bestName": "AiHubMix",
         "behindPct": 30.6,
-        "verdict": "落后"
+        "verdict": "Behind"
       },
       {
         "key": "ttft",
@@ -171,31 +171,31 @@
         "lower": true,
         "yours": 430,
         "best": 430,
-        "bestName": "我的网关（自建）",
+        "bestName": "My Gateway (self-hosted)",
         "behindPct": 0,
-        "verdict": "最优"
+        "verdict": "Best"
       },
       {
         "key": "tps",
-        "label": "吞吐",
+        "label": "Throughput",
         "unit": " tok/s",
         "lower": false,
         "yours": 52,
         "best": 52,
-        "bestName": "我的网关（自建）",
+        "bestName": "My Gateway (self-hosted)",
         "behindPct": 0,
-        "verdict": "最优"
+        "verdict": "Best"
       },
       {
         "key": "uptime",
-        "label": "稳定性",
+        "label": "Stability",
         "unit": "%",
         "lower": false,
         "yours": 100,
         "best": 100,
-        "bestName": "我的网关（自建）",
+        "bestName": "My Gateway (self-hosted)",
         "behindPct": 0,
-        "verdict": "最优"
+        "verdict": "Best"
       }
     ],
     "integrity": {
@@ -205,9 +205,9 @@
       "mine": true,
       "anySupported": true
     },
-    "summary": "价格落后30.6% · TTFT最优 · 吞吐最优 · 稳定性最优 · 指纹全过 · 缓存命中"
+    "summary": "Price behind by 30.6% · TTFT best · throughput best · stability best · all fingerprints passed · cache hit"
   },
   "demo": true,
-  "title": "示例 · gemini-2.5-flash 三网关横评",
-  "note": "演示：差距体检(含缓存)、价格/倍率、行为指纹、红旗。数据为示意。"
+  "title": "Example · gemini-2.5-flash three-gateway comparison",
+  "note": "Demo: gap check (incl. cache), price/multiple, behavior fingerprints, red flags. Data is illustrative."
 }

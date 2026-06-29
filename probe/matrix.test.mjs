@@ -10,7 +10,7 @@ test('matrixSlug: filename-safe, prefixed', () => {
 
 test('matrixIndexEntry: baseline source, summary fields from report', () => {
   const e = matrixIndexEntry({
-    kind: 'compare', model: 'gemini-2.5-flash', region: 'gh-us', generatedAt: 't', title: 'X · 3 个网关实测横评',
+    kind: 'compare', model: 'gemini-2.5-flash', region: 'gh-us', generatedAt: 't', title: 'X · benchmarked across 3 gateways',
     targets: [{}, {}, {}], comparison: { fastestTtft: 'A', cheapest: 'B', flags: [{}, {}] },
   }, 'matrix-gemini-2-5-flash');
   assert.equal(e.id, 'matrix-gemini-2-5-flash');

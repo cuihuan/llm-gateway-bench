@@ -37,7 +37,7 @@
   },
   {
     "id": "openai-direct",
-    "name": "OpenAI (官方直连基线)",
+    "name": "OpenAI (official direct-connect baseline)",
     "website": "https://platform.openai.com",
     "baseUrl": "https://api.openai.com",
     "protocol": "openai",
@@ -49,7 +49,7 @@
   },
   {
     "id": "deepseek-direct",
-    "name": "DeepSeek (官方直连基线)",
+    "name": "DeepSeek (official direct-connect baseline)",
     "website": "https://platform.deepseek.com",
     "baseUrl": "https://api.deepseek.com",
     "protocol": "openai",
@@ -61,7 +61,7 @@
   },
   {
     "id": "moonshot-direct",
-    "name": "Moonshot Kimi (官方直连基线)",
+    "name": "Moonshot Kimi (official direct-connect baseline)",
     "website": "https://platform.moonshot.cn",
     "baseUrl": "https://api.moonshot.cn",
     "protocol": "openai",
@@ -73,7 +73,7 @@
   },
   {
     "id": "siliconflow",
-    "name": "SiliconFlow 硅基流动",
+    "name": "SiliconFlow",
     "website": "https://siliconflow.cn",
     "baseUrl": "https://api.siliconflow.cn",
     "protocol": "openai",

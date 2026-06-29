@@ -2,20 +2,20 @@
   "id": "closeai",
   "annotatedAt": "2026-06-13",
   "channel": {
-    "claim": "自声明官转",
+    "claim": "self-declared official passthrough",
     "verify": "pending"
   },
   "promptRetention": {
     "status": "warn",
-    "text": "可能临时记录请求与响应「部分或全部内容」，通常留存 30 天（计费/排障/安全审计）后清理或匿名化；调用第三方模型时数据转发上游、按其政策处理（平台不担保）",
+    "text": "May temporarily log \"part or all of\" request and response content, typically retained for 30 days (billing / troubleshooting / security audit) then purged or anonymized; when calling third-party models, data is forwarded upstream and handled per their policies (the platform makes no guarantee)",
     "evidence": "https://doc.closeai-asia.com/legal/privacy-policy.html"
   },
   "training": {
     "status": "good",
-    "text": "官方明示：不利用用户业务数据进行模型训练/微调/蒸馏，亦不出售 API 业务数据",
+    "text": "Official statement: does not use customer business data for model training/fine-tuning/distillation, nor sell API business data",
     "evidence": "https://doc.closeai-asia.com/legal/privacy-policy.html"
   },
-  "entity": "境外公司（具体实体未披露）",
-  "invoice": "待标注",
+  "entity": "Overseas company (specific entity not disclosed)",
+  "invoice": "TBD",
   "disclosure": null
 }

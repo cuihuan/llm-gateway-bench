@@ -1,54 +1,54 @@
-选网关时，你最不想信的就是评测方自己。打分网站收没收钱、加权公式怎么调的、数据是不是手工挑的好看时刻——这些黑箱比网关本身更难证伪。所以这篇不讲我们多客观，只讲**我们具体怎么测、数据存在哪、你怎么用自己的 key 把每个数字复现一遍**。能复现的方法论才配谈可信。
+When choosing a gateway, the last party you want to trust is the benchmarker itself. Whether a rating site took money, how the weighting formula was tuned, whether the data was hand-picked for flattering moments — these black boxes are harder to falsify than the gateways themselves. So this piece isn't about how objective we are; it's about **exactly how we measure, where the data lives, and how you can reproduce every number with your own key**. Only a reproducible methodology earns the right to talk about trust.
 
-## 拨测，不是压测
+## Dial-testing, not load-testing
 
-整个平台只做一件事：**GitHub Actions 每 6 小时黑盒探测一轮**，结果逐次提交回仓库。cron 写死在 `'17 */6 * * *'`，每天约 4 个 UTC 时段，跨天把时段画像填满。
+The whole platform does one thing: **GitHub Actions runs a round of black-box probing every 6 hours**, with results committed back to the repo each time. The cron is hard-coded as `'17 */6 * * *'` — roughly 4 UTC time slots per day, filling out the time-of-day profile across days.
 
-每个网关×模型，单轮取 `--samples 3` 个样本，分位数用线性插值算 p50/p95。**探测在一轮内是串行发的，从不并发轰炸**——这是拨测的红线：我们要测的是网关在正常负载下的真实体感，不是它的限流阈值。把它当压测打，测出来的成功率是你自己造的故障，对真实使用毫无参考价值。
+For each gateway × model, a single round takes `--samples 3` samples, and percentiles are computed via linear interpolation for p50/p95. **Probes within a round are sent serially, never blasted concurrently** — this is the red line of dial-testing: we want to measure how a gateway really feels under normal load, not its rate-limit threshold. Treating it as a load test would measure a success rate from outages you created yourself, with zero reference value for real-world use.
 
-> 我们要回答的是"工程师正常用它顺不顺"，不是"能不能把它打挂"。这两件事的方法论正好相反。
+> The question we answer is "is this smooth for an engineer using it normally", not "can I knock it offline". The methodologies for those two are exactly opposite.
 
-## 三条让数据不被污染的工程红线
+## Three engineering red lines that keep the data uncontaminated
 
-**随机串防缓存。** 每条探测 prompt 尾部都拼一个随机请求 id，比如让模型数 1 到 50 再附上 `Ignore this request id: a3f9k2`。中转站常把响应缓存后伪装流式回放，固定 prompt 会让我们测到的是缓存命中而非真实生成。每发一条都换随机串，缓存就失效。
+**Random strings defeat caching.** Every probe prompt has a random request id appended to its tail — for example, asking the model to count from 1 to 50 and then append `Ignore this request id: a3f9k2`. Relays often cache a response and replay it disguised as streaming; a fixed prompt would have us measuring a cache hit rather than real generation. Swapping the random string on every send invalidates the cache.
 
-**多采样取分位数。** 共享 runner 有邻居噪声，单次延迟是噪声不是信号。所以同一组合采多样本，报 p50/p95 而非单一平均值——p95 才暴露长尾抖动。
+**Multi-sampling, report percentiles.** Shared runners have noisy neighbors, so a single latency reading is noise, not signal. We sample the same combination multiple times and report p50/p95 instead of a lone average — only p95 exposes long-tail jitter.
 
-**记真实时间戳。** GitHub cron 有 15 分钟以上的调度抖动，名义"每 6h"和实际触发时刻经常对不上。每轮结果都写 `startedAt`/`finishedAt` 的真实 ISO 时间戳，时段画像按这个真实时刻聚合，而不是按计划表——否则高峰漂移的归因会被 cron 抖动带偏。
+**Record real timestamps.** GitHub cron has scheduling jitter of 15+ minutes, so the nominal "every 6h" and the actual trigger time often don't match. Every round writes real ISO timestamps for `startedAt`/`finishedAt`, and the time-of-day profile is aggregated by that real moment rather than the schedule — otherwise the attribution of peak drift gets skewed by cron jitter.
 
-## 鉴权排除：不把自己的配置问题算到网关头上
+## Auth exclusion: don't blame the gateway for our own config problem
 
-探针自己的 key 可能没开通某模型、撞上白名单，回 `401/403`。这是**我们的配置问题，不是网关故障**。聚合时按 auth 错误逐样本从分母里剔除，并在稳定性面板单独披露「鉴权排除 ×N」。这条公平规则直接写在 `probe/aggregate.mjs` 里：
+The probe's own key might not have a given model enabled or might hit a whitelist, returning `401/403`. That's **our configuration problem, not a gateway outage**. During aggregation we exclude auth errors from the denominator per sample, and separately disclose "auth excluded ×N" on the stability panel. This fairness rule is written directly into `probe/aggregate.mjs`:
 
-- `429` 限流、`5xx` 故障、超时——分开计入错误画像，性质完全不同；
-- `401/403` 鉴权失败——剔除分母，单列披露，不污染成功率。
+- `429` rate-limit, `5xx` outage, timeout — counted separately into the error breakdown; they mean completely different things.
+- `401/403` auth failure — removed from the denominator, disclosed in its own column, doesn't pollute the success rate.
 
-这套口径沿用 OpenRouter 对 uptime 的定义：**成功 ÷ 总数，剔除用户侧错误**。混进来只会让榜面失真。
+This convention follows OpenRouter's definition of uptime: **successes ÷ total, excluding user-side errors.** Mixing them in only distorts the leaderboard.
 
-## 不做黑箱总分
+## No black-box score
 
-这是立场问题。任何加权综合分都必然被质疑权重，而权重一旦可调，榜单就成了可操纵的故事。所以排行榜**默认按 30 天稳定性排序，其余各维度独立成列**：信任评级、价格指数、TTFT、工具调用保真、CJK 完整性、usage 指纹……你关心哪列就按哪列排。
+This is a matter of principle. Any weighted composite score will inevitably be questioned on its weights, and once weights are tunable the leaderboard becomes a manipulable story. So the leaderboard **defaults to sorting by 30-day stability, with every other dimension as its own column**: trust rating, price index, TTFT, tool-call fidelity, CJK integrity, usage fingerprint… sort by whichever column you care about.
 
-唯一一个派生数字是**价格指数**：同模型网关价÷官方价，输入/输出比值先算术平均、再跨模型几何平均（官方价取 litellm 开放价格库）。计算公式公开，原始两列价格也照样列出来，你能自己核对。
+The one derived number is the **price index**: gateway price ÷ official price for the same model, with input/output ratios first averaged arithmetically and then geometric-mean'd across models (official price from the litellm open price library). The formula is public, the two raw price columns are listed too, and you can check it yourself.
 
-## 行为指纹，不看声明
+## Behavioral fingerprints, not claims
 
-渠道来源无法直接"证明"。我们的立场是用一组黑盒可测信号给网关画像——模型回显是否对得上、工具调用有没有被剥离、流式是不是假的、CJK 输出有没有损坏、长上下文有没有被尾部截断、usage 的 charsPerToken 异不异常。
+Channel origin can't be directly "proven". Our stance is to profile a gateway with a set of black-box-measurable signals — whether model echo matches, whether tool calls get stripped, whether streaming is fake, whether CJK output is corrupted, whether long context gets tail-truncated, whether usage's charsPerToken is anomalous.
 
-而且**不做有罪推定**：单次失败不下结论，看的是持续多次的稳定表现，画成时间序列才有说服力。这也是这套数据的长线价值——跑得越久曲线越硬，新站抄不走。背景里值得记住的一组数：CISPA 审计 45.83% 的端点过不了模型指纹验证，付费实得约 38% 的 token；92+ 中转产品多数无企业注册或 ICP。声明不值钱，持续的行为指纹才值钱。
+And we **presume no guilt**: a single failure draws no conclusion; what counts is sustained behavior over many runs, convincing only when drawn as a time series. This is also the long-term value of this dataset — the longer it runs, the harder the curve, and a new shop can't fake it. A set of background numbers worth remembering: the CISPA audit found 45.83% of endpoints fail model-fingerprint verification, with paid usage actually delivering about 38% of the tokens; of 92+ relay products, most have no company registration or ICP filing. Claims are worthless; sustained behavioral fingerprints are what's valuable.
 
-## 人工标注挂证据，接受 PR 纠错
+## Manual annotations carry evidence, and accept PR corrections
 
-政策类信息（主体资质、数据留存、能否开发票）无法自动化，只能人工标注。规则是硬的：**每条标注必须附证据链接和标注日期，缺证据链接一律不给"已验证"**。标错了？欢迎提 PR 纠正。网关清单同样接受 PR 自助提交。
+Policy-class information (legal-entity qualifications, data retention, whether invoices are available) can't be automated and must be annotated by hand. The rule is hard: **every annotation must carry an evidence link and an annotation date, and anything missing an evidence link never gets "verified"**. Got it wrong? PRs to fix it are welcome. The gateway list likewise accepts self-service PR submissions.
 
-## 你自己怎么复现
+## How you reproduce it yourself
 
-整套拨测代码、探测 prompt、聚合逻辑、原始数据全部开源。原始 JSON 逐轮提交在 `data/results/`，每个数字都能溯源到具体哪一轮、哪个时间戳。
+The entire probing code, detection prompts, aggregation logic, and raw data are all open source. The raw JSON is committed per round in `data/results/`, and every number traces back to a specific round and timestamp.
 
-用你自己的 key 复现只要三步：
+Reproducing with your own key takes three steps:
 
-- 把网关 key 导出到对应环境变量（如 `export OPENROUTER_API_KEY=...`）；
-- 跑 `node probe/probe.mjs --samples 3 --gateway <id>`，控制台直接打出 TTFT、tok/s、工具调用、CJK、needle 的逐项结果；
-- 跑 `node probe/aggregate.mjs` 看聚合口径，和榜面对照。
+- Export the gateway key to the matching environment variable (e.g. `export OPENROUTER_API_KEY=...`);
+- Run `node probe/probe.mjs --samples 3 --gateway <id>` — the console prints per-item results for TTFT, tok/s, tool calls, CJK, and needle directly;
+- Run `node probe/aggregate.mjs` to see the aggregation convention and compare against the leaderboard.
 
-如果你的复现结果和我们的对不上，那本身就是有价值的信号——可能是网关在按 IP/地域差别对待，也可能是我们哪里测错了。两种情况都欢迎开 issue。**评测方唯一该有的特权，是被验证。**
+If your reproduced results don't match ours, that itself is a valuable signal — maybe the gateway is treating you differently by IP/region, or maybe we measured something wrong. Either way, open an issue. **The only privilege a benchmarker should have is to be verified.**

@@ -1,10 +1,10 @@
 {
   "id": "openrouter",
   "annotatedAt": "2026-06-10",
-  "channel": { "claim": "官方/公开供应商路由", "verify": "pending" },
-  "promptRetention": { "status": "warn", "text": "默认不留存正文；可 opt-in 记录换折扣", "evidence": "https://openrouter.ai/docs/features/privacy-and-logging" },
-  "training": { "status": "good", "text": "否（默认）", "evidence": "https://openrouter.ai/docs/features/privacy-and-logging" },
+  "channel": { "claim": "official / public provider routing", "verify": "pending" },
+  "promptRetention": { "status": "warn", "text": "No retention of request bodies by default; can opt in to logging in exchange for discounts", "evidence": "https://openrouter.ai/docs/features/privacy-and-logging" },
+  "training": { "status": "good", "text": "No (default)", "evidence": "https://openrouter.ai/docs/features/privacy-and-logging" },
   "entity": "OpenRouter, Inc. (US)",
-  "invoice": "国际发票",
+  "invoice": "international invoice",
   "disclosure": null
 }

@@ -22,12 +22,14 @@ function round(x, digits = 1) {
 }
 
 /**
- * 解码吞吐(output / decode tokens-per-second)。对标 llmperf 与 Artificial Analysis:
- * 速率 = **首 token 之后**生成的 token 数 ÷ **首 token 之后**的解码时间,而不是
- * 全部 token ÷ 解码时间。后者分子含首 token、分母却已减掉首 token 区间(genMs =
- * totalMs - ttftMs),口径不对齐会系统性高估 tok/s——模型越慢、ttft 占比越大,虚高越明显。
- * AA 原话:"average number of tokens received per second, after the first token"。
- * tokens<2(无法区分首/后续 token)或解码时间≤0 时无法测速 → null。
+ * Decode throughput (output / decode tokens-per-second). Aligned with llmperf and Artificial
+ * Analysis: rate = tokens generated **after the first token** ÷ decode time **after the first
+ * token**, not all tokens ÷ decode time. The latter keeps the first token in the numerator but
+ * has already subtracted the first-token interval from the denominator (genMs = totalMs - ttftMs),
+ * a mismatch that systematically overestimates tok/s — the slower the model and the larger the
+ * ttft share, the more inflated it gets. AA's wording: "average number of tokens received per
+ * second, after the first token". When tokens<2 (can't tell first from subsequent) or decode
+ * time ≤0, speed can't be measured → null.
  */
 export function decodeTokensPerSec({ tokens, ttftMs, totalMs } = {}) {
   if (typeof tokens !== 'number' || tokens < 2) return null;
@@ -37,8 +39,9 @@ export function decodeTokensPerSec({ tokens, ttftMs, totalMs } = {}) {
   return round(((tokens - 1) / (decodeMs / 1000)), 1);
 }
 
-// 报告 p95 所需的最少成功样本数。低于此值的 p95 等同于 max,无统计意义 → 置 null。
-// 默认每模型采样 3 次远不够;真要可信 p95 需提高采样或用滚动窗口聚合。
+// Minimum successful samples required to report p95. Below this, p95 equals max and is
+// statistically meaningless → set to null. The default of 3 samples per model is far too few;
+// a credible p95 needs more samples or a rolling-window aggregate.
 export const MIN_P95_SAMPLES = 5;
 
 /**
@@ -53,9 +56,10 @@ export function summarize(samples) {
   const tps = pick('tokensPerSec');
   const total = pick('totalMs');
   const avg = (a) => (a.length ? a.reduce((x, y) => x + y, 0) / a.length : null);
-  // p95 在样本太少时无统计意义(n≤4 时 p95 几乎就是 max,被单个慢样本绑架)——
-  // 与其报一个误导的数,不如置 null。p50/avg 在小样本下仍可用,照常给。
-  // 要拿到可信 p95 应提高每模型采样数(见 docs/methodology.md)。
+  // p95 is meaningless with too few samples (at n≤4 the p95 is basically max, hostage to a single
+  // slow sample) — rather than report a misleading number, set it to null. p50/avg are still usable
+  // with small samples, so give them as usual. For a credible p95, raise samples per model
+  // (see docs/methodology.md).
   const p95 = (a) => (a.length >= MIN_P95_SAMPLES ? round(percentile(a, 95)) : null);
   return {
     samples: n,
@@ -64,22 +68,25 @@ export function summarize(samples) {
     ttftMs: { avg: round(avg(ttft)), p50: round(percentile(ttft, 50)), p95: p95(ttft) },
     tokensPerSec: { avg: round(avg(tps)), p50: round(percentile(tps, 50)) },
     totalMs: { avg: round(avg(total)), p95: p95(total) },
-    // 流式响应里是否带 usage（计费透明度信号；缺 usage 的网关 tok/s 只能按 chunk 数估）
+    // Whether streaming responses carry usage (a billing-transparency signal; for gateways missing
+    // usage, tok/s can only be estimated from chunk count)
     usageReportedRate: okSamples.length
       ? round(okSamples.filter((s) => s.usageReported === true).length / okSamples.length, 2)
       : null,
-    // 疑似假流式占比（仅统计可判定样本；无可判定样本时为 null）
+    // Suspected fake-streaming share (judgeable samples only; null when none are judgeable)
     burstStreamRate: (() => {
       const verdicts = okSamples.map((s) => isBurstStream(s)).filter((v) => v !== null);
       return verdicts.length ? round(verdicts.filter(Boolean).length / verdicts.length, 2) : null;
     })(),
-    // 模型回显命中率（仅统计可判定样本）：<1 表示有样本回显的 model 与请求不符。
+    // Model-echo hit rate (judgeable samples only): <1 means some samples echoed a model that
+    // doesn't match the request.
     modelEchoRate: (() => {
       const verdicts = okSamples.map((s) => s.modelEcho).filter((v) => v != null);
       return verdicts.length ? round(verdicts.filter((v) => v.ok).length / verdicts.length, 2) : null;
     })(),
-    // usage 重算指纹：固定 prompt 下上报的 prompt_tokens 中位数 + 实收正文每 token
-    // 字符数中位数。供跨网关/对官方基线比对——揪虚报 token 与隐藏注入。
+    // usage recompute fingerprint: median reported prompt_tokens under a fixed prompt + median
+    // chars per received output token. For cross-gateway / official-baseline comparison — to catch
+    // inflated token counts and hidden injection.
     usage: (() => {
       const promptToks = okSamples.map((s) => s.promptTokens).filter((v) => typeof v === 'number');
       const cpt = okSamples
@@ -95,12 +102,13 @@ export function summarize(samples) {
 }
 
 /**
- * 假流式（fake streaming）启发式判定：服务端憋完整个回复后一次性 dump 所有
- * chunk 伪装流式。行为指纹 = 首 token 等了很久（ttft 大）+ 全部内容在极小的
- * 时间窗（streamWindowMs = 末 chunk 到达时刻 - 首 chunk 到达时刻）内到达。
- * 阈值经验值：≥5 个 chunk、窗口 ≤250ms、ttft ≥800ms 且 ≥4 倍窗口。
- * 快但真流式的服务（如 LPU 推理）ttft 很小，不会误伤；慢但真流式的窗口大，
- * 也不会误伤。返回 null 表示样本不足以判定（chunk 太少）。
+ * Fake-streaming heuristic: the server buffers the entire reply, then dumps all chunks at once to
+ * fake streaming. Behavior fingerprint = a long wait for the first token (large ttft) + all content
+ * arriving within a tiny time window (streamWindowMs = last-chunk arrival - first-chunk arrival).
+ * Empirical thresholds: ≥5 chunks, window ≤250ms, ttft ≥800ms and ≥4× the window.
+ * Fast genuine streaming (e.g. LPU inference) has a tiny ttft and won't be misflagged; slow genuine
+ * streaming has a large window and won't be misflagged either. Returns null when there's not enough
+ * to judge (too few chunks).
  */
 export function isBurstStream({ chunks, ttftMs, streamWindowMs }) {
   if (typeof chunks !== 'number' || chunks < 5) return null;
@@ -132,55 +140,61 @@ export function evalToolCall(body, expectedTool) {
 const normModel = (s) => String(s ?? '').toLowerCase().replace(/[^a-z0-9]/g, '');
 
 /**
- * 模型回显校验（偷换模型的零成本硬信号）：把响应里的 `model` 字段与请求的
- * model 比对。请求 deepseek-v4-flash 却回显成别的家族 = 直接证据。归一化去掉
- * 大小写/分隔符/供应商前缀，互为子串即视为一致（容忍 -0528 之类版本后缀）。
- * 回显缺失 → null（无法判定，不算证据）。
+ * Model-echo check (a zero-cost hard signal for model substitution): compare the `model` field in
+ * the response against the requested model. Requesting deepseek-v4-flash but getting back a
+ * different family echoed = direct evidence. Normalization strips case/separators/vendor prefix,
+ * and a substring match either way is treated as a match (tolerating version suffixes like -0528).
+ * A missing echo → null (can't judge, not counted as evidence).
  */
 export function evalModelEcho(reported, requested) {
   if (reported == null || reported === '') return null;
   const a = normModel(reported), b = normModel(requested);
   if (!a || !b) return null;
   const ok = a.includes(b) || b.includes(a);
-  return ok ? { ok: true, reported } : { ok: false, reported, reason: `回显 ${reported} ≠ 请求 ${requested}` };
+  return ok ? { ok: true, reported } : { ok: false, reported, reason: `echo ${reported} ≠ requested ${requested}` };
 }
 
 /**
- * CJK 输出完整性（量化降智的常见 tell）：要求模型输出中文，检查是否真给出
- * 中文且未损坏。Int4/FP4 量化在 CJK 上常退化为乱码/原始 unicode 转义/替换符。
- * 不达标 = 疑似量化或非原生权重。需要一段应为中文的文本。
+ * CJK output integrity (a common tell of quantization degradation): ask the model to output Chinese
+ * and check that it actually produces Chinese and that it isn't corrupted. Int4/FP4 quantization
+ * often degrades on CJK into mojibake / raw unicode escapes / replacement chars. Failing = suspected
+ * quantization or non-native weights. Requires a passage that should be Chinese.
  */
 export function evalCjkIntegrity(text) {
   const s = String(text ?? '');
-  if (!s.trim()) return { ok: false, reason: '空响应' };
-  const cjk = (s.match(/[一-鿿]/g) || []).length;
-  const replacement = (s.match(/�/g) || []).length;             //
-  const literalEscapes = (s.match(/\\u[0-9a-fA-F]{4}/g) || []).length; // 字面量 \uXXXX 泄漏
-  if (replacement > 0) return { ok: false, reason: `含 ${replacement} 个替换符（编码损坏）` };
-  if (literalEscapes >= 3) return { ok: false, reason: `含 ${literalEscapes} 处字面量 \\u 转义（未正确解码）` };
-  if (cjk < 2) return { ok: false, reason: '响应中几乎无中文字符' };
+  if (!s.trim()) return { ok: false, reason: 'empty response' };
+  // \u4e00-\u9fff is the CJK Unified Ideographs range (escaped to keep the source ASCII).
+  const cjk = (s.match(/[\u4e00-\u9fff]/g) || []).length;
+  const replacement = (s.match(/\ufffd/g) || []).length;   // U+FFFD replacement char
+  const literalEscapes = (s.match(/\\u[0-9a-fA-F]{4}/g) || []).length; // literal \uXXXX leakage
+  if (replacement > 0) return { ok: false, reason: `contains ${replacement} replacement char(s) (encoding corrupted)` };
+  if (literalEscapes >= 3) return { ok: false, reason: `contains ${literalEscapes} literal \\u escape(s) (not properly decoded)` };
+  if (cjk < 2) return { ok: false, reason: 'almost no Chinese characters in response' };
   return { ok: true, cjkChars: cjk };
 }
 
-// 模型评测的价格价值计算（taskCost / tokensForBudget / valuePerDollar）已移至
-// web/calc.mjs 作为单一来源——浏览器 evals.html 与本仓库单测共用同一份，避免
-// "上线算法 ≠ 被测算法"的漂移。见 probe/metrics.test.mjs 从 ../web/calc.mjs 导入。
+// The model-level price/value calculations (taskCost / tokensForBudget / valuePerDollar) have moved
+// to web/calc.mjs as the single source of truth — the browser (evals.html) and this repo's unit
+// tests share the same copy, avoiding drift between "the shipped algorithm" and "the tested
+// algorithm". See probe/metrics.test.mjs importing from ../web/calc.mjs.
 
 /**
- * needle 上下文截断检测：在长填充文本里埋一个唯一标记，要求模型原样回读。
- * 网关若为省上游成本悄悄截断上下文，标记落在切点前就会确定性丢失。
- * ok ⇔ 回答里包含该 needle（忽略大小写）。
+ * needle context-truncation detection: embed a unique marker in a long filler text and ask the model
+ * to read it back verbatim. If a gateway silently truncates context to save upstream cost, a marker
+ * that falls before the cut point is deterministically lost.
+ * ok ⇔ the answer contains the needle (case-insensitive).
  */
 export function evalNeedle(text, needle) {
   if (!needle) return { ok: false, reason: 'no needle' };
   const found = String(text ?? '').toLowerCase().includes(String(needle).toLowerCase());
-  return found ? { ok: true } : { ok: false, reason: 'needle 未在回答中出现（疑似截断）' };
+  return found ? { ok: true } : { ok: false, reason: 'needle not found in answer (suspected truncation)' };
 }
 
 /**
- * 从 usage 里抽取"命中缓存的 prompt token 数"（黑盒提示缓存信号）。兼容三种上报口径：
- * OpenAI `prompt_tokens_details.cached_tokens` · DeepSeek `prompt_cache_hit_tokens` ·
- * Anthropic 风格 `cache_read_input_tokens`。都没有 → null（该网关不上报，无法判定）。
+ * Extract the "cached prompt token count" from usage (a black-box prompt-cache signal). Handles three
+ * reporting conventions: OpenAI `prompt_tokens_details.cached_tokens` · DeepSeek
+ * `prompt_cache_hit_tokens` · Anthropic-style `cache_read_input_tokens`. None present → null
+ * (the gateway doesn't report it, can't judge).
  */
 export function extractCachedTokens(usage) {
   if (!usage || typeof usage !== 'object') return null;
@@ -192,9 +206,10 @@ export function extractCachedTokens(usage) {
 }
 
 /**
- * 提示缓存判定：同一长 prompt 连发两次，看第二次是否命中缓存。
- * cachedSecond=null（不上报）→ supported:null（无法判定）；=0（上报但没命中）→ false；
- * >0 → true。附命中占比与 TTFT 加速（第二次相对第一次快多少）。纯函数，便于单测。
+ * Prompt-cache verdict: send the same long prompt twice and see whether the second call hits the
+ * cache. cachedSecond=null (not reported) → supported:null (can't judge); =0 (reported but no hit)
+ * → false; >0 → true. Includes the hit fraction and TTFT speedup (how much faster the second call
+ * is than the first). Pure function, easy to unit test.
  */
 export function evalCache({ cachedSecond, promptTokens, ttftFirst, ttftSecond } = {}) {
   if (typeof cachedSecond !== 'number') {

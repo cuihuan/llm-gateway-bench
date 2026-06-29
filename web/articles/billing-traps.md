@@ -1,59 +1,59 @@
-你充值的不是 token，是网关对 token 的"解释权"。同一段请求，官方 API 收你 1200 个 prompt token，某个中转站收你 1900；流式接口 TTFT 写着 90ms，实际首字憋了 6 秒；128K 的窗口塞进去,开头那段需求被悄悄丢了——这三件事都不会报错，账单照付，活儿照干，只是你交的钱和拿到的东西对不上。
+What you top up isn't tokens — it's the gateway's "right to interpret" tokens. For the same request, the official API charges you 1,200 prompt tokens while some relay charges 1,900; the streaming endpoint reports a 90ms TTFT while the first character actually takes 6 seconds; a 128K window swallows your input and silently drops the opening section. None of these three throw an error, the bill gets paid, the job gets done — except what you paid and what you got don't match.
 
-CISPA 那篇《Real Money Fake Models》量化过这个落差：按官方价付 \$14.84，实际拿到的 token 折算只值 \$5.70–7.77，**到手约 38%**。问题不在某一家黑心，而在于这层 OpenAI 兼容代理天生就是个可以改写计费与内容的中间人。下面拆三类最常见的计费/质量陷阱，以及怎么用黑盒拨测把它们照出来。
+CISPA's paper *Real Money, Fake Models* quantified that gap: pay $14.84 at official prices, and the tokens you actually receive are worth only $5.70–7.77 — **about 38% of what you paid**. The problem isn't that one particular shop is crooked; it's that this OpenAI-compatible proxy layer is by nature a man-in-the-middle that can rewrite both billing and content. Below we break down the three most common billing/quality traps and how to expose them with black-box probing.
 
-## 陷阱一：虚报 token 与隐藏 system prompt 注入
+## Trap 1: inflated token usage and hidden system-prompt injection
 
-计费按 token 走，而 token 数由网关上报——它说多少就是多少，你很难当场核对。两种动作都能让你多付钱：
+Billing is per token, and the token count is reported by the gateway — whatever it says, goes, and you can rarely verify it on the spot. Two moves both make you pay more:
 
-- **私调倍率**：1 个汉字本该约 0.6 token，被记成 1.5,completion_tokens 凭空翻倍。
-- **暗注 system prompt**：在你的请求前面偷偷拼一大段系统提示词，prompt_tokens 被撑大，每次请求都多收一笔。
+- **Privately tweaked multiplier**: one Chinese character should be roughly 0.6 tokens, but gets counted as 1.5, doubling `completion_tokens` out of thin air.
+- **Hidden system-prompt injection**: a large system prompt is secretly prepended to your request, inflating `prompt_tokens` and charging extra on every call.
 
-平台用 **usage 重算指纹**抓这两类，不靠声明,靠两个可对照的数：
+The platform catches both with a **usage-recomputation fingerprint** — not by trusting claims, but with two cross-checkable numbers:
 
-- `charsPerToken`（每 token 字符数）= 实收正文字符数 ÷ 上报 completion_tokens。固定 prompt 下，同一模型这个值应该相对稳定。某网关**异常偏低**,意味着同样的字它记了更多 token = 疑似虚报。
-- `promptTokens`：固定 prompt 下网关上报的 prompt_tokens 中位数。**远超同模型基线**,说明你的请求里被塞了你没写的东西 = 疑似隐藏注入。
+- `charsPerToken` (characters per token) = actual response body characters ÷ reported `completion_tokens`. Under a fixed prompt, this value should stay relatively stable for the same model. An **unusually low** value at some gateway means it counted more tokens for the same text = suspected inflation.
+- `promptTokens`: the median `prompt_tokens` the gateway reports under a fixed prompt. **Far above the baseline for the same model** means something you didn't write got stuffed into your request = suspected hidden injection.
 
-实现上，探针发一个固定任务（"列出一到五十的英文单词"，带随机请求 id 防缓存），逐 chunk 累加 `outputChars`，再和 `usage.completion_tokens` 对照算 `charsPerToken`（取中位数，见 `probe/metrics.mjs`）。
+In implementation, the probe sends a fixed task ("list the words for one through fifty in English", with a random request id to defeat caching), accumulates `outputChars` chunk by chunk, then cross-checks against `usage.completion_tokens` to compute `charsPerToken` (taking the median; see `probe/metrics.mjs`).
 
-> 这是指纹不是判决：单一网关的绝对值说明不了什么，**横向对照同模型其他网关、纵向对照官方基线**才有意义。平台先把原始信号沉淀进数据，把判断权交给你。
+> This is a fingerprint, not a verdict: a single gateway's absolute value tells you little — it's meaningful only **compared horizontally against other gateways for the same model, and vertically against the official baseline**. The platform first settles the raw signals into data, and leaves the judgment to you.
 
-## 陷阱二：假流式
+## Trap 2: fake streaming
 
-真流式是模型边生成边吐字，TTFT（首字延迟）小、内容在整个生成过程里陆续到达。**假流式**是网关后台憋完整段回复，再把它切成 chunk 一次性 dump 给你，伪装成 SSE 流——目的是藏住排队和上游慢的真相。
+Real streaming is the model emitting text as it generates: small TTFT (time-to-first-token), with content arriving steadily across the whole generation. **Fake streaming** is the gateway buffering the entire reply in the background, then slicing it into chunks and dumping them on you all at once, disguised as an SSE stream — the goal is to hide the truth about queuing and a slow upstream.
 
-它的行为指纹很硬：**首字等很久，但所有内容挤在一瞬间到齐**。平台逐 chunk 计时，记两个量：`ttftMs`（首个内容 chunk 的到达时刻）和 `streamWindowMs`（末 chunk 减首 chunk 的时间窗）。判定阈值（`isBurstStream`）：
+Its behavioral fingerprint is unmistakable: **the first character takes a long time, but all the content arrives in a single instant**. The platform times each chunk and records two quantities: `ttftMs` (the arrival time of the first content chunk) and `streamWindowMs` (the window from the last chunk minus the first chunk). The decision thresholds (`isBurstStream`):
 
-- chunk 数 ≥ 5（太少不判，避免噪声）
-- `streamWindowMs` ≤ 250ms（内容在极小窗口内 dump 完）
-- `ttftMs` ≥ 800ms **且** ≥ 4 × 窗口（首字等的时间远大于吐字的时间）
+- chunk count ≥ 5 (too few and we don't judge, to avoid noise)
+- `streamWindowMs` ≤ 250ms (content dumped within a tiny window)
+- `ttftMs` ≥ 800ms **and** ≥ 4 × the window (the wait for the first character far exceeds the time spent emitting)
 
-这套阈值不会误伤极端：**快但真流式**（如 LPU 推理）TTFT 很小，进不了门槛；**慢但真流式**的窗口本来就大，比值不成立。只有"憋完再吐"才会同时满足。
+These thresholds won't misfire on the extremes: **fast but real streaming** (e.g. LPU inference) has tiny TTFT and never reaches the threshold; **slow but real streaming** has a naturally large window so the ratio doesn't hold. Only "buffer then dump" satisfies all three at once.
 
-## 陷阱三：上下文悄悄截断
+## Trap 3: silent context truncation
 
-长上下文最烧上游成本，于是有的网关偷偷裁——保留尾部的窗口，把开头那段直接丢掉。请求不会报错，模型照常回答,只是它根本没看到你前面写的内容。
+Long context burns the most upstream cost, so some gateways quietly trim it — keeping a tail window and dropping the opening section outright. The request doesn't error, the model answers as usual — it just never saw what you wrote earlier.
 
-平台用 **needle 检测**抓:在约 3.5K token 的填充文本**前 12% 处**埋一个唯一 UUID（如 `NDL-XXXXXXXX-XXXX`），然后要求模型原样回读这个标记。如果网关从尾部截断,这个 needle 落在切点之前,会**确定性丢失**——回答里找不到它（`evalNeedle`）。埋在前部正是为了触发尾部保留窗口这种最常见的截断方式。
+The platform catches this with **needle detection**: it buries a unique UUID (e.g. `NDL-XXXXXXXX-XXXX`) at the **12% mark** of roughly 3.5K tokens of filler text, then asks the model to read that marker back verbatim. If the gateway truncates from the tail, this needle falls before the cut point and is **deterministically lost** — the answer won't contain it (`evalNeedle`). Burying it near the front is precisely to trigger the most common form of truncation: keeping the tail window.
 
-## 怎么看榜面对应的列
+## Reading the matching columns on the leaderboard
 
-| 你担心的 | 看哪列 | 怎么读 |
+| What you're worried about | Which column | How to read it |
 |---|---|---|
-| 虚报 token | `charsPerToken` | 同模型里**明显比别家低** = 疑似虚报，点开看原始两列 |
-| 隐藏注入 | `promptTokens` | 同模型里**明显比基线高** = 疑似暗注 system prompt |
-| 假流式 | `streamBurst`（suspect/total） | suspect 占比高 = 多次拨测都像憋完再吐 |
-| 计费可核对性 | `usageReportedRate` | 流式不带 usage 的网关，你连重算都没法做 |
-| 上下文截断 | `needle`（ok/total） | ok < total = 有样本回读不出 needle，疑似截断 |
+| Inflated tokens | `charsPerToken` | **Clearly lower than peers** for the same model = suspected inflation; click in to see the two raw columns |
+| Hidden injection | `promptTokens` | **Clearly higher than baseline** for the same model = suspected hidden system-prompt injection |
+| Fake streaming | `streamBurst` (suspect/total) | A high suspect ratio = repeated probes all look like buffer-then-dump |
+| Billing verifiability | `usageReportedRate` | If a gateway streams without usage, you can't even recompute |
+| Context truncation | `needle` (ok/total) | ok < total = some samples can't read the needle back, suspected truncation |
 
-读法和平台一贯立场一致：**不看单次,看持续多次的稳定表现**；不做有罪推定，但把"已验证"和"未验证"分清楚。具体维度划分见[评测方法论](methodology-trust)。
+The reading matches the platform's consistent stance: **don't look at a single run, look at sustained behavior over many runs**; presume nothing, but keep "verified" and "unverified" clearly apart. For the dimension breakdown see [Evaluation methodology](methodology-trust).
 
-## 用你自己的 key 复现
+## Reproduce it with your own key
 
-整套逻辑都开源，判定函数是纯函数、带单测，你可以直接复刻：
+The whole logic is open source, the decision functions are pure functions with unit tests, and you can replicate it directly:
 
-1. **虚报 token**：发一个固定 prompt，把响应正文字符数除以上报的 `completion_tokens`,同一个 prompt 分别打你的网关和官方 API，比 `charsPerToken`。
-2. **假流式**：`stream: true` 下逐 chunk 打时间戳,算首字延迟和首末 chunk 时间窗——憋完再吐的会一眼看出 TTFT 几乎等于总延迟。
-3. **截断**：在长文前部埋一个随机串，让模型原样回读，读不出就是被截了。
+1. **Inflated tokens**: send a fixed prompt, divide the response body's character count by the reported `completion_tokens`, then hit your gateway and the official API with the same prompt and compare `charsPerToken`.
+2. **Fake streaming**: under `stream: true`, timestamp each chunk and compute TTFT and the first-to-last chunk window — buffer-then-dump shows TTFT almost equal to total latency at a glance.
+3. **Truncation**: bury a random string near the front of a long text, ask the model to read it back verbatim; if it can't, you got truncated.
 
-行动建议很简单:把要长期用的网关挂上自己的 key 连跑几天，盯 `charsPerToken`、`streamBurst`、`needle` 三列的**持续表现**而非单次数字。便宜得离谱的渠道，省下的往往正是从这三处抠出来的。配合[行为指纹与渠道画像](methodology-trust)一起看,能把"它信不信得过"的判断落到可复现的证据上。
+The action plan is simple: attach your own key to any gateway you plan to rely on long-term, run it for a few days, and watch the **sustained behavior** of the three columns `charsPerToken`, `streamBurst`, and `needle` rather than any single number. For channels that are absurdly cheap, what they save is usually carved out of exactly these three places. Read it alongside [Behavioral fingerprints and channel profiling](methodology-trust) to ground "can I trust it?" in reproducible evidence.

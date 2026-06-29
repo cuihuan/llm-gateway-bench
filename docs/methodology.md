@@ -1,133 +1,133 @@
-# 评测体系（用户视角）
+# Evaluation system (user perspective)
 
-一个准备用大模型网关/中转 API 的工程师，真正关心的问题按优先级排序是：**信得过吗 → 贵不贵 → 稳不稳**。
-每个问题对应一个评测维度、一组可采集的指标。能自动化的全部来自公开拨测脚本
-（`probe/probe.mjs`），不能自动化的（政策类）采用"人工标注 + 证据链接"并接受 PR 纠错。
-原始数据全部提交在 `data/results/`。
+For an engineer about to use an LLM gateway/relay API, the questions that really matter, in priority order, are: **can I trust it → is it cheap → is it stable**.
+Each question maps to an evaluation dimension and a set of collectable metrics. Everything automatable comes from the public probe script
+(`probe/probe.mjs`); what can't be automated (policy-class) uses "manual annotation + evidence links" and accepts PR corrections.
+All raw data is committed in `data/results/`.
 
-## 维度一：信任与合规 —— "它信得过吗？"
+## Dimension 1: Trust & integrity — "can I trust it?"
 
-这是中转网关区别于官方 API 的核心焦虑，拆成三个可验证的子项：
+This is the core anxiety that sets a relay apart from the official API, broken into three verifiable sub-items:
 
-| 子项 | 指标 | 采集方式 |
+| Sub-item | Metric | Collection method |
 |---|---|---|
-| 渠道来源 | 是否直连官方上游（官转）vs 逆向/账号池/多层转售 | **对拍验证**（见下）+ 网关公开声明 + 证据链接 |
-| 数据留存 | 是否记录 prompt 正文、保留期、是否用于训练 | 隐私政策/服务条款人工标注，附原文链接与标注日期 |
-| 主体资质 | 经营主体是否公开、能否开发票、跑路风险信号 | 人工标注 + 证据链接 |
+| Channel origin | Direct official upstream (official routing) vs reverse/account-pool/multi-layer resale | **Diff verification** (see below) + the gateway's public claims + evidence links |
+| Data retention | Whether the prompt body is logged, the retention period, whether used for training | Manual annotation of privacy policy/ToS, with link to original text and annotation date |
+| Legal-entity qualifications | Whether the operating entity is public, whether invoices are available, exit-risk signals | Manual annotation + evidence links |
 
-**对拍验证（渠道来源的硬证据）**：参考 [K2 Vendor Verifier](https://github.com/MoonshotAI/K2-Vendor-Verifier)
-方法——固定请求集（含工具调用、长上下文、采样参数敏感用例）同时打到网关与官方 API，
-比对工具调用合法率、tokenizer 行为、输出分布与延迟特征。能稳定通过对拍的标
-`直连已验证`；通不过或拒测的标 `未验证`，不做有罪推定但明确区分。
+**Diff verification (hard evidence of channel origin)**: following the [K2 Vendor Verifier](https://github.com/MoonshotAI/K2-Vendor-Verifier)
+method — a fixed request set (including tool calls, long context, and sampling-parameter-sensitive cases) is fired at both the gateway and the official API simultaneously,
+comparing tool-call validity rate, tokenizer behavior, output distribution, and latency signature. Those that consistently pass the diff are marked
+`direct-connection verified`; those that fail or refuse testing are marked `unverified` — no presumption of guilt, but a clear distinction.
 
-> 评级只有三档：`已验证` / `声明但未验证` / `未验证`。证据链接缺失的一律不给 `已验证`。
+> Ratings have only three tiers: `verified` / `claimed but unverified` / `unverified`. Anything missing an evidence link never gets `verified`.
 
-**数据留存/训练评级**（`数据留存` 子项的 `good`/`warn`/`bad`/`unknown` 四档，逐网关标注见 `data/annotations/*.json` 的 `promptRetention`、`training`）：
+**Data-retention/training rating** (the `good`/`warn`/`bad`/`unknown` four tiers of the `data retention` sub-item; per-gateway annotations in the `promptRetention`, `training` fields of `data/annotations/*.json`):
 
-| 档位 | 判定标准 | 实例 |
+| Tier | Criteria | Examples |
 |---|---|---|
-| `good` | 有**正式公开政策**（隐私政策/ToS/官方文档）且条款有利：默认不用于训练、默认不留存或仅短期排障留存 | OpenAI、Together、Groq、SiliconFlow（两项均 good） |
-| `warn` | 有正式政策但含需注意条款（默认训练且仅 opt-out、数据存于特定司法辖区、留存范围宽或无明确期限），**或**仅营销式自声明而无正式政策文档/未独立核验 | DeepSeek、Moonshot（默认训练+境内）；OpenRouter、AiHubMix（仅留存项 warn，训练项 good）；Synthorai（自声明无文档） |
-| `bad` | 政策明示将用户正文用于训练且无退出，或公开承认转售/泄露 | （当前无） |
-| `unknown` | 已查证但政策对该子项**未表态**（挂来源注明），或尚未标注（`待标注`、`evidence:null`） | OhMyGPT 训练项 |
+| `good` | Has a **formal public policy** (privacy policy/ToS/official docs) with favorable terms: not used for training by default, not retained by default or only short-term for troubleshooting | OpenAI, Together, Groq, SiliconFlow (both items good) |
+| `warn` | Has a formal policy but with terms needing caution (trained by default with only opt-out, data stored in a specific jurisdiction, broad retention scope or no explicit period), **or** only a marketing-style self-claim without formal policy docs / not independently verified | DeepSeek, Moonshot (trained by default + in-territory); OpenRouter, AiHubMix (retention only warn, training good); Synthorai (self-claim, no docs) |
+| `bad` | Policy explicitly states user content is used for training with no opt-out, or publicly admits resale/leakage | (none currently) |
+| `unknown` | Verified but the policy is **silent** on this sub-item (with the source noted), or not yet annotated (`to be annotated`, `evidence:null`) | OhMyGPT training item |
 
-两条铁律：(1) 缺正式政策文档、只有首页标语的，**最多 `warn`**，不给 `good`；(2) **利益关联方一律从严**，不因关联给更高档（见 `synthorai` 标注的利益披露）。
+Two iron rules: (1) anything lacking formal policy docs and having only a homepage slogan is **at most `warn`**, never `good`; (2) **related parties are judged strictly** and don't get a higher tier for the relationship (see the conflict-of-interest disclosure in the `synthorai` annotation).
 
-## 维度二：价格 —— "它贵不贵？跟别家比什么水平？"
+## Dimension 2: Price — "is it cheap? where does it stand vs others?"
 
-| 指标 | 采集方式 |
+| Metric | Collection method |
 |---|---|
-| 标价 $/1M tokens（输入/输出） | 网关公开价格接口或价格页；官方价取 litellm 开放价格库 |
-| 价格指数 | 单模型倍率 =（输入价比值 + 输出价比值）÷ 2（算术平均）；全部可比模型再取几何平均（<1 便宜，>1 贵）。输入折价/输出加价这类不对称定价会被平均抵消，请同时看价格矩阵原始两列 |
-| 计费透明度 | 是否有公开价格 API、是否区分缓存价、是否有隐藏倍率（人工标注） |
+| List price $/1M tokens (input/output) | The gateway's public price API or pricing page; official price from the litellm open price library |
+| Price index | Per-model multiplier = (input price ratio + output price ratio) ÷ 2 (arithmetic mean); then geometric mean across all comparable models (<1 cheap, >1 pricey). Asymmetric pricing like input-discount/output-markup gets averaged out, so also read the two raw columns of the price matrix |
+| Billing transparency | Whether there's a public price API, whether cache price is distinguished, whether there are hidden multipliers (manual annotation) |
 
-## 维度三：稳定性 —— "它最近一段时间稳不稳？"
+## Dimension 3: Stability — "has it been stable recently?"
 
-| 指标 | 采集方式 |
+| Metric | Collection method |
 |---|---|
-| 成功率（uptime%） | 每 6 小时拨测的请求成功率，按天聚合、7/30 天滚动 |
-| 错误画像 | 失败请求分布：429 限流 vs 5xx 故障 vs 超时（性质完全不同，分开看） |
-| 延迟漂移 | TTFT p50 的 over-time 曲线，识别"高峰期变慢" |
-| 时段画像 | 按 UTC 小时聚合 TTFT/成功率；高峰漂移 = 最慢小时 ÷ 最快小时 TTFT（≥2× 标红）。直击"高峰期限速/卡死"痛点；GH Actions 每 6h cron → 每天约 4 个时段，跨天填满 |
-| 网络可达 | 各探测地域到网关的连接延迟（GH Actions 美国起步；国内/香港探针在 roadmap） |
+| Success rate (uptime%) | Request success rate from the every-6-hours probe, aggregated by day, 7/30-day rolling |
+| Error breakdown | Distribution of failed requests: 429 rate-limit vs 5xx outage vs timeout (completely different in nature, read separately) |
+| Latency drift | The over-time curve of TTFT p50, identifying "slows down at peak" |
+| Time-of-day profile | TTFT/success rate aggregated by UTC hour; peak drift = slowest-hour ÷ fastest-hour TTFT (≥2× goes red). Directly addresses the "peak-hour throttling/freezing" pain point; GH Actions every 6h cron → about 4 slots per day, filling out across days |
+| Network reachability | Connection latency from each probe region to the gateway (GH Actions starts in the US; CN/Hong Kong probes on the roadmap) |
 
-> **公平性规则（用户侧错误排除）**：探针自身造成的错误不计入失败——那是探针/配置
-> 问题，不是网关故障。排除两类：(1) 鉴权 401/403（key 未授权、白名单限制）；
-> (2) 其余 4xx（400/404/422…：该网关没有这个模型、参数不支持、探针用法不当）。
-> 二者按错误条数逐样本从可用率分母剔除，并在稳定性面板单独披露。**429 限流不排除**
-> ——它是真实的可用性信号（容量/限速）。口径对齐 OpenRouter uptime（排除用户侧 4xx）。
-> 实现见 `probe/aggregate.mjs:classifyError` 与 `rollupGateway`。
+> **Fairness rule (user-side error exclusion)**: errors caused by the probe itself don't count as failures — those are probe/config
+> problems, not gateway outages. Two classes are excluded: (1) auth 401/403 (key not authorized, whitelist restriction);
+> (2) other 4xx (400/404/422…: the gateway doesn't have this model, the parameter is unsupported, the probe was used wrong).
+> Both are removed from the uptime denominator per error per sample, and disclosed separately on the stability panel. **429 rate-limit is not excluded**
+> — it's a real availability signal (capacity/rate-limiting). The convention aligns with OpenRouter uptime (excludes user-side 4xx).
+> Implementation in `probe/aggregate.mjs:classifyError` and `rollupGateway`.
 >
-> 成功率统计严格限定在 30 天窗口内（7 天滚动值同时给出）；窗口外的历史只留在
-> `data/results/` 原始数据里，不影响榜面数字。
+> Success-rate statistics are strictly capped to a 30-day window (the 7-day rolling value is given alongside); history outside the window
+> lives only in the `data/results/` raw data and doesn't affect leaderboard numbers.
 
-> 这是数据积累的长线价值所在：跑得越久，曲线越有说服力，新站点抄不走。
+> This is where the long-term value of accumulated data lies: the longer it runs, the more convincing the curve, and a new site can't fake it.
 
-## 支撑维度四：速度 —— "它快不快？"
+## Supporting dimension 4: Speed — "is it fast?"
 
-| 指标 | 定义 |
+| Metric | Definition |
 |---|---|
-| TTFT | 流式请求发起到首个内容 token 的耗时，报 p50/p95。**p95 仅在单次拨测成功样本 ≥5 时给出**（默认每模型采样 3 次，p95≈max 无统计意义 → 显示「—」，不臆造） |
-| 吞吐 tok/s | 解码吞吐 = **首 token 之后**生成的 token 数 ÷ **首 token 之后**的解码时间，即 `(completion_tokens − 1) ÷ (total − ttft)`。对齐 llmperf / Artificial Analysis 口径（"after the first token"），不把首 token 计进分子却把它的耗时从分母里减掉——否则会系统性高估，且模型越慢虚高越明显 |
-| 非流式延迟 | 工具调用探测（非流式）的整请求耗时 p50 |
+| TTFT | The time from a streaming request's start to the first content token, reported as p50/p95. **p95 is given only when a single probe has ≥5 successful samples** (default 3 samples/model, where p95≈max is statistically meaningless → shows "—", never fabricated) |
+| Throughput tok/s | Decode throughput = tokens generated **after the first token** ÷ decode time **after the first token**, i.e. `(completion_tokens − 1) ÷ (total − ttft)`. Aligns with the llmperf / Artificial Analysis convention ("after the first token"): it doesn't count the first token in the numerator while subtracting its time from the denominator — otherwise it would systematically overestimate, and the slower the model the larger the inflation |
+| Non-streaming latency | The p50 of full-request time for the tool-call probe (non-streaming) |
 
-方法论沿用 llmperf 社区惯例：小 prompt（带随机请求 id 防网关侧缓存）、限定 max_tokens、
-单次拨测多采样取分位数、并发 ≤4 避免变成压测。探测 prompt 公开在脚本里。
+The methodology follows the llmperf community convention: a small prompt (with a random request id to defeat gateway-side caching), a capped max_tokens,
+multi-sampling for percentiles in a single probe, concurrency ≤4 to avoid becoming a load test. The detection prompts are public in the script.
 
-## 能力探测：工具调用与计费透明度
+## Capability probing: tool calls and billing transparency
 
-| 指标 | 定义 | 为什么测 |
+| Metric | Definition | Why measure it |
 |---|---|---|
-| 工具调用 | 带一个公开 tool 定义请求，模型是否返回该 tool 的合法 JSON 调用 | 逆向/转售渠道常见丢 tools 字段，是渠道质量硬信号 |
-| usage 上报率 | 流式响应是否带 usage.completion_tokens | 不带 usage 的网关无法核对计费，吞吐只能按 chunk 数估算 |
-| 流式真实性 | 行为指纹判假流式：首 token 等很久（ttft ≥800ms 且 ≥4×窗口）+ 全部内容在 ≤250ms 窗口内 dump（≥5 chunk 才判） | 憋完再吐的"假流式"让 TTFT 实际等于全量延迟，是中转站常见伪装；快但真流式（ttft 小）与慢但真流式（窗口大）都不会误伤 |
+| Tool calls | Send a request with a public tool definition; does the model return a valid JSON call for that tool | Reverse/resale channels commonly drop the tools field — a hard signal of channel quality |
+| Usage report rate | Whether the streaming response carries usage.completion_tokens | A gateway without usage can't have its billing reconciled, and throughput can only be estimated from chunk counts |
+| Streaming authenticity | Behavioral fingerprint for fake streaming: the first token takes long (ttft ≥800ms and ≥4× the window) + all content dumped within a ≤250ms window (≥5 chunks required to judge) | Buffer-then-dump "fake streaming" makes TTFT effectively equal to the full latency, a common relay disguise; fast-but-real streaming (small ttft) and slow-but-real streaming (large window) don't get misfired |
 
-> 渠道来源难以直接"证明"，本评测的立场是**行为指纹组合**：工具调用是否被剥离、
-> 流式是否真实、usage 是否上报、延迟特征是否与官方一致——多个黑盒可测信号
-> 共同构成渠道质量画像，而不依赖网关的自我声明。
+> Channel origin is hard to directly "prove"; this benchmark's stance is a **combination of behavioral fingerprints**: whether tool calls get stripped,
+> whether streaming is real, whether usage is reported, whether the latency signature matches the official — multiple black-box-measurable signals
+> jointly form a channel-quality profile, without relying on the gateway's self-declaration.
 
-## 探测地域
+## Probe regions
 
-| 探针 | 频率 | 视角 |
+| Probe | Frequency | Viewpoint |
 |---|---|---|
-| GitHub Actions（gh-us） | 每 6 小时 | 海外公网基线 |
-| 本地记录器（local-*，见 README） | 每 10 分钟 | 高频时序 + 用户真实网络（如国内直连体感） |
+| GitHub Actions (gh-us) | Every 6 hours | Overseas public-internet baseline |
+| Local recorder (local-*, see README) | Every 10 minutes | High-frequency time series + the user's real network (e.g. CN direct-connection feel) |
 
-不同地域的数据各自标 region 共存于 `data/results/`，聚合时区分展示。
+Data from different regions each carry a region label and coexist in `data/results/`, shown distinctly during aggregation.
 
-## 支撑维度五：模型清单 —— "我要的模型它有没有？"
+## Supporting dimension 5: Catalog — "does it have the model I need?"
 
-| 指标 | 采集方式 |
+| Metric | Collection method |
 |---|---|
-| 模型数量 | `GET /v1/models` 返回数 |
-| 关键模型覆盖 | 主流模型（Claude/GPT/Gemini/DeepSeek/Qwen 旗舰与 flash 档）的可用矩阵 |
-| 协议覆盖 | OpenAI 兼容 / Anthropic 原生 / Gemini 原生 |
+| Model count | The count returned by `GET /v1/models` |
+| Key-model coverage | An availability matrix for mainstream models (Claude/GPT/Gemini/DeepSeek/Qwen flagship and flash tiers) |
+| Protocol coverage | OpenAI-compatible / Anthropic native / Gemini native |
 
-## 模型评测层（evals.html）
+## Model-eval layer (evals.html)
 
-网关层回答"走哪个网关靠谱"；模型层回答"选哪个模型最值"。数据源 `data/models.json`
-（官方标价 + 可溯源 benchmark，`asOf` 标日期），`aggregate.mjs` 产出 `web/models.json`。
-核心计算为纯函数（`probe/metrics.mjs`），带单测。
+The gateway layer answers "which gateway is reliable to route through"; the model layer answers "which model gives the most value". Data source `data/models.json`
+(official list prices + traceable benchmarks, dated by `asOf`); `aggregate.mjs` produces `web/models.json`.
+The core calculations are pure functions (`probe/metrics.mjs`), with unit tests.
 
-| 子项 | 口径 | 实现 |
+| Sub-item | Convention | Implementation |
 |---|---|---|
-| 价格价值实测 | 任务费用 = (输入价×输入token + 输出价×输出token) ÷ 1e6；预算可买 = 预算 ÷ 单价 ×1e6；本地/免费记 0 / ∞ | `taskCost` / `tokensForBudget` |
-| 权威 benchmark | 只收录**有公开出处**的硬分（MMLU-Pro/GPQA/SWE-bench/AIME…），每条挂来源链接 + 采集日期；缺失记 — **不臆造**；跨来源不完全可比，仅量级参考；并外链 Artificial Analysis / LM Council / OpenCompass 看更全 | `data/models.json` 的 `bench` |
-| 分场景 | 把 benchmark 按场景映射（编码→SWE-bench、科学→GPQA、数学→AIME、知识→MMLU-Pro），同源不另造数 | evals.html `renderScenarios` |
-| 质量性价比 | 综合知识分(MMLU-Pro) ÷ 输出价 = 每美元买到多少分；粗糙质量/价比，仅同基准列内排序参考 | `valuePerDollar` |
+| Price-value measurement | Task cost = (input price × input tokens + output price × output tokens) ÷ 1e6; budget can buy = budget ÷ unit price × 1e6; local/free recorded as 0 / ∞ | `taskCost` / `tokensForBudget` |
+| Authoritative benchmark | Includes only hard scores **with a public source** (MMLU-Pro/GPQA/SWE-bench/AIME…), each carrying a source link + collection date; missing recorded as — **never fabricated**; cross-source not fully comparable, magnitude reference only; links out to Artificial Analysis / LM Council / OpenCompass for a fuller picture | The `bench` field in `data/models.json` |
+| By scenario | Maps benchmarks to scenarios (coding→SWE-bench, science→GPQA, math→AIME, knowledge→MMLU-Pro), no fabricated numbers from the same source | `renderScenarios` in evals.html |
+| Quality-per-dollar | Composite knowledge score (MMLU-Pro) ÷ output price = how many points per dollar; a rough quality/cost ratio, a sorting reference within the same-benchmark column only | `valuePerDollar` |
 
-> 价格为官方标价（list price），随厂商调整；可在 `data/models.json` 维护，benchmark 分
-> 欢迎带来源的 PR 补充。模型层不做拨测（那是网关层的事），是"标价 + 公开评测"的对标。
+> Prices are official list prices, adjusted by vendors; maintainable in `data/models.json`, and benchmark scores
+> are welcome via PRs with sources. The model layer does no probing (that's the gateway layer's job); it's a "list price + public evals" benchmark.
 
-## 综合评分
+## Composite scoring
 
-不做加权总分（黑箱总分必然被质疑）。排行榜默认按"30 天稳定性"排序，信任评级、
-价格指数等各自独立成列，工程师按自己关心的列排序。模型层同理：价格价值、benchmark、
-性价比各自独立，不合成单一总分。
+No weighted total score (a black-box total score is inevitably questioned). The leaderboard defaults to sorting by "30-day stability", with trust rating,
+price index, etc. each as their own column, and engineers sort by the column they care about. The model layer is the same: price-value, benchmark, and
+cost-effectiveness are each independent, not synthesized into a single total.
 
-## 公正性
+## Fairness
 
-- 拨测代码、探测 prompt、原始数据、聚合逻辑全部开源，任何人可用自己的 key 复现；
-- 政策类标注必须附证据链接与标注日期，接受 PR 纠错；
-- 网关清单接受 PR 自助提交（`data/gateways.json`）；
-- 维护者与其中某网关存在利益关联时在清单条目中披露。
+- The probe code, detection prompts, raw data, and aggregation logic are all open source — anyone can reproduce with their own key;
+- Policy-class annotations must carry an evidence link and annotation date, and accept PR corrections;
+- The gateway list accepts self-service PR submissions (`data/gateways.json`);
+- When the maintainer has a conflict of interest with a gateway, it is disclosed in the list entry.

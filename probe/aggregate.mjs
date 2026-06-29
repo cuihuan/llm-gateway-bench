@@ -21,17 +21,18 @@ export function classifyError(msg) {
   if (typeof msg !== 'string') return 'other';
   if (/HTTP 4(01|03)\b/.test(msg)) return 'auth';
   if (/HTTP 429\b/.test(msg)) return '429';
-  // 其余 4xx(400/404/422…)是请求/配置问题——模型在该网关不存在、参数不支持、
-  // 探针用法不当——不是网关宕机。对齐 OpenRouter uptime 口径(排除用户侧 4xx),
-  // 与 auth 一样不计入可用率分母。429 仍单列保留(限流是真实可用性信号)。
+  // The remaining 4xx (400/404/422…) are request/config problems — the model doesn't exist on this
+  // gateway, an unsupported param, or improper probe usage — not a gateway outage. Aligned with
+  // OpenRouter's uptime convention (exclude user-side 4xx), so like auth it doesn't count toward the
+  // availability denominator. 429 stays listed separately (rate limiting is a real availability signal).
   if (/HTTP 4\d\d\b/.test(msg)) return 'user';
   if (/HTTP 5\d\d\b/.test(msg)) return '5xx';
   if (/timeout|timed? ?out|aborted/i.test(msg)) return 'timeout';
   return 'other';
 }
 
-// 计入"排除出可用率分母"的错误类:鉴权(401/403)+ 其余用户侧 4xx。
-// 这些是探针/配置问题,不是网关故障——计入会冤枉网关。
+// Error classes excluded from the availability denominator: auth (401/403) + other user-side 4xx.
+// These are prober/config issues, not gateway failures — counting them would unfairly penalize the gateway.
 const EXCLUDED_FROM_UPTIME = new Set(['auth', 'user']);
 
 const dayOf = (iso) => iso.slice(0, 10);
@@ -110,9 +111,10 @@ export function rollupGateway(runEntries, today) {
     if (d >= day7Start) { ok7 += b.ok; total7 += b.total; }
   }
 
-  // 时段画像（按 UTC 小时）：拨测核心价值——揭示"高峰期变慢/限速"。每个有数据
-  // 的小时给 TTFT p50 与成功率。peakDrift = 最慢小时 TTFT ÷ 最快小时 TTFT（≥2
-  // 表示存在明显高峰漂移），worstOkRateHour = 成功率最低的小时。窗口太空则为 null。
+  // Time-of-day profile (by UTC hour): a core value of probing — it reveals "slower / rate-limited
+  // at peak". Each hour with data gets a TTFT p50 and a success rate. peakDrift = slowest-hour TTFT
+  // ÷ fastest-hour TTFT (≥2 indicates clear peak drift), worstOkRateHour = the hour with the lowest
+  // success rate. Null when the window is too empty.
   const hourly = [...byHour.entries()]
     .map(([hour, b]) => ({
       hour,
@@ -135,7 +137,7 @@ export function rollupGateway(runEntries, today) {
     };
   }
 
-  // 流式真实性快照：最近一次运行里可判定模型中，疑似假流式（burstStreamRate≥0.5）的个数
+  // Streaming-authenticity snapshot: among judgeable models in the latest run, the count of suspected fake streaming (burstStreamRate≥0.5)
   let streamBurst = null;
   if (latest) {
     const rows = (latest.models ?? []).filter((m) => typeof m.burstStreamRate === 'number');
@@ -144,8 +146,8 @@ export function rollupGateway(runEntries, today) {
     }
   }
 
-  // usage 重算指纹（按模型，取最近一次运行）：charsPerToken 偏低=疑似虚报 token。
-  // 跨网关同模型比对的依据——comparison 在 main() 里跨网关做。
+  // usage recompute fingerprint (per model, from the latest run): a low charsPerToken = suspected
+  // inflated tokens. The basis for cross-gateway same-model comparison — the comparison is done across gateways in main().
   let usageByModel = null;
   if (latest) {
     const rows = (latest.models ?? []).filter((m) => m.usage && (m.usage.charsPerToken != null || m.usage.promptTokens != null));
@@ -167,8 +169,9 @@ export function rollupGateway(runEntries, today) {
     }
   }
 
-  // 完整性快照（最近一次运行）：模型回显/CJK 输出/上下文截断三项可判定模型里
-  // 各有几个通过。任一 <total 即出现疑似偷换/量化/截断。无可判定模型则该项 null。
+  // Integrity snapshot (latest run): for each of model echo / CJK output / context truncation, how
+  // many judgeable models passed. Any value <total means suspected substitution/quantization/truncation.
+  // Null for a check when there are no judgeable models.
   const snap = (pred, has) => {
     const rows = (latest?.models ?? []).filter(has);
     return rows.length ? { ok: rows.filter(pred).length, total: rows.length } : null;
@@ -179,8 +182,8 @@ export function rollupGateway(runEntries, today) {
     needle: snap((m) => m.needle?.ok, (m) => m.needle),
   } : null;
 
-  // 提示缓存快照（最近一次运行）：在上报缓存口径的模型里，有几个观察到缓存命中。
-  // reported<总数 = 部分模型不上报缓存口径；supported<reported = 上报但未命中。
+  // Prompt-cache snapshot (latest run): among models that report cache info, how many were observed
+  // to hit the cache. reported<total = some models don't report cache info; supported<reported = reported but no hit.
   let cache = null;
   if (latest) {
     const reported = (latest.models ?? []).filter((m) => m.cache && m.cache.reported);
@@ -221,8 +224,9 @@ export function rollupGateway(runEntries, today) {
 }
 
 /**
- * 选主地域：取最近一次拨测所属的 region（headline 统计只反映这一个观测点，
- * 避免把不同网络视角混算）。无 region 标注的旧数据归一为 'unknown'。
+ * Pick the primary region: the region of the most recent probe (headline stats reflect only this one
+ * observation point, avoiding mixing different network perspectives). Legacy data with no region tag
+ * is normalized to 'unknown'.
  */
 export function pickPrimaryRegion(entries) {
   let latest = null;
@@ -255,10 +259,10 @@ async function readJsonDir(dirUrl) {
   let files = [];
   try { files = (await readdir(dirUrl)).filter((f) => f.endsWith('.json')); } catch { return []; }
   const out = [];
-  // 单个损坏文件（CI 写一半中断、坏 PR）不应让整个聚合崩掉——跳过并告警。
+  // A single corrupt file (a half-written CI run, a bad PR) shouldn't crash the whole aggregation — skip it and warn.
   for (const f of files.sort()) {
     try { out.push(JSON.parse(await readFile(new URL(f, dirUrl + '/'), 'utf8'))); }
-    catch (e) { console.error(`[aggregate] 跳过损坏文件 ${f}: ${e.message}`); }
+    catch (e) { console.error(`[aggregate] skipping corrupt file ${f}: ${e.message}`); }
   }
   return out;
 }
@@ -285,8 +289,9 @@ async function main() {
       const entries = runs
         .map((r) => ({ region: r.region, startedAt: r.startedAt, ...(r.results.find((x) => x.gateway === gw.id && !x.skipped) ?? {}) }))
         .filter((e) => e.models || e.connectivity);
-      // 不同地域是不同的网络观测点（国内直连 vs 海外），不能混算——headline 只用
-      // 主地域（最近一次拨测的地域），各地域成功率/延迟另列在 byRegion，供分地域展示。
+      // Different regions are different network observation points (domestic direct vs overseas) and
+      // can't be mixed — the headline uses only the primary region (the region of the latest probe);
+      // per-region success/latency is listed separately in byRegion for per-region display.
       const primaryRegion = pickPrimaryRegion(entries);
       const roll = rollupGateway(entries.filter((e) => e.region === primaryRegion), today);
       const gwRegions = [...new Set(entries.map((e) => e.region))];
@@ -300,8 +305,8 @@ async function main() {
         host: gw.baseUrl.replace(/^https?:\/\//, ''),
         website: gw.website,
         protocols: gw.tags.includes('anthropic-compatible') ? 'OpenAI · Anthropic' : 'OpenAI',
-        // 类型分档（供前端"速选"按类型筛选）：官方直连 / 一手供应商 / 中转网关。
-        category: gw.tags.includes('official') ? '官方直连' : gw.tags.includes('provider') ? '供应商' : '网关',
+        // Category tier (for the frontend's "quick filter" by type): official direct / first-party provider / relay gateway.
+        category: gw.tags.includes('official') ? 'Official direct' : gw.tags.includes('provider') ? 'Provider' : 'Gateway',
         pricing: gw.pricingUrl,
         probeModels: gw.probeModels,
         priceIdx: priceIndex(prices?.models, gw.id),
@@ -317,24 +322,26 @@ async function main() {
   await writeFile(new URL('web/data.json', root), JSON.stringify(site, null, 2));
   console.log(`web/data.json: ${site.gateways.length} gateways, ${runs.length} runs, regions=${regions.join(',') || 'none'}`);
 
-  // 模型评测集数据集（价格价值 + 后续 benchmark/场景）：data/models.json → web/ 供静态页 fetch
+  // Model evaluation dataset (price/value + future benchmarks/scenarios): data/models.json → web/ for the static page to fetch
   try {
     const models = JSON.parse(await readFile(new URL('data/models.json', root), 'utf8'));
     await writeFile(new URL('web/models.json', root), JSON.stringify(models, null, 2));
     console.log(`web/models.json: ${models.models?.length ?? 0} models`);
   } catch (e) { console.error('[aggregate] models.json skipped:', e.message); }
 
-  // 报告渲染单一来源：把纯函数 report.mjs 镜像到 web/，让报告广场（reports.html）
-  // 在浏览器里用与 CLI 完全相同的 renderReportHtml 渲染分享报告（pages 直接部署
-  // web/，故此文件需提交进仓库）。report.mjs 无外部依赖、浏览器 ESM 兼容。
+  // Single source of truth for report rendering: mirror the pure-function report.mjs into web/, so the
+  // report gallery (reports.html) renders shared reports in the browser with the exact same
+  // renderReportHtml as the CLI (Pages deploys web/ directly, so this file must be committed to the
+  // repo). report.mjs has no external dependencies and is browser-ESM compatible.
   try {
     const src = await readFile(new URL('probe/report.mjs', root), 'utf8');
     await writeFile(new URL('web/report.mjs', root), src);
     console.log('web/report.mjs: mirrored from probe/report.mjs');
   } catch (e) { console.error('[aggregate] report.mjs mirror skipped:', e.message); }
 
-  // 价格横评（真实数据，无需 key）：把 data/prices.json 的公开定价 pivot 成一份
-  // '经典模型 × 网关'价格对比报告，作为报告广场的真实旗舰报告（非 demo）。随价格刷新。
+  // Price comparison (real data, no key needed): pivot the public pricing in data/prices.json into a
+  // 'classic models × gateways' price comparison report, serving as the gallery's real flagship report
+  // (not a demo). Refreshes with pricing.
   try {
     if (prices) {
       let version = '0.0.0';
@@ -345,8 +352,8 @@ async function main() {
       let idx = null;
       try { idx = JSON.parse(await readFile(new URL('web/reports/index.json', root), 'utf8')); } catch {}
       const entry = {
-        id: 'price-matrix', kind: 'pricematrix', model: null, region: '公开定价 API',
-        generatedAt: pm.generatedAt, demo: false, title: '经典模型 × 网关 · 价格横评（公开定价，无需 key）',
+        id: 'price-matrix', kind: 'pricematrix', model: null, region: 'Public pricing API',
+        generatedAt: pm.generatedAt, demo: false, title: 'Classic models × gateways · Price comparison (public pricing, no key needed)',
         targetCount: pm.rows.length, fastestTtft: null, cheapest: null, flagCount: 0, source: 'baseline',
       };
       const reports = [entry, ...((idx?.reports ?? []).filter((x) => x.id !== 'price-matrix'))];

@@ -2,20 +2,20 @@
   "id": "ohmygpt",
   "annotatedAt": "2026-06-13",
   "channel": {
-    "claim": "自声明官转",
+    "claim": "self-declared official passthrough",
     "verify": "pending"
   },
   "promptRetention": {
     "status": "warn",
-    "text": "官方保留「store, review, and investigate」通信数据之权利；销户后 30 天内删除、服务器位置未披露；上游（如 OpenAI）可能另行记录，平台称 usually unable to prevent",
+    "text": "The provider reserves the right to \"store, review, and investigate\" communications data; deleted within 30 days after account closure; server location not disclosed; upstream providers (e.g. OpenAI) may log separately, which the platform says it is usually unable to prevent",
     "evidence": "https://www.ohmygpt.com/privacy"
   },
   "training": {
     "status": "unknown",
-    "text": "政策仅承诺不出售（not sell）交互内容，未提及是否用于训练——未表态",
+    "text": "The policy only commits to not sell interaction content; whether it is used for training is not addressed — no position stated",
     "evidence": "https://www.ohmygpt.com/privacy"
   },
-  "entity": "待标注",
-  "invoice": "待标注",
+  "entity": "TBD",
+  "invoice": "TBD",
   "disclosure": null
 }

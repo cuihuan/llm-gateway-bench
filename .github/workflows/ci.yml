@@ -1,9 +1,9 @@
-# 每次 push / PR 跑单测 + 聚合冒烟，给贡献者即时反馈、防坏改动合入。
-# 与 6 小时的 probe.yml 互补：那个跑真实拨测，这个只验证代码与策展数据的正确性，
-# 不需要任何 API key。
+# Run unit tests + an aggregate smoke test on every push / PR, giving contributors instant feedback and blocking bad changes.
+# Complements the 6-hourly probe.yml: that one runs real probes, this one only verifies the code and curated data are correct,
+# and needs no API key.
 name: ci
 env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true # checkout/setup-node v4 默认 Node20，2026-06-16 起弃用
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true # checkout/setup-node v4 defaults to Node20, deprecated from 2026-06-16
 on:
   push:
     branches: [main]
@@ -21,14 +21,14 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Unit tests（metrics / aggregate / prices / probe / data 契约）
+      - name: Unit tests (metrics / aggregate / prices / probe / data contracts)
         run: npm test
-      - name: Aggregate smoke（聚合不崩 + 产出 web/data.json、web/models.json、web/report.mjs）
+      - name: Aggregate smoke (aggregation doesn't crash + produces web/data.json, web/models.json, web/report.mjs)
         run: |
           node probe/aggregate.mjs
-          test -s web/data.json || { echo 'web/data.json 未生成或为空'; exit 1; }
-          test -s web/models.json || { echo 'web/models.json 未生成或为空'; exit 1; }
-          test -s web/report.mjs || { echo 'web/report.mjs 未镜像或为空'; exit 1; }
-          diff -q probe/report.mjs web/report.mjs || { echo 'web/report.mjs 与 probe/report.mjs 不一致（请重跑 aggregate 并提交）'; exit 1; }
-      - name: JS 语法检查（probe/*.mjs + scripts/*.mjs）
+          test -s web/data.json || { echo 'web/data.json not generated or empty'; exit 1; }
+          test -s web/models.json || { echo 'web/models.json not generated or empty'; exit 1; }
+          test -s web/report.mjs || { echo 'web/report.mjs not mirrored or empty'; exit 1; }
+          diff -q probe/report.mjs web/report.mjs || { echo 'web/report.mjs differs from probe/report.mjs (please re-run aggregate and commit)'; exit 1; }
+      - name: JS syntax check (probe/*.mjs + scripts/*.mjs)
         run: for f in probe/*.mjs scripts/*.mjs; do node --check "$f"; done

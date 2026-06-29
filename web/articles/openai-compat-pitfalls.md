@@ -1,43 +1,43 @@
-"OpenAI 兼容"是中转站的标配卖点——换个 `baseUrl`、复用同一个 SDK，看起来无缝。但**兼容的是接口形状，不是行为**。请求能发出去、能收到一段 JSON，不代表字段语义、流式时序、计费口径和官方一致。很多"玄学 bug"——Agent 工具调用时灵时不灵、usage 对不上账、流式卡顿——根子都在协议层这些不显眼的差异上。
+"OpenAI-compatible" is a relay's standard selling point — swap the `baseUrl`, reuse the same SDK, and it looks seamless. But **what's compatible is the interface shape, not the behavior**. That a request goes out and a chunk of JSON comes back doesn't mean the field semantics, streaming timing, and billing conventions match the official API. Many "voodoo bugs" — Agent tool calls that work sometimes and not others, usage that doesn't reconcile, streaming that stalls — are all rooted in these inconspicuous differences at the protocol layer.
 
-这篇拆几个最常见的协议坑，以及它们怎么对应到平台已经在测的指标。
+This piece breaks down the most common protocol pitfalls and how they map to metrics the platform already measures.
 
-## 坑一：tool_calls 被剥离或 ID 不合规
+## Pitfall 1: tool_calls stripped or non-conformant IDs
 
-OpenAI 的工具调用约定很具体：`finish_reason` 要等于 `tool_calls`，每个调用要有合法的 `function.name` 和能 `JSON.parse` 的 `arguments`，`tool_call_id` 有固定前缀格式。中转/逆向渠道常见两类问题：
+OpenAI's tool-calling contract is specific: `finish_reason` must equal `tool_calls`, each call must have a valid `function.name` and `arguments` that `JSON.parse`, and `tool_call_id` has a fixed prefix format. Relay/reverse channels commonly have two kinds of problem:
 
-- **直接吞掉 tools**：你传了 `tools` 定义，网关转发给上游时丢了，模型当没看见，返回一段普通文本——Agent 链路当场断掉。
-- **ID 或 schema 不合规**：返回了 `tool_calls`，但 `arguments` 不是合法 JSON，或 ID 前缀对不上，客户端 SDK 解析报错。
+- **Swallowing tools outright**: you passed a `tools` definition, but the gateway dropped it when forwarding upstream, the model acts as if it never saw it and returns plain text — the Agent chain breaks on the spot.
+- **Non-conformant IDs or schema**: it returned `tool_calls`, but `arguments` isn't valid JSON, or the ID prefix doesn't match, and the client SDK throws a parse error.
 
-平台的**工具调用转发检查**就是冲这个去的：带一个公开 `tool` 定义发请求，判定模型是否返回该 tool 的合法 JSON 调用（思路源自 [K2 Vendor Verifier](https://github.com/MoonshotAI/K2-Vendor-Verifier)）。做 Agent 的人，这一列不过关的网关直接排除。详见 [偷换模型与降智：黑盒怎么识别](model-substitution)。
+The platform's **tool-call forwarding check** targets exactly this: send a request with a public `tool` definition and judge whether the model returns a valid JSON call for that tool (approach from [K2 Vendor Verifier](https://github.com/MoonshotAI/K2-Vendor-Verifier)). If you're building Agents, eliminate any gateway that fails this column. See [Model substitution and degradation: how to detect it black-box](model-substitution).
 
-## 坑二：usage 字段缺失或不可信
+## Pitfall 2: usage field missing or untrustworthy
 
-OpenAI 流式响应在 `stream_options.include_usage` 下会在末尾给一个带 `usage` 的 chunk。很多中转站**流式不回 usage**——后果是你**无法核对计费**，吞吐 tok/s 也只能拿 chunk 数硬估，不准。
+Under `stream_options.include_usage`, an OpenAI streaming response gives a final chunk carrying `usage`. Many relays **don't return usage when streaming** — the consequence is you **can't reconcile billing**, and throughput tok/s can only be roughly estimated from chunk counts, which is inaccurate.
 
-更坏的情况是 usage **回了但不可信**：私调倍率虚报 token，或在你的 prompt 前暗注一段 system prompt 把 `prompt_tokens` 撑大。平台用两个指标盯：**usage 上报率**（流式到底带不带 usage）和 **usage 重算指纹**（`charsPerToken` 异常偏低 = 疑似虚报、`promptTokens` 远超基线 = 疑似暗注）。详见 [计费陷阱：虚报 token、假流式、上下文截断](billing-traps)。
+Worse is usage that **is returned but untrustworthy**: a privately tweaked multiplier inflating tokens, or a system prompt secretly injected before your prompt to bloat `prompt_tokens`. The platform watches two metrics: the **usage report rate** (whether streaming carries usage at all) and the **usage-recomputation fingerprint** (`charsPerToken` unusually low = suspected inflation, `promptTokens` far above baseline = suspected injection). See [Billing traps: inflated tokens, fake streaming, context truncation](billing-traps).
 
-## 坑三：流式不合规——假流式与 chunk 时序
+## Pitfall 3: non-conformant streaming — fake streaming and chunk timing
 
-SSE 流式的本意是边生成边吐字。不合规的实现里最典型的是**假流式**：网关后台憋完整段回复，再切成 chunk 一次性 dump，伪装成流。表现是首字延迟（TTFT）几乎等于总延迟，所有内容挤在一瞬间到达。
+SSE streaming is meant to emit text as it's generated. The most typical non-conformant implementation is **fake streaming**: the gateway buffers the whole reply in the background, then slices it into chunks and dumps them at once, disguised as a stream. The tell is that TTFT (time-to-first-token) almost equals the total latency, with all content arriving in a single instant.
 
-这不只是体验问题——它把"上游慢/排队"的真相藏了起来，让你以为很快。平台逐 chunk 打时间戳，用首字延迟与首末 chunk 时间窗的关系判定假流式（`isBurstStream`），快但真流式和慢但真流式都不会误伤。原理详见 [计费陷阱：虚报 token、假流式、上下文截断](billing-traps)。
+This isn't just an experience issue — it hides the truth about "slow upstream / queuing" and makes you think it's fast. The platform timestamps each chunk and uses the relationship between TTFT and the first-to-last chunk window to judge fake streaming (`isBurstStream`); neither fast-but-real streaming nor slow-but-real streaming gets misfired. For the principle see [Billing traps: inflated tokens, fake streaming, context truncation](billing-traps).
 
-## 坑四：model 字段回显与上下文窗口
+## Pitfall 4: model echo and context window
 
-两个安静的坑：
+Two quiet pitfalls:
 
-- **`model` 回显对不上**：响应 JSON 里的 `model` 字段，理应回显你请求的模型。对不上（请求 A 回显 B）是偷换的直接硬证据——平台的**模型回显校验**零成本搭车流式就能抓。
-- **上下文窗口名不副实**：声称 128K，实际为省上游成本悄悄截断。平台用 needle 检测（长文里埋唯一标记要求原样回读）来验，尾部截断会让标记确定性丢失。
+- **`model` echo doesn't match**: the `model` field in the response JSON should echo the model you requested. A mismatch (request A, echo B) is direct hard evidence of substitution — the platform's **model echo check** catches it at zero cost, piggybacking on the stream.
+- **A context window in name only**: claims 128K but silently truncates to save upstream cost. The platform verifies this with needle detection (bury a unique marker in a long text and ask for it back verbatim); tail truncation makes the marker deterministically disappear.
 
-## 怎么用这篇
+## How to use this piece
 
-下次接入一个新网关，别只验"能不能跑通"，按协议层逐项过：
+Next time you onboard a new gateway, don't just verify "does it run" — go through the protocol layer item by item:
 
-1. **工具调用**：带 `tools` 发一发，看 `finish_reason` 和 `arguments` 合不合规；
-2. **usage**：开 `include_usage`，确认流式末尾真有 usage，并和本地 token 估算对一对；
-3. **流式时序**：逐 chunk 打时间戳，看 TTFT 是不是约等于总延迟（假流式信号）；
-4. **model 回显**：核对响应里的 `model` 字段；
-5. **上下文**：长文前部埋个随机串让它回读。
+1. **Tool calls**: send a request with `tools` and check whether `finish_reason` and `arguments` are conformant;
+2. **usage**: turn on `include_usage`, confirm the streaming tail really has usage, and check it against a local token estimate;
+3. **Streaming timing**: timestamp each chunk and see whether TTFT roughly equals total latency (a fake-streaming signal);
+4. **model echo**: verify the `model` field in the response;
+5. **Context**: bury a random string near the front of a long text and have it read it back.
 
-这五项平台都在自动测，对应**行为体检**面板的各列——但你完全可以用自己的 key 复现，see [开源工具与自建拨测：把这套搬到你自己的环境](self-host-probing)。回到选型全景：[选大模型网关的完整分析框架](choosing-a-gateway)。
+The platform measures all five automatically, mapping to the columns of the **behavioral check** panel — but you can absolutely reproduce them with your own key; see [Open-source tooling and self-hosted probing: bring this into your own environment](self-host-probing). Back to the selection big picture: [The complete analysis framework for choosing an LLM gateway](choosing-a-gateway).

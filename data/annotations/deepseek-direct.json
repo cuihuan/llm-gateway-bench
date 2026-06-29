@@ -2,20 +2,20 @@
   "id": "deepseek-direct",
   "annotatedAt": "2026-06-13",
   "channel": {
-    "claim": "官方",
+    "claim": "official",
     "verify": "baseline"
   },
   "promptRetention": {
     "status": "warn",
-    "text": "保留期与账户存续挂钩（账户存在期间保留），未承诺短期删除；数据存储于中国境内服务器",
+    "text": "Retention is tied to account lifetime (kept for as long as the account exists); no commitment to short-term deletion; data stored on servers within mainland China",
     "evidence": "https://cdn.deepseek.com/policies/en-US/deepseek-privacy-policy.html"
   },
   "training": {
     "status": "warn",
-    "text": "默认用于训练/改进模型，提供 opt-out 退出权（非默认关闭，与 OpenAI 默认不训练相反）",
+    "text": "Used by default for training/improving models, with an opt-out right (not off by default — the opposite of OpenAI's default of not training)",
     "evidence": "https://cdn.deepseek.com/policies/en-US/deepseek-privacy-policy.html"
   },
-  "entity": "杭州深度求索人工智能基础技术研究有限公司",
-  "invoice": "待标注",
+  "entity": "Hangzhou DeepSeek Artificial Intelligence Basic Technology Research Co., Ltd.",
+  "invoice": "TBD",
   "disclosure": null
 }

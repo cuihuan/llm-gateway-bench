@@ -95,7 +95,7 @@
       "error": null
     },
     {
-      "name": "某低价中转",
+      "name": "A Cheap Relay",
       "host": "cheap-relay.example.cn",
       "grid": [
         {
@@ -172,10 +172,10 @@
   "comparison": {
     "bestContext": "OpenRouter",
     "truncators": [
-      "某低价中转"
+      "A Cheap Relay"
     ]
   },
   "demo": true,
-  "title": "示例 · gemini-2.5-flash 长文本留存（4K–128K）",
-  "note": "演示报告：某低价中转在 16K 以上悄悄截断上下文，needle 丢失。数据为示意。"
+  "title": "Example · gemini-2.5-flash long-context retention (4K–128K)",
+  "note": "Demo report: A Cheap Relay silently truncates context above 16K, losing the needle. Data is illustrative."
 }

@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>分析框架 · LLM Gateway Bench</title>
-<meta name="description" content="LLM Gateway Bench 分析框架文章：用黑盒指纹判断网关是否直连、是否多收钱、是否稳定，可用自己的 key 复现。">
+<title>Analysis Framework · LLM Gateway Bench</title>
+<meta name="description" content="LLM Gateway Bench analysis-framework articles: use black-box fingerprints to judge whether a gateway is direct, whether it overcharges, and whether it's stable — reproducible with your own key.">
 <meta name="theme-color" content="#6366f1">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%236366f1'/><rect x='7' y='17' width='4' height='8' rx='1' fill='%23fff'/><rect x='14' y='12' width='4' height='13' rx='1' fill='%23fff'/><rect x='21' y='7' width='4' height='18' rx='1' fill='%23fff'/></svg>">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="LLM Gateway Bench">
-<meta property="og:title" content="分析框架 · LLM Gateway Bench">
-<meta property="og:description" content="LLM Gateway Bench 分析框架文章：用黑盒指纹判断网关是否直连、是否多收钱、是否稳定，可用自己的 key 复现。">
+<meta property="og:title" content="Analysis Framework · LLM Gateway Bench">
+<meta property="og:description" content="LLM Gateway Bench analysis-framework articles: use black-box fingerprints to judge whether a gateway is direct, whether it overcharges, and whether it's stable — reproducible with your own key.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="style.css">
@@ -18,21 +18,21 @@
 <body class="reading">
 <nav><div class="wrap">
   <div class="logo">LLM Gateway Bench</div>
-  <a class="lnk" href="index.html#leaderboard">排行榜</a>
-  <a class="lnk" href="index.html#fingerprint">行为体检</a>
-  <a class="lnk" href="evals.html">模型评测</a>
-  <a class="lnk" href="articles.html">分析框架</a>
-  <div class="right"><a class="lnk" href="index.html">← 返回平台</a></div>
+  <a class="lnk" href="index.html#leaderboard">Leaderboard</a>
+  <a class="lnk" href="index.html#fingerprint">Behavior Check</a>
+  <a class="lnk" href="evals.html">Model Benchmarks</a>
+  <a class="lnk" href="articles.html">Analysis Framework</a>
+  <div class="right"><a class="lnk" href="index.html">← Back to platform</a></div>
 </div></nav>
 
-<div class="wrap"><article id="art"><div class="err">加载中…</div></article></div>
+<div class="wrap"><article id="art"><div class="err">Loading…</div></article></div>
 
 <footer><div class="wrap">
-  <p>MIT License · 文章与拨测数据均开源，可用自己的 key 复现 · <a href="index.html">返回排行榜</a></p>
+  <p>MIT License · Articles and probe data are all open source, reproducible with your own key · <a href="index.html">Back to leaderboard</a></p>
 </div></footer>
 
 <script>
-// 极简 Markdown 渲染器（文章为仓库内一手内容；仍先转义 HTML 再渲染受控子集）
+// Minimal Markdown renderer (articles are first-party content in the repo; HTML is still escaped before rendering a controlled subset)
 const esc = (s)=> String(s).replace(/[&<>]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
 function inline(s){
   return esc(s)
@@ -69,7 +69,7 @@ function renderMd(md){
 (async function(){
   const slug = new URLSearchParams(location.search).get('slug') || '';
   const el = document.getElementById('art');
-  if(!/^[a-z0-9-]+$/.test(slug)){ el.innerHTML='<div class="err">文章不存在。<a href="articles.html">返回文章列表</a></div>'; return; }
+  if(!/^[a-z0-9-]+$/.test(slug)){ el.innerHTML='<div class="err">Article not found. <a href="articles.html">Back to article list</a></div>'; return; }
   try {
     const [md, manifest] = await Promise.all([
       fetch(`articles/${slug}.md`, {cache:'no-store'}).then(r=>{ if(!r.ok) throw 0; return r.text(); }),
@@ -80,14 +80,14 @@ function renderMd(md){
     const tags = (meta.tags||[]).map(t=>`<span class="a-tag">${esc(t)}</span>`).join('');
     const related = (manifest||[]).filter(a=>a.slug!==slug).slice(0,5)
       .map(a=>`<a href="article.html?slug=${encodeURIComponent(a.slug)}">${esc(a.title)} <span style="color:var(--faint)">— ${esc(a.summary||'')}</span></a>`).join('');
-    el.innerHTML = `<a class="back" href="articles.html">← 分析框架</a>
+    el.innerHTML = `<a class="back" href="articles.html">← Analysis Framework</a>
       <h1>${esc(meta.title||slug)}</h1>
       <div class="a-meta">${esc(meta.date||'')}</div>
       <div class="a-tags">${tags}</div>
       <div class="md">${renderMd(md)}</div>
-      ${related?`<div class="related"><h3>继续阅读</h3>${related}</div>`:''}`;
+      ${related?`<div class="related"><h3>Keep reading</h3>${related}</div>`:''}`;
   } catch {
-    el.innerHTML='<div class="err">文章加载失败（请用 npm run serve 起本地服务后访问）。<a href="articles.html">返回文章列表</a></div>';
+    el.innerHTML='<div class="err">Failed to load article (please serve locally with npm run serve). <a href="articles.html">Back to article list</a></div>';
   }
 })();
 </script>

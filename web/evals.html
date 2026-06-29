@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>模型评测 · 评测集 · LLM Gateway Bench</title>
-<meta name="description" content="模型层评测：价格价值实测（10万token任务花多少钱、同预算谁最值）、权威 benchmark（挂来源不臆造）、分场景与质量性价比。">
+<title>Model Benchmarks · Benchmark Suite · LLM Gateway Bench</title>
+<meta name="description" content="Model-layer evaluation: price-value measurements (what a 100K-token task costs, who's the best value per budget), authoritative benchmarks (sourced, not invented), and per-scenario and quality-per-dollar comparisons.">
 <meta name="theme-color" content="#6366f1">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%236366f1'/><rect x='7' y='17' width='4' height='8' rx='1' fill='%23fff'/><rect x='14' y='12' width='4' height='13' rx='1' fill='%23fff'/><rect x='21' y='7' width='4' height='18' rx='1' fill='%23fff'/></svg>">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="LLM Gateway Bench">
-<meta property="og:title" content="模型评测 · 评测集 · LLM Gateway Bench">
-<meta property="og:description" content="模型层评测：价格价值实测（10万token任务花多少钱、同预算谁最值）、权威 benchmark（挂来源不臆造）、分场景与质量性价比。">
+<meta property="og:title" content="Model Benchmarks · Benchmark Suite · LLM Gateway Bench">
+<meta property="og:description" content="Model-layer evaluation: price-value measurements (what a 100K-token task costs, who's the best value per budget), authoritative benchmarks (sourced, not invented), and per-scenario and quality-per-dollar comparisons.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="style.css">
@@ -37,97 +37,97 @@
 </head>
 <body>
 <nav><div class="wrap">
-  <div class="logo">LLM Gateway Bench<span>大模型网关评测</span></div>
-  <a class="lnk" href="index.html#leaderboard">网关评测</a>
-  <a class="lnk" href="evals.html">模型评测</a>
-  <a class="lnk" href="reports.html">报告广场</a>
-  <a class="lnk" href="pricing.html">定价</a>
-  <a class="lnk" href="articles.html">分析框架</a>
-  <div class="right"><a class="lnk" href="index.html">← 返回平台</a></div>
+  <div class="logo">LLM Gateway Bench<span>Benchmarking LLM Gateways</span></div>
+  <a class="lnk" href="index.html#leaderboard">Gateway Benchmarks</a>
+  <a class="lnk" href="evals.html">Model Benchmarks</a>
+  <a class="lnk" href="reports.html">Reports</a>
+  <a class="lnk" href="pricing.html">Pricing</a>
+  <a class="lnk" href="articles.html">Analysis Framework</a>
+  <div class="right"><a class="lnk" href="index.html">← Back to platform</a></div>
 </div></nav>
 
 <header><div class="wrap">
-  <h1>模型评测 · 评测集</h1>
-  <p class="tagline">同一个任务、同一笔预算，不同模型差多少？这里把<b>价格价值</b>、<b>权威 benchmark</b>、<b>分场景能力</b>三块拼成一张完整评测集。网关层（合规/价格/安全/稳定）见 <a href="index.html#leaderboard">网关评测</a>。</p>
+  <h1>Model Benchmarks · Benchmark Suite</h1>
+  <p class="tagline">Same task, same budget — how much do models differ? This brings together <b>price-value</b>, <b>authoritative benchmarks</b>, and <b>per-scenario capability</b> into one complete benchmark suite. For the gateway layer (compliance / price / safety / stability), see <a href="index.html#leaderboard">Gateway Benchmarks</a>.</p>
 </div></header>
 
 <section id="cost"><div class="wrap">
-  <h2>价格价值实测<span class="anchor">同任务比花费 · 同预算比产出 · 价格为官方标价，可在 data/models.json 维护</span></h2>
-  <p class="sub">选一个任务或自定义输入/输出 token，实时算出各模型成本与性价比。下方两张表：左问"这个任务花多少钱"，右问"这笔钱能买多少 token"。</p>
+  <h2>Price-Value Measurements<span class="anchor">Same task, compare cost · same budget, compare output · prices are official list prices, maintained in data/models.json</span></h2>
+  <p class="sub">Pick a task or set custom input/output tokens to compute each model's cost and value in real time. Two tables below: the left asks "what does this task cost," the right asks "how many tokens does this budget buy."</p>
 
-  <div class="mock-banner" id="needserver" style="margin:0 0 16px">⚠ 本页需起本地服务后访问：<code>npm run serve</code> → http://localhost:8080/evals.html。直接用 file:// 打开时浏览器会拦截数据模块，计算器无法加载。</div>
+  <div class="mock-banner" id="needserver" style="margin:0 0 16px">⚠ This page requires a local server: <code>npm run serve</code> → http://localhost:8080/evals.html. When opened directly via file://, the browser blocks the data module and the calculator won't load.</div>
 
   <div class="calc-controls">
-    <div class="ctl"><label>任务预设</label>
+    <div class="ctl"><label>Task preset</label>
       <select id="preset">
-        <option value="email">写一封 10 万 token 邮件（约 7.5 万汉字）</option>
-        <option value="rag">RAG 问答（5 万输入 / 2 千输出）</option>
-        <option value="codereview">代码审查（3 万输入 / 8 千输出）</option>
-        <option value="agent">Agent 长链路（20 万输入 / 5 万输出）</option>
-        <option value="custom">自定义</option>
+        <option value="email">Write a 100K-token email (~75K Chinese chars)</option>
+        <option value="rag">RAG Q&A (50K input / 2K output)</option>
+        <option value="codereview">Code review (30K input / 8K output)</option>
+        <option value="agent">Agent long chain (200K input / 50K output)</option>
+        <option value="custom">Custom</option>
       </select></div>
-    <div class="ctl"><label>输入 token</label><input id="inTok" type="number" min="0" value="0"></div>
-    <div class="ctl"><label>输出 token</label><input id="outTok" type="number" min="0" value="100000"></div>
-    <div class="ctl"><label>预算</label><input id="budget" type="number" min="0" value="100"></div>
-    <div class="ctl"><label>币种 / 汇率(¥/$)</label>
-      <select id="cur"><option value="cny">人民币 ¥</option><option value="usd">美元 $</option></select></div>
-    <div class="ctl" id="fxWrap"><label>汇率 ¥/$</label><input id="fx" type="number" min="0.1" step="0.1" value="7.2"></div>
-    <div class="ctl"><label>&nbsp;</label><button id="share" type="button">🔗 复制对比链接</button></div>
+    <div class="ctl"><label>Input tokens</label><input id="inTok" type="number" min="0" value="0"></div>
+    <div class="ctl"><label>Output tokens</label><input id="outTok" type="number" min="0" value="100000"></div>
+    <div class="ctl"><label>Budget</label><input id="budget" type="number" min="0" value="100"></div>
+    <div class="ctl"><label>Currency / FX (¥/$)</label>
+      <select id="cur"><option value="cny">CNY ¥</option><option value="usd">USD $</option></select></div>
+    <div class="ctl" id="fxWrap"><label>FX ¥/$</label><input id="fx" type="number" min="0.1" step="0.1" value="7.2"></div>
+    <div class="ctl"><label>&nbsp;</label><button id="share" type="button">🔗 Copy comparison link</button></div>
   </div>
 
   <div class="stab-grid" style="grid-template-columns: repeat(auto-fit, minmax(440px, 1fr))">
     <div>
-      <p class="sub" style="margin-bottom:8px"><b>① 这个任务花多少钱</b> <span id="taskLabel" class="muted"></span></p>
+      <p class="sub" style="margin-bottom:8px"><b>① What this task costs</b> <span id="taskLabel" class="muted"></span></p>
       <div class="tablebox"><table id="cost-tbl"><thead><tr>
-        <th>模型</th><th class="r">输入 $/1M</th><th class="r">输出 $/1M</th><th class="r">本任务费用</th>
+        <th>Model</th><th class="r">Input $/1M</th><th class="r">Output $/1M</th><th class="r">Task cost</th>
       </tr></thead><tbody></tbody></table></div>
     </div>
     <div>
-      <p class="sub" style="margin-bottom:8px"><b>② 这笔预算能买多少 token</b> <span id="budgetLabel" class="muted"></span></p>
+      <p class="sub" style="margin-bottom:8px"><b>② How many tokens this budget buys</b> <span id="budgetLabel" class="muted"></span></p>
       <div class="tablebox"><table id="value-tbl"><thead><tr>
-        <th>模型</th><th class="r">可买输入</th><th class="r">可买输出</th>
+        <th>Model</th><th class="r">Input affordable</th><th class="r">Output affordable</th>
       </tr></thead><tbody></tbody></table></div>
     </div>
   </div>
-  <p class="fn">绿色高亮 = 该列最省/最划算。价格为<b>官方标价</b>（list price，asOf <span id="asof">—</span>），随厂商调整；本地/开源自建按 0 计（自付算力，产出视为 ∞）。要改价或加模型，编辑 <code>data/models.json</code>。</p>
+  <p class="fn">Green highlight = cheapest / best value in that column. Prices are <b>official list prices</b> (asOf <span id="asof">—</span>) and change with vendors; local / self-hosted open source counts as 0 (you pay for the compute, output treated as ∞). To change prices or add models, edit <code>data/models.json</code>.</p>
 </div></section>
 
 <section id="benchmarks"><div class="wrap">
-  <h2>权威 Benchmark<span class="anchor">公开评测硬分数 · 每条挂来源 · 缺失记 — 不臆造</span></h2>
-  <p class="sub">权威评测分来自各模型技术报告与公开榜单。下表收录可溯源的代表性分数（不同来源/采集日期，已逐条标注）；完整、实时的对比建议看专门的聚合榜单（见表下外链）。欢迎带来源的 PR 补充。</p>
+  <h2>Authoritative Benchmarks<span class="anchor">Hard scores from public evaluations · each with a source · missing recorded as — not invented</span></h2>
+  <p class="sub">Authoritative scores come from each model's technical report and public leaderboards. The table below records traceable representative scores (different sources / collection dates, annotated individually); for a complete, real-time comparison, see the dedicated aggregator leaderboards (external links below the table). PRs with sources are welcome.</p>
   <div class="tablebox"><table id="bench-tbl"><thead></thead><tbody></tbody></table></div>
   <p class="fn" id="bench-srcs"></p>
-  <p class="fn"><b>看更权威/更全的榜单 →</b> <span id="bench-hubs"></span></p>
+  <p class="fn"><b>See more authoritative / complete leaderboards →</b> <span id="bench-hubs"></span></p>
 
-  <h3 style="font-size:17px;font-weight:700;margin:28px 0 6px">质量性价比<span style="color:var(--faint);font-weight:400;font-size:13px;margin-left:8px">综合知识分(MMLU-Pro) ÷ 输出价 = 每美元买到多少分，越高越值</span></h3>
-  <p class="sub" style="margin-top:4px">把上表的权威分和价格拼起来回答"花同样的钱，谁的知识密度高"。仅列同时有 MMLU-Pro 分与价格的模型；本地/免费模型质量受限于自建算力，单列。</p>
+  <h3 style="font-size:17px;font-weight:700;margin:28px 0 6px">Quality per Dollar<span style="color:var(--faint);font-weight:400;font-size:13px;margin-left:8px">composite knowledge score (MMLU-Pro) ÷ output price = points bought per dollar, higher is better value</span></h3>
+  <p class="sub" style="margin-top:4px">Combines the authoritative scores above with price to answer "for the same money, who has the highest knowledge density." Only lists models that have both an MMLU-Pro score and a price; local / free models are limited by self-hosted compute and listed separately.</p>
   <div class="tablebox"><table id="vpd-tbl"><thead><tr>
-    <th>模型</th><th class="r">MMLU-Pro</th><th class="r">输出 $/1M</th><th class="r">每美元知识分</th>
+    <th>Model</th><th class="r">MMLU-Pro</th><th class="r">Output $/1M</th><th class="r">Knowledge points per dollar</th>
   </tr></thead><tbody></tbody></table></div>
-  <p class="fn">粗糙的质量/价比，仅供量级参考——高质量低价≠适合你的场景，请结合 <a href="#scenarios">分场景</a> 与 <a href="index.html#leaderboard">网关稳定性/合规</a> 一起看。</p>
+  <p class="fn">A rough quality-per-dollar measure, for order-of-magnitude reference only — high quality at low price ≠ right for your use case; read it alongside <a href="#scenarios">per-scenario</a> and <a href="index.html#leaderboard">gateway stability / compliance</a>.</p>
 </div></section>
 
 <section id="scenarios"><div class="wrap">
-  <h2>分场景评测<span class="anchor">按真实用途选模型——你关心哪类活，就看哪一栏</span></h2>
-  <p class="sub">单一总分会误导：擅长数学的不一定擅长写代码。这里把权威 benchmark 按使用场景归类——每个场景标出主要看的指标，再列出已有可溯源分数的模型表现。分数与上表同源。</p>
+  <h2>Per-Scenario Benchmarks<span class="anchor">Pick a model by real use case — look at the column for the work you care about</span></h2>
+  <p class="sub">A single total score misleads: good at math doesn't mean good at coding. Here authoritative benchmarks are grouped by use case — each scenario flags its key metric, then lists the performance of models with traceable scores. Scores share the same sources as the table above.</p>
   <div class="pains" id="scenario-grid"></div>
-  <p class="fn">场景 ↔ 指标映射：<b>编码</b>看 SWE-bench Verified · <b>科学推理</b>看 GPQA · <b>数学</b>看 AIME · <b>综合知识</b>看 MMLU-Pro。视觉/长上下文/Agent 工具调用的可比分数收录中（网关侧的工具调用转发实测见 <a href="index.html#fingerprint">行为体检</a>）。</p>
+  <p class="fn">Scenario ↔ metric mapping: <b>Coding</b> → SWE-bench Verified · <b>Scientific reasoning</b> → GPQA · <b>Math</b> → AIME · <b>General knowledge</b> → MMLU-Pro. Comparable scores for vision / long context / agent tool calling are being collected (for gateway-side tool-call forwarding measurements, see <a href="index.html#fingerprint">Behavior Check</a>).</p>
 </div></section>
 
 <footer><div class="wrap">
-  <p><b>评测集构成</b> — 模型层：价格价值 · 权威 benchmark · 分场景能力；网关层：<a href="index.html#fingerprint">行为体检</a>（合规/安全）· <a href="index.html#price">价格</a> · <a href="index.html#stability">稳定性</a>。</p>
-  <p>价格与拨测数据均开源、可复现 · <a href="index.html">返回排行榜</a></p>
+  <p><b>Benchmark suite composition</b> — Model layer: price-value · authoritative benchmarks · per-scenario capability; gateway layer: <a href="index.html#fingerprint">Behavior Check</a> (compliance / safety) · <a href="index.html#price">Pricing</a> · <a href="index.html#stability">Stability</a>.</p>
+  <p>Prices and probe data are all open source and reproducible · <a href="index.html">Back to leaderboard</a></p>
 </div></footer>
 
 <script type="module">
-// 价格价值计算从 calc.mjs 导入——与单测共用同一份，上线算法即被测算法
+// Price-value calc imported from calc.mjs — shared with the unit tests, so the shipped algorithm is the tested one
 import { taskCost, tokensForBudget as tokensFor, valuePerDollar } from './calc.mjs';
 const $ = (s)=>document.querySelector(s);
-// 模块成功加载（=在服务器上）就隐藏"需起服务"提示；file:// 下模块不运行，提示留存
+// If the module loads successfully (= served over http), hide the "needs a server" notice; under file:// the module doesn't run and the notice stays
 const _ns = $('#needserver'); if(_ns) _ns.hidden = true;
 const esc = (s)=> String(s??'').replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const PRESETS = { email:[0,100000], rag:[50000,2000], codereview:[30000,8000], agent:[200000,50000] };
-const fmtTok = (n)=> n===Infinity ? '∞' : n>=1e8 ? (n/1e8).toFixed(1)+' 亿' : n>=1e4 ? (n/1e4).toFixed(n>=1e6?0:1)+' 万' : Math.round(n).toLocaleString();
+const fmtTok = (n)=> n===Infinity ? '∞' : n>=1e9 ? (n/1e9).toFixed(1)+'B' : n>=1e6 ? (n/1e6).toFixed(1)+'M' : n>=1e3 ? (n/1e3).toFixed(0)+'K' : Math.round(n).toLocaleString();
 let MODELS = [];
 
 function budgetUsd(){
@@ -140,20 +140,20 @@ function render(){
   const i = Math.max(0, Number($('#inTok').value)||0), o = Math.max(0, Number($('#outTok').value)||0);
   const usd = budgetUsd();
   $('#fxWrap').style.display = $('#cur').value==='cny' ? 'flex' : 'none';
-  $('#taskLabel').textContent = `（输入 ${fmtTok(i)} / 输出 ${fmtTok(o)} token）`;
-  $('#budgetLabel').textContent = `（${curSym()}${Number($('#budget').value)||0} ≈ $${usd.toFixed(2)}）`;
+  $('#taskLabel').textContent = `(input ${fmtTok(i)} / output ${fmtTok(o)} tokens)`;
+  $('#budgetLabel').textContent = `(${curSym()}${Number($('#budget').value)||0} ≈ $${usd.toFixed(2)})`;
 
-  // ① 任务费用，按费用升序
+  // ① Task cost, ascending by cost
   const costs = MODELS.map(m=>({m, c: taskCost(m,i,o)})).sort((a,b)=>a.c-b.c);
   const minCost = Math.min(...costs.map(x=>x.c));
   $('#cost-tbl tbody').innerHTML = costs.map(({m,c})=>`<tr class="${c===minCost?'winner':''}">
     <td><span class="gw-name">${esc(m.name)}</span><span class="kindtag">${esc(m.kind||'')}</span><div class="gw-sub">${esc(m.vendor||'')}</div></td>
-    <td class="r num">${m.input===0?'<span class="free">免费</span>':'$'+m.input}</td>
-    <td class="r num">${m.output===0?'<span class="free">免费</span>':'$'+m.output}</td>
+    <td class="r num">${m.input===0?'<span class="free">Free</span>':'$'+m.input}</td>
+    <td class="r num">${m.output===0?'<span class="free">Free</span>':'$'+m.output}</td>
     <td class="r num ${c===minCost?'badge-cheap':''}">${c===0?'<span class="free">¥0</span>':'$'+c.toFixed(c<0.1?4:2)+' ≈ ¥'+(c*(Number($('#fx').value)||7.2)).toFixed(c<0.1?3:2)}</td>
   </tr>`).join('');
 
-  // ② 预算能买多少，按可买输出降序
+  // ② How much the budget buys, descending by affordable output
   const vals = MODELS.map(m=>({m, in: tokensFor(m.input,usd), out: tokensFor(m.output,usd)})).sort((a,b)=>b.out-a.out);
   const maxOut = Math.max(...vals.filter(v=>v.out!==Infinity).map(v=>v.out), 0);
   $('#value-tbl tbody').innerHTML = vals.map(({m,in:vi,out:vo})=>`<tr class="${vo===Infinity||vo===maxOut?'winner':''}">
@@ -172,7 +172,7 @@ function applyPreset(){
 ['preset'].forEach(id=>$('#'+id).addEventListener('change', applyPreset));
 ['inTok','outTok','budget','cur','fx'].forEach(id=>$('#'+id).addEventListener('input', ()=>{ if(['inTok','outTok'].includes(id)) $('#preset').value='custom'; render(); }));
 
-// 计算器状态 ↔ URL：可把一份对比直接发链接给人
+// Calculator state ↔ URL: lets you send a comparison as a link
 const STATE_KEYS = { preset:'p', inTok:'in', outTok:'out', budget:'b', cur:'c', fx:'fx' };
 function syncUrl(){
   const p = new URLSearchParams();
@@ -182,31 +182,31 @@ function syncUrl(){
 function readUrl(){
   const p = new URLSearchParams(location.search);
   for(const [id,k] of Object.entries(STATE_KEYS)) if(p.has(k)) $('#'+id).value = p.get(k);
-  return p.has('in') || p.has('out') || p.has('b'); // 是否带了状态
+  return p.has('in') || p.has('out') || p.has('b'); // whether state was provided
 }
 $('#share').addEventListener('click', async ()=>{
   syncUrl();
   try { await navigator.clipboard.writeText(location.href); } catch {}
-  const b=$('#share'); const t=b.textContent; b.textContent='✓ 已复制'; b.classList.add('ok');
+  const b=$('#share'); const t=b.textContent; b.textContent='✓ Copied'; b.classList.add('ok');
   setTimeout(()=>{ b.textContent=t; b.classList.remove('ok'); }, 1600);
 });
 
 function renderBench(data){
   const cols = data.benchCols||[];
-  const rows = (data.models||[]).filter(m=>m.bench);  // 只列有可溯源分数的模型
-  if(!rows.length){ $('#benchmarks .tablebox').innerHTML='<p class="muted" style="padding:18px">benchmark 数据收录中。</p>'; return; }
-  $('#bench-tbl thead').innerHTML = '<tr><th>模型</th>'+cols.map(c=>`<th class="r" title="${esc(c.hint)}">${esc(c.label)}</th>`).join('')+'<th>来源</th></tr>';
-  // 每列取最高分高亮
+  const rows = (data.models||[]).filter(m=>m.bench);  // only list models with traceable scores
+  if(!rows.length){ $('#benchmarks .tablebox').innerHTML='<p class="muted" style="padding:18px">Benchmark data is being collected.</p>'; return; }
+  $('#bench-tbl thead').innerHTML = '<tr><th>Model</th>'+cols.map(c=>`<th class="r" title="${esc(c.hint)}">${esc(c.label)}</th>`).join('')+'<th>Source</th></tr>';
+  // Highlight the highest score in each column
   const best={}; cols.forEach(c=>{ best[c.key]=Math.max(...rows.map(m=>typeof m.bench[c.key]==='number'?m.bench[c.key]:-1)); });
   $('#bench-tbl tbody').innerHTML = rows.map(m=>`<tr>
     <td><span class="gw-name">${esc(m.name)}</span><span class="kindtag">${esc(m.kind||'')}</span></td>
     ${cols.map(c=>{ const v=m.bench[c.key]; return `<td class="r num ${v===best[c.key]&&v>=0?'badge-cheap':''}">${typeof v==='number'?v.toFixed(1):'—'}</td>`; }).join('')}
-    <td class="evidence">${m.bench.srcUrl?`<a href="${esc(m.bench.srcUrl)}" target="_blank" rel="noopener">${esc(m.bench.src||'来源')}</a>`:esc(m.bench.src||'—')} <span class="muted">${esc(m.bench.asOf||'')}</span></td>
+    <td class="evidence">${m.bench.srcUrl?`<a href="${esc(m.bench.srcUrl)}" target="_blank" rel="noopener">${esc(m.bench.src||'source')}</a>`:esc(m.bench.src||'—')} <span class="muted">${esc(m.bench.asOf||'')}</span></td>
   </tr>`).join('');
-  $('#bench-srcs').innerHTML = '绿色 = 该基准当前收录里的最高分。分数来自不同来源与采集日期，已逐条标注；跨来源不完全可比，仅供量级参考。';
+  $('#bench-srcs').innerHTML = 'Green = the highest score in the current collection for that benchmark. Scores come from different sources and collection dates, annotated individually; not fully comparable across sources, for order-of-magnitude reference only.';
   $('#bench-hubs').innerHTML = (data.benchHubs||[]).map(h=>`<a href="${esc(h.url)}" target="_blank" rel="noopener">${esc(h.label)}</a>`).join(' · ');
 
-  // 质量性价比：MMLU-Pro ÷ 输出价（valuePerDollar 单一来源）
+  // Quality per dollar: MMLU-Pro ÷ output price (valuePerDollar, single source)
   const vpd = rows.filter(m=>typeof m.bench.mmluPro==='number' && typeof m.output==='number')
     .map(m=>({ m, v: valuePerDollar(m.bench.mmluPro, m.output) }))
     .sort((a,b)=>b.v-a.v);
@@ -215,26 +215,26 @@ function renderBench(data){
     $('#vpd-tbl tbody').innerHTML = vpd.map(({m,v})=>`<tr class="${v===Infinity||v===top?'winner':''}">
       <td><span class="gw-name">${esc(m.name)}</span><span class="kindtag">${esc(m.kind||'')}</span></td>
       <td class="r num">${m.bench.mmluPro.toFixed(1)}</td>
-      <td class="r num">${m.output===0?'<span class="free">免费</span>':'$'+m.output}</td>
+      <td class="r num">${m.output===0?'<span class="free">Free</span>':'$'+m.output}</td>
       <td class="r num ${(v===Infinity||v===top)?'badge-cheap':''}">${v===Infinity?'∞':v.toFixed(1)}</td>
     </tr>`).join('');
-  } else { $('#vpd-tbl tbody').innerHTML='<tr><td class="muted" style="padding:14px">暂无同时具备分数与价格的模型。</td></tr>'; }
+  } else { $('#vpd-tbl tbody').innerHTML='<tr><td class="muted" style="padding:14px">No models with both a score and a price yet.</td></tr>'; }
 }
 
 function renderScenarios(data){
   const SCEN=[
-    { key:'swe',     icon:'💻', name:'编码工程', desc:'真实仓库 issue 修复能力', col:'SWE-bench Verified' },
-    { key:'gpqa',    icon:'🔬', name:'科学推理', desc:'研究生级科学难题', col:'GPQA' },
-    { key:'aime',    icon:'📐', name:'竞赛数学', desc:'高难数学解题', col:'AIME' },
-    { key:'mmluPro', icon:'📚', name:'综合知识', desc:'跨学科知识与推理', col:'MMLU-Pro' },
+    { key:'swe',     icon:'💻', name:'Coding & Engineering', desc:'Real-repo issue-fixing ability', col:'SWE-bench Verified' },
+    { key:'gpqa',    icon:'🔬', name:'Scientific Reasoning', desc:'Graduate-level science problems', col:'GPQA' },
+    { key:'aime',    icon:'📐', name:'Competition Math', desc:'Hard math problem solving', col:'AIME' },
+    { key:'mmluPro', icon:'📚', name:'General Knowledge', desc:'Cross-disciplinary knowledge and reasoning', col:'MMLU-Pro' },
   ];
   const models=(data.models||[]).filter(m=>m.bench);
   $('#scenario-grid').innerHTML = SCEN.map(s=>{
     const ranked=models.filter(m=>typeof m.bench[s.key]==='number').sort((a,b)=>b.bench[s.key]-a.bench[s.key]);
     const body = ranked.length
       ? ranked.map((m,i)=>`<div style="display:flex;justify-content:space-between;font-size:13.5px;margin:5px 0"><span>${i===0?'🏆 ':''}${esc(m.name)}</span><span class="num ${i===0?'badge-cheap':'muted'}">${m.bench[s.key].toFixed(1)}</span></div>`).join('')
-      : '<p class="muted" style="font-size:13px">暂无可溯源分数</p>';
-    return `<div class="pain"><div class="no">${s.icon} 看 ${esc(s.col)}</div><h3>${esc(s.name)}</h3>
+      : '<p class="muted" style="font-size:13px">No traceable scores yet</p>';
+    return `<div class="pain"><div class="no">${s.icon} ${esc(s.col)}</div><h3>${esc(s.name)}</h3>
       <p style="margin-bottom:8px">${esc(s.desc)}</p>${body}</div>`;
   }).join('');
 }
@@ -244,11 +244,11 @@ function renderScenarios(data){
     const data = await fetch('models.json', {cache:'no-store'}).then(r=>{ if(!r.ok) throw 0; return r.json(); });
     MODELS = data.models||[]; $('#asof').textContent = data.asOf||'—';
     const hadState = readUrl();
-    if(hadState) render(); else applyPreset();  // URL 带状态则直接按其渲染，否则用默认预设
+    if(hadState) render(); else applyPreset();  // if the URL carries state, render from it; otherwise use the default preset
     renderBench(data);
     renderScenarios(data);
   } catch {
-    document.getElementById('cost').querySelectorAll('.tablebox').forEach(b=>b.innerHTML='<p class="muted" style="padding:18px">模型数据需起本地服务（npm run serve）后加载。</p>');
+    document.getElementById('cost').querySelectorAll('.tablebox').forEach(b=>b.innerHTML='<p class="muted" style="padding:18px">Model data requires a local server (npm run serve) to load.</p>');
   }
 })();
 </script>

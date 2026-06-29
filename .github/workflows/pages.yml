@@ -2,7 +2,7 @@
 # Pages source must be set to "GitHub Actions" (Settings → Pages, or enabled via API).
 name: pages
 env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true # checkout v4 默认 Node20，2026-06-16 起弃用
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true # checkout v4 defaults to Node20, deprecated from 2026-06-16
 on:
   push:
     branches: [main]

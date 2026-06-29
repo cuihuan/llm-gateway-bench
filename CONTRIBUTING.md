@@ -1,55 +1,55 @@
-# 贡献指南
+# Contributing Guide
 
-这是一个**严肃的评测工具**，公信力全压在数据的可溯源与可复现上。最重要的一条原则：
+This is a **serious benchmark tool**, and its credibility rests entirely on data being traceable and reproducible. The single most important principle:
 
-> **不臆造。每个数字要么是脚本黑盒拨测出来的，要么挂得出公开来源；不确定就记空（`null` / `—`），绝不编。**
+> **Never fabricate. Every number is either black-box probed by the scripts or backed by a citable public source; when unsure, leave it empty (`null` / `—`) — never make it up.**
 
-这条原则不是口号——它被 `probe/data.test.mjs` 编码进 CI，无来源的 benchmark 分会让 `npm test` 直接失败。
+This principle isn't a slogan — it's encoded into CI by `probe/data.test.mjs`: a benchmark score without a source makes `npm test` fail outright.
 
-## 仓库结构
+## Repository structure
 
-| 路径 | 作用 |
+| Path | Purpose |
 |---|---|
-| `probe/probe.mjs` | 拨测器 CLI（`node probe/probe.mjs --help`），黑盒测 OpenAI 兼容端点 |
-| `probe/metrics.mjs` | 纯判定函数（假流式 / CJK / needle / 模型回显 / usage / 价格价值…），全带单测 |
-| `probe/aggregate.mjs` | 聚合 `data/results` + `annotations` + `prices` + `models` → `web/*.json` |
-| `data/gateways.json` | 在测网关清单（PR 自助提交） |
-| `data/models.json` | 模型评测数据集（官方标价 + 可溯源 benchmark） |
-| `data/annotations/` | 网关信任/合规人工标注（带证据链接） |
-| `web/` | 静态站点（排行榜 + 模型评测 + 行为体检 + 分析框架） |
+| `probe/probe.mjs` | Prober CLI (`node probe/probe.mjs --help`), black-box probing of OpenAI-compatible endpoints |
+| `probe/metrics.mjs` | Pure decision functions (fake streaming / CJK / needle / model echo / usage / price-value…), all unit-tested |
+| `probe/aggregate.mjs` | Aggregates `data/results` + `annotations` + `prices` + `models` → `web/*.json` |
+| `data/gateways.json` | List of gateways under test (self-service PR submissions) |
+| `data/models.json` | Model-eval dataset (official list prices + traceable benchmarks) |
+| `data/annotations/` | Manual trust/compliance annotations per gateway (with evidence links) |
+| `web/` | Static site (leaderboard + model evals + behavioral check + analysis framework) |
 
-## 跑测试
+## Running tests
 
-零依赖，Node ≥ 20：
+Zero dependencies, Node ≥ 20:
 
 ```bash
-npm test        # metrics / aggregate / prices / probe / data 契约
-npm run aggregate && npm run serve   # 本地起站点看效果
+npm test        # metrics / aggregate / prices / probe / data contracts
+npm run aggregate && npm run serve   # build and serve the site locally to see the result
 ```
 
-push / PR 会自动触发 [`ci.yml`](.github/workflows/ci.yml) 跑同一套测试。
+A push / PR automatically triggers [`ci.yml`](.github/workflows/ci.yml) to run the same test suite.
 
-## 添加一个网关
+## Adding a gateway
 
-PR 修改 [`data/gateways.json`](data/gateways.json)，每条至少包含：
+PR [`data/gateways.json`](data/gateways.json). Each entry must contain at least:
 
-- `id`（唯一）、`name`、`website`
-- `baseUrl`（**必须 `http(s)://`**，OpenAI 兼容根，拨测器会打 `/v1/...`）
-- `authEnv`（存 key 的环境变量名；key 只进 GitHub Secrets，**永不入库**，缺 key 的网关自动跳过、不算失败）
-- `probeModels`（数组，挑 1–2 个便宜模型）、`pricingUrl`、`tags`
+- `id` (unique), `name`, `website`
+- `baseUrl` (**must be `http(s)://`**, the OpenAI-compatible root; the prober will hit `/v1/...`)
+- `authEnv` (the name of the environment variable holding the key; keys go only into GitHub Secrets, **never into the repo**, and a gateway missing its key is skipped automatically and not counted as a failure)
+- `probeModels` (an array; pick 1–2 cheap models), `pricingUrl`, `tags`
 
-维护者在 Secrets 配好 key 后，它自动进入每 6 小时拨测。
+Once the maintainer configures the key in Secrets, it automatically enters the every-6-hours probe rotation.
 
-## 添加 / 修正模型与价格
+## Adding / correcting models and prices
 
-PR 修改 [`data/models.json`](data/models.json)。价格是**官方标价**（list price），每条标 `source`，本地/免费模型记 `0`。字段：`id`（唯一）、`name`、`vendor`、`input`、`output`（USD/1M，非负）、`kind`、`source`。
+PR [`data/models.json`](data/models.json). Prices are **official list prices**; each entry carries a `source`, and local/free models are recorded as `0`. Fields: `id` (unique), `name`, `vendor`, `input`, `output` (USD/1M, non-negative), `kind`, `source`.
 
-## 补 benchmark 分（最严格的部分）
+## Adding benchmark scores (the strictest part)
 
-往某模型加 `bench` 时，**必须**满足（否则 CI 红）：
+When adding `bench` to a model, you **must** satisfy the following (or CI goes red):
 
-- 至少一个数值分（`mmluPro` / `gpqa` / `swe` / `aime`），范围 0–100；
-- `src`（来源名）+ `srcUrl`（**`http(s)` 链接**）+ `asOf`（采集日期）。
+- At least one numeric score (`mmluPro` / `gpqa` / `swe` / `aime`), in the range 0–100;
+- `src` (source name) + `srcUrl` (an **`http(s)` link**) + `asOf` (collection date).
 
 ```json
 "bench": { "mmluPro": 75.9, "gpqa": 59.1, "swe": 42.0,
@@ -57,17 +57,17 @@ PR 修改 [`data/models.json`](data/models.json)。价格是**官方标价**（l
            "srcUrl": "https://arxiv.org/abs/2412.19437", "asOf": "2024-12" }
 ```
 
-查不到确切出处的分数，**就别加**——宁可表里记 `—`。完整、实时的对比请引用专门的聚合榜单（页面已外链 Artificial Analysis / LM Council / OpenCompass）。
+If you can't find an exact citation for a score, **don't add it** — better to record `—` in the table. For a complete, up-to-date comparison, cite a dedicated aggregator leaderboard (the page already links out to Artificial Analysis / LM Council / OpenCompass).
 
-## 补 / 纠正信任标注
+## Adding / correcting trust annotations
 
-PR 修改 [`data/annotations/`](data/annotations/)。政策类结论（数据留存、是否用于训练）`evidence` **必须是条款原文链接或 `null`**，不留空字符串；`channel.verify` ∈ `pass/fail/pending/baseline/none`，`status` ∈ `good/warn/bad/unknown`。维护者与某网关有利益关联时在 `disclosure` 披露。
+PR [`data/annotations/`](data/annotations/). For policy-class conclusions (data retention, whether used for training), `evidence` **must be a link to the original terms-of-service text or `null`** — never an empty string; `channel.verify` ∈ `pass/fail/pending/baseline/none`, `status` ∈ `good/warn/bad/unknown`. When the maintainer has a conflict of interest with a gateway, disclose it in `disclosure`.
 
-## 几条红线
+## A few red lines
 
-- **不做黑箱加权总分** —— 各维度独立成列，读者自己排序权衡；
-- **不混算不同探测地域** —— gh-us 的延迟 ≠ 国内体感，按 region 分列；
-- **改了逻辑就补单测** —— 判定函数都是纯函数，易测；
-- 原始拨测数据逐次 commit 于 `data/results/`，全程可复现、可审计。
+- **No black-box weighted score** — each dimension is its own column; readers sort and weigh for themselves.
+- **No mixing of probe regions** — gh-us latency ≠ what you feel in CN; columns are split by region.
+- **Change the logic, add a unit test** — the decision functions are pure functions, easy to test.
+- Raw probe data is committed per run in `data/results/`, fully reproducible and auditable.
 
-方法论细节见 [docs/methodology.md](docs/methodology.md)。
+For methodology details, see [docs/methodology.md](docs/methodology.md).

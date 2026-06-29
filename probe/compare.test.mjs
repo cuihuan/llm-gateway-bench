@@ -24,11 +24,11 @@ test('resolveTargets: ad-hoc target uses defaults (alias=model, env=PROBE_KEY)',
 test('resolveTargets: ad-hoc honors explicit name/alias/auth-env', () => {
   const { targets } = resolveTargets({
     model: 'gemini-2.5-flash',
-    adhoc: { url: 'https://my-gw.com', name: '我的网关', alias: 'gemini-flash', authEnv: 'MY_KEY' },
+    adhoc: { url: 'https://my-gw.com', name: 'My Gateway', alias: 'gemini-flash', authEnv: 'MY_KEY' },
     gateways, tracked,
   });
   const adhoc = targets[0];
-  assert.equal(adhoc.name, '我的网关');
+  assert.equal(adhoc.name, 'My Gateway');
   assert.equal(adhoc.alias, 'gemini-flash');
   assert.equal(adhoc.authEnv, 'MY_KEY');
 });

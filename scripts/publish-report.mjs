@@ -1,23 +1,23 @@
 #!/usr/bin/env node
-// 把一份本地生成的 report.json 归档进 web/reports/ 并更新广场清单 index.json。
-// 这是"分享到报告广场"的无服务器形态（数据即仓库）：归档后提交/提 PR 即上线。
-// 后续 Phase 4 会在此之上加一键上传端点。
+// Archive a locally generated report.json into web/reports/ and update the gallery index.json.
+// This is the serverless form of "share to the report gallery" (data-as-repo): once archived, commit/open a PR to go live.
+// A later Phase 4 will add a one-click upload endpoint on top of this.
 //
-// 用法：
+// Usage:
 //   node scripts/publish-report.mjs <report.json> [--id <slug>] [--source user|baseline]
 //
-// 安全：发布前校验报告不含 key（sk-/Bearer/Authorization），否则拒绝。
+// Security: before publishing, verify the report contains no key (sk-/Bearer/Authorization), otherwise refuse.
 
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 
-/** 报告里出现密钥痕迹就拒绝发布（隐私红线兜底）。返回命中的样式名或 null。 */
+/** Refuse to publish if the report shows any key traces (privacy red-line fallback). Returns the matched pattern source or null. */
 export function detectSecrets(reportText) {
   const pats = [/sk-[A-Za-z0-9]/, /Bearer\s+[A-Za-z0-9]/, /"?authorization"?\s*[:=]/i];
   const hit = pats.find((p) => p.test(reportText));
   return hit ? hit.source : null;
 }
 
-/** 由报告对象 + id 构造广场清单条目（轻量摘要）。纯函数。 */
+/** Build a gallery index entry (lightweight summary) from a report object + id. Pure function. */
 export function indexEntry(report, id, source = 'user') {
   const cmp = report.comparison ?? {};
   return {
@@ -35,7 +35,7 @@ export function indexEntry(report, id, source = 'user') {
   };
 }
 
-/** upsert 一个条目进清单（按 id 去重，新报告排前）。纯函数，便于单测。 */
+/** Upsert an entry into the index (dedupe by id, newest report first). Pure function, easy to unit-test. */
 export function upsertIndex(index, entry, updatedAt) {
   const base = index && Array.isArray(index.reports) ? index : { schema: 'gwbench-reports-index/1', reports: [] };
   const reports = [entry, ...base.reports.filter((r) => r.id !== entry.id)];
@@ -50,14 +50,14 @@ async function main() {
   const args = process.argv.slice(2);
   const file = args.find((a) => !a.startsWith('--'));
   const flag = (n) => { const i = args.indexOf(`--${n}`); return i >= 0 ? args[i + 1] : null; };
-  if (!file) { console.error('用法: node scripts/publish-report.mjs <report.json> [--id <slug>] [--source user|baseline]'); process.exit(1); }
+  if (!file) { console.error('Usage: node scripts/publish-report.mjs <report.json> [--id <slug>] [--source user|baseline]'); process.exit(1); }
 
   const root = new URL('..', import.meta.url);
   const text = await readFile(file, 'utf8');
   const leak = detectSecrets(text);
-  if (leak) { console.error(`[publish] 报告疑似含密钥（命中 /${leak}/），拒绝发布。请检查 ${file}`); process.exit(1); }
+  if (leak) { console.error(`[publish] report looks like it contains a key (matched /${leak}/), refusing to publish. Please check ${file}`); process.exit(1); }
   const report = JSON.parse(text);
-  if (report.schema !== 'gwbench-report/1') { console.error(`[publish] 不是 gwbench-report/1（got ${report.schema}）`); process.exit(1); }
+  if (report.schema !== 'gwbench-report/1') { console.error(`[publish] not gwbench-report/1 (got ${report.schema})`); process.exit(1); }
 
   const id = flag('id') || slugify(`${report.model}-${(report.generatedAt || '').slice(0, 10)}`);
   const source = flag('source') || 'user';
@@ -69,8 +69,8 @@ async function main() {
   try { index = JSON.parse(await readFile(new URL('web/reports/index.json', root), 'utf8')); } catch {}
   const next = upsertIndex(index, indexEntry(report, id, source), new Date().toISOString());
   await writeFile(new URL('web/reports/index.json', root), JSON.stringify(next, null, 2));
-  console.log(`web/reports/${id}.json + index.json（共 ${next.reports.length} 份）`);
-  console.log('提交并 push 后即上线报告广场。');
+  console.log(`web/reports/${id}.json + index.json (${next.reports.length} reports total)`);
+  console.log('Commit and push to go live on the report gallery.');
 }
 
 if (process.argv[1] && import.meta.url.endsWith(process.argv[1].split('/').pop())) {

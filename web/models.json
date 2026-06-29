@@ -1,40 +1,40 @@
 {
   "unit": "USD per 1M tokens",
-  "note": "官方标价（list price），随厂商调整；可在本文件维护。本地/开源自建模型按 0 计（自付算力）。bench 为公开评测分，每条挂来源；缺失记 null 不臆造，欢迎带来源 PR 补充。2026-06 已对全部 bench 做源-值一致性审计（逐条核对数值是否真在所挂来源内）：修正 GPT-4o MMLU-Pro 81.7→72.6、Qwen3-235B 84.8→84.4 两处错值，余者核对一致。",
+  "note": "Official list prices, adjusted by vendors; maintained in this file. Local / self-hosted open-source models count as 0 (you pay for the compute). bench values are public evaluation scores, each with a source; missing values are recorded as null, not invented — PRs with sources are welcome. In 2026-06 a source-value consistency audit was run on all bench entries (checking each value is actually within its cited source): two wrong values were corrected, GPT-4o MMLU-Pro 81.7→72.6 and Qwen3-235B 84.8→84.4; the rest verified consistent.",
   "asOf": "2026-06-12",
   "benchCols": [
     {
       "key": "mmluPro",
       "label": "MMLU-Pro",
-      "hint": "综合知识推理 %"
+      "hint": "General knowledge & reasoning %"
     },
     {
       "key": "gpqa",
       "label": "GPQA",
-      "hint": "研究生级科学难题 %"
+      "hint": "Graduate-level science problems %"
     },
     {
       "key": "swe",
       "label": "SWE-bench Verified",
-      "hint": "真实工程修复 %"
+      "hint": "Real engineering fixes %"
     },
     {
       "key": "aime",
       "label": "AIME",
-      "hint": "竞赛数学 %"
+      "hint": "Competition math %"
     }
   ],
   "benchHubs": [
     {
-      "label": "Artificial Analysis（综合智能指数/价格/速度）",
+      "label": "Artificial Analysis (intelligence index / price / speed)",
       "url": "https://artificialanalysis.ai/models"
     },
     {
-      "label": "LM Council Benchmarks（多榜聚合）",
+      "label": "LM Council Benchmarks (multi-leaderboard aggregate)",
       "url": "https://lmcouncil.ai/benchmarks"
     },
     {
-      "label": "OpenCompass / SuperCLUE（中文向）",
+      "label": "OpenCompass / SuperCLUE (Chinese-focused)",
       "url": "https://opencompass.org.cn/"
     }
   ],
@@ -45,7 +45,7 @@
       "vendor": "Anthropic",
       "input": 10,
       "output": 50,
-      "kind": "闭源",
+      "kind": "Closed",
       "source": "platform.claude.com",
       "bench": null
     },
@@ -55,7 +55,7 @@
       "vendor": "Anthropic",
       "input": 5,
       "output": 25,
-      "kind": "闭源",
+      "kind": "Closed",
       "source": "platform.claude.com",
       "bench": null
     },
@@ -65,11 +65,11 @@
       "vendor": "Anthropic",
       "input": 15,
       "output": 75,
-      "kind": "闭源",
-      "source": "用户提供",
+      "kind": "Closed",
+      "source": "user-provided",
       "bench": {
         "swe": 76.7,
-        "src": "LM Council Benchmarks（Opus 4.5 no-thinking 变体）",
+        "src": "LM Council Benchmarks (Opus 4.5 no-thinking variant)",
         "srcUrl": "https://lmcouncil.ai/benchmarks",
         "asOf": "2026-06"
       }
@@ -80,7 +80,7 @@
       "vendor": "Anthropic",
       "input": 3,
       "output": 15,
-      "kind": "闭源",
+      "kind": "Closed",
       "source": "platform.claude.com",
       "bench": null
     },
@@ -90,7 +90,7 @@
       "vendor": "Anthropic",
       "input": 1,
       "output": 5,
-      "kind": "闭源",
+      "kind": "Closed",
       "source": "platform.claude.com",
       "bench": null
     },
@@ -100,11 +100,11 @@
       "vendor": "OpenAI",
       "input": 5,
       "output": 15,
-      "kind": "闭源",
-      "source": "用户提供",
+      "kind": "Closed",
+      "source": "user-provided",
       "bench": {
         "mmluPro": 72.6,
-        "src": "MMLU-Pro 论文 Table 2（TIGER-Lab）",
+        "src": "MMLU-Pro paper Table 2 (TIGER-Lab)",
         "srcUrl": "https://arxiv.org/abs/2406.01574",
         "asOf": "2024-06"
       }
@@ -115,8 +115,8 @@
       "vendor": "Google",
       "input": 2.5,
       "output": 10,
-      "kind": "闭源",
-      "source": "用户提供",
+      "kind": "Closed",
+      "source": "user-provided",
       "bench": {
         "gpqa": 86.4,
         "aime": 88,
@@ -132,8 +132,8 @@
       "vendor": "DeepSeek",
       "input": 0.27,
       "output": 1.1,
-      "kind": "开源权重",
-      "source": "用户提供",
+      "kind": "Open weights",
+      "source": "user-provided",
       "bench": {
         "mmluPro": 75.9,
         "gpqa": 59.1,
@@ -150,13 +150,13 @@
       "vendor": "Alibaba",
       "input": 1.5,
       "output": 4.5,
-      "kind": "开源权重",
-      "source": "用户提供",
+      "kind": "Open weights",
+      "source": "user-provided",
       "bench": {
         "mmluPro": 84.4,
         "gpqa": 81.1,
         "aime": 92.3,
-        "src": "Qwen3-235B-A22B-Thinking-2507 模型卡（HF）",
+        "src": "Qwen3-235B-A22B-Thinking-2507 model card (HF)",
         "srcUrl": "https://huggingface.co/Qwen/Qwen3-235B-A22B-Thinking-2507",
         "asOf": "2025-07"
       }
@@ -167,8 +167,8 @@
       "vendor": "Zhipu",
       "input": 1,
       "output": 3,
-      "kind": "开源权重",
-      "source": "用户提供",
+      "kind": "Open weights",
+      "source": "user-provided",
       "bench": null
     },
     {
@@ -177,18 +177,18 @@
       "vendor": "Xiaomi",
       "input": 8,
       "output": 24,
-      "kind": "闭源",
-      "source": "用户提供",
+      "kind": "Closed",
+      "source": "user-provided",
       "bench": null
     },
     {
       "id": "gemma-4-local",
-      "name": "Gemma 4（本地自建）",
+      "name": "Gemma 4 (self-hosted locally)",
       "vendor": "Google",
       "input": 0,
       "output": 0,
-      "kind": "本地/免费",
-      "source": "自付算力",
+      "kind": "Local / free",
+      "source": "self-paid compute",
       "bench": null
     }
   ]

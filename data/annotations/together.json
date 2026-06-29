@@ -2,20 +2,20 @@
   "id": "together",
   "annotatedAt": "2026-06-13",
   "channel": {
-    "claim": "自营推理（开源权重模型一手渠道）",
+    "claim": "first-party inference (first-party channel for open-weight models)",
     "verify": "pending"
   },
   "promptRetention": {
     "status": "good",
-    "text": "默认不存储输入/输出（官方 docs：does not store inputs or outputs by default），仅临时缓存提性能",
+    "text": "Does not store inputs/outputs by default (official docs: does not store inputs or outputs by default), only temporary caching for performance",
     "evidence": "https://docs.together.ai/docs/privacy-and-security"
   },
   "training": {
     "status": "good",
-    "text": "训练为 opt-in、默认不启用（官方 docs：opt-in and not enabled by default）",
+    "text": "Training is opt-in and not enabled by default (official docs: opt-in and not enabled by default)",
     "evidence": "https://docs.together.ai/docs/privacy-and-security"
   },
   "entity": "Together Computer, Inc. (US)",
-  "invoice": "待标注",
+  "invoice": "TBD",
   "disclosure": null
 }

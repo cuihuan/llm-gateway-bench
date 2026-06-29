@@ -1,5 +1,6 @@
-// 策展数据完整性校验——评测工具的公信力压在这些文件上，一个脏条目会静默坏掉
-// 页面或聚合。这些测试在 CI 里把数据当契约守住：结构、类型、来源链接、唯一性。
+// Curated-data integrity checks — the benchmark's credibility rests on these files, and a single dirty
+// entry can silently break a page or the aggregation. These tests guard the data as a contract in CI:
+// structure, types, source links, uniqueness.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
@@ -10,47 +11,47 @@ const isHttp = (s) => typeof s === 'string' && /^https?:\/\//.test(s);
 
 test('data/gateways.json: shape, types, unique ids', () => {
   const gws = readJson('data/gateways.json');
-  assert.ok(Array.isArray(gws) && gws.length > 0, 'gateways 应为非空数组');
+  assert.ok(Array.isArray(gws) && gws.length > 0, 'gateways should be a non-empty array');
   const ids = new Set();
   for (const g of gws) {
-    assert.ok(g.id && typeof g.id === 'string', `网关缺 id: ${JSON.stringify(g).slice(0,60)}`);
-    assert.ok(!ids.has(g.id), `网关 id 重复: ${g.id}`); ids.add(g.id);
-    assert.ok(g.name, `${g.id} 缺 name`);
-    assert.ok(isHttp(g.baseUrl), `${g.id} baseUrl 应为 http(s): ${g.baseUrl}`);
-    assert.ok(g.authEnv && typeof g.authEnv === 'string', `${g.id} 缺 authEnv`);
-    assert.ok(Array.isArray(g.probeModels), `${g.id} probeModels 应为数组`);
+    assert.ok(g.id && typeof g.id === 'string', `gateway missing id: ${JSON.stringify(g).slice(0,60)}`);
+    assert.ok(!ids.has(g.id), `duplicate gateway id: ${g.id}`); ids.add(g.id);
+    assert.ok(g.name, `${g.id} missing name`);
+    assert.ok(isHttp(g.baseUrl), `${g.id} baseUrl should be http(s): ${g.baseUrl}`);
+    assert.ok(g.authEnv && typeof g.authEnv === 'string', `${g.id} missing authEnv`);
+    assert.ok(Array.isArray(g.probeModels), `${g.id} probeModels should be an array`);
   }
 });
 
 test('data/models.json: shape, non-negative prices, sourced benchmarks', () => {
   const doc = readJson('data/models.json');
-  assert.ok(doc.unit && doc.asOf, '缺 unit/asOf');
-  assert.ok(Array.isArray(doc.models) && doc.models.length > 0, 'models 非空数组');
+  assert.ok(doc.unit && doc.asOf, 'missing unit/asOf');
+  assert.ok(Array.isArray(doc.models) && doc.models.length > 0, 'models should be a non-empty array');
   const ids = new Set();
-  // benchCols 是分数 key 的唯一真相源；模型分数 key 必须取自它（避免两份硬编码漂移）
-  for (const c of doc.benchCols ?? []) assert.ok(c.key && c.label, 'benchCols 条目缺 key/label');
-  for (const h of doc.benchHubs ?? []) assert.ok(isHttp(h.url) && h.label, 'benchHubs 条目缺合法 url/label');
+  // benchCols is the single source of truth for score keys; model score keys must come from it (avoid two hardcoded copies drifting)
+  for (const c of doc.benchCols ?? []) assert.ok(c.key && c.label, 'benchCols entry missing key/label');
+  for (const h of doc.benchHubs ?? []) assert.ok(isHttp(h.url) && h.label, 'benchHubs entry missing valid url/label');
   const scoreKeys = new Set((doc.benchCols ?? []).map((c) => c.key));
-  const META = new Set(['src', 'srcUrl', 'asOf']);  // bench 里允许的非分数字段
-  assert.ok(scoreKeys.size > 0, 'benchCols 不应为空');
+  const META = new Set(['src', 'srcUrl', 'asOf']);  // non-score fields allowed inside bench
+  assert.ok(scoreKeys.size > 0, 'benchCols should not be empty');
   for (const m of doc.models) {
-    assert.ok(m.id && m.name, `模型缺 id/name: ${JSON.stringify(m).slice(0,60)}`);
-    assert.ok(!ids.has(m.id), `模型 id 重复: ${m.id}`); ids.add(m.id);
-    assert.equal(typeof m.input, 'number', `${m.id} input 价应为数字`);
-    assert.equal(typeof m.output, 'number', `${m.id} output 价应为数字`);
-    assert.ok(m.input >= 0 && m.output >= 0, `${m.id} 价格不应为负`);
-    assert.ok(m.source, `${m.id} 缺 source（每条数据要可溯源）`);
+    assert.ok(m.id && m.name, `model missing id/name: ${JSON.stringify(m).slice(0,60)}`);
+    assert.ok(!ids.has(m.id), `duplicate model id: ${m.id}`); ids.add(m.id);
+    assert.equal(typeof m.input, 'number', `${m.id} input price should be a number`);
+    assert.equal(typeof m.output, 'number', `${m.id} output price should be a number`);
+    assert.ok(m.input >= 0 && m.output >= 0, `${m.id} price should not be negative`);
+    assert.ok(m.source, `${m.id} missing source (every data point must be traceable)`);
     if (m.bench && m.bench !== null) {
       const hasScore = [...scoreKeys].some((k) => typeof m.bench[k] === 'number');
-      assert.ok(hasScore, `${m.id} bench 无任何数值分数`);
-      assert.ok(m.bench.src, `${m.id} bench 缺 src（不臆造：分数必须挂来源）`);
-      assert.ok(isHttp(m.bench.srcUrl), `${m.id} bench.srcUrl 应为 http(s) 链接`);
-      assert.ok(m.bench.asOf, `${m.id} bench 缺 asOf 采集日期`);
+      assert.ok(hasScore, `${m.id} bench has no numeric score`);
+      assert.ok(m.bench.src, `${m.id} bench missing src (never fabricated: every score must cite a source)`);
+      assert.ok(isHttp(m.bench.srcUrl), `${m.id} bench.srcUrl should be an http(s) link`);
+      assert.ok(m.bench.asOf, `${m.id} bench missing asOf date`);
       for (const [k, v] of Object.entries(m.bench)) {
         if (META.has(k)) continue;
-        // 非元数据字段必须是 benchCols 声明过的分数 key，且 0-100——抓拼写错误/漂移
-        assert.ok(scoreKeys.has(k), `${m.id}.bench 含未知 key「${k}」(不在 benchCols 里，疑似拼写错误)`);
-        assert.ok(typeof v === 'number' && v >= 0 && v <= 100, `${m.id}.${k} 分数应在 0-100`);
+        // Non-metadata fields must be score keys declared in benchCols, and 0-100 — catches typos/drift
+        assert.ok(scoreKeys.has(k), `${m.id}.bench has unknown key "${k}" (not in benchCols, likely a typo)`);
+        assert.ok(typeof v === 'number' && v >= 0 && v <= 100, `${m.id}.${k} score should be in 0-100`);
       }
     }
   }
@@ -62,60 +63,60 @@ test('data/annotations/*.json: shape, allowed enums, evidence is null-or-link', 
   const dir = new URL('data/annotations/', root);
   for (const f of readdirSync(dir).filter((x) => x.endsWith('.json'))) {
     const a = JSON.parse(readFileSync(new URL(f, dir), 'utf8'));
-    assert.ok(a.id, `${f} 缺 id`);
-    assert.ok(a.channel && VERIFY.has(a.channel.verify), `${f} channel.verify 非法: ${a.channel?.verify}`);
+    assert.ok(a.id, `${f} missing id`);
+    assert.ok(a.channel && VERIFY.has(a.channel.verify), `${f} channel.verify invalid: ${a.channel?.verify}`);
     for (const key of ['promptRetention', 'training']) {
       const p = a[key];
-      assert.ok(p && STATUS.has(p.status), `${f} ${key}.status 非法: ${p?.status}`);
-      assert.ok(p.evidence === null || isHttp(p.evidence), `${f} ${key}.evidence 应为 null 或 http 链接`);
+      assert.ok(p && STATUS.has(p.status), `${f} ${key}.status invalid: ${p?.status}`);
+      assert.ok(p.evidence === null || isHttp(p.evidence), `${f} ${key}.evidence should be null or an http link`);
     }
   }
 });
 
 test('referential integrity: every annotation id maps to a real gateway', () => {
-  // aggregate 靠 annoById[gateway.id] 匹配——id 打错的标注会变成永不显示的死数据。
+  // aggregate matches via annoById[gateway.id] — a mistyped annotation id becomes dead data that never displays.
   const gwIds = new Set(readJson('data/gateways.json').map((g) => g.id));
   const dir = new URL('data/annotations/', root);
   for (const f of readdirSync(dir).filter((x) => x.endsWith('.json'))) {
     const a = JSON.parse(readFileSync(new URL(f, dir), 'utf8'));
-    assert.ok(gwIds.has(a.id), `标注 ${f} 的 id「${a.id}」不对应任何网关（孤儿标注/拼写错误）`);
+    assert.ok(gwIds.has(a.id), `annotation ${f} id "${a.id}" maps to no gateway (orphan annotation / typo)`);
   }
 });
 
 test('data/tracked-models.json: shape, unique ids, complete price aliases', () => {
-  // 价格抓取（prices.mjs）按这些 alias 去各源取价；alias 打错 ⇒ 该列静默变 null。
+  // Price fetching (prices.mjs) uses these aliases to pull prices from each source; a mistyped alias ⇒ that column silently becomes null.
   const tracked = readJson('data/tracked-models.json');
-  assert.ok(Array.isArray(tracked) && tracked.length > 0, 'tracked-models 应为非空数组');
+  assert.ok(Array.isArray(tracked) && tracked.length > 0, 'tracked-models should be a non-empty array');
   const ids = new Set();
   for (const t of tracked) {
-    assert.ok(t.id && typeof t.id === 'string', `tracked 缺 id: ${JSON.stringify(t).slice(0, 60)}`);
-    assert.ok(!ids.has(t.id), `tracked id 重复: ${t.id}`); ids.add(t.id);
+    assert.ok(t.id && typeof t.id === 'string', `tracked missing id: ${JSON.stringify(t).slice(0, 60)}`);
+    assert.ok(!ids.has(t.id), `duplicate tracked id: ${t.id}`); ids.add(t.id);
     assert.ok(Array.isArray(t.litellm) && t.litellm.length > 0 && t.litellm.every((k) => typeof k === 'string'),
-      `${t.id} litellm 应为非空字符串数组（官方基线价的 litellm key）`);
-    assert.ok(t.aliases && typeof t.aliases === 'object', `${t.id} 缺 aliases 对象`);
+      `${t.id} litellm should be a non-empty string array (litellm keys for the official baseline price)`);
+    assert.ok(t.aliases && typeof t.aliases === 'object', `${t.id} missing aliases object`);
     for (const src of ['synthorai', 'openrouter']) {
-      assert.ok(typeof t.aliases[src] === 'string' && t.aliases[src], `${t.id} aliases.${src} 应为非空字符串`);
+      assert.ok(typeof t.aliases[src] === 'string' && t.aliases[src], `${t.id} aliases.${src} should be a non-empty string`);
     }
   }
 });
 
 test('data/prices.json: shape, sources, valid price cells, refs tracked models', () => {
-  // 价格矩阵是网关层核心维度；脏价格元组（NaN/负数/形状错）会坏掉页面与 priceIndex。
+  // The price matrix is a core gateway-level dimension; a dirty price tuple (NaN/negative/wrong shape) would break the page and priceIndex.
   const trackedIds = new Set(readJson('data/tracked-models.json').map((t) => t.id));
   const p = readJson('data/prices.json');
-  assert.ok(p.unit && p.fetchedAt, 'prices 缺 unit/fetchedAt');
-  assert.ok(p.sources && typeof p.sources === 'object', 'prices 缺 sources');
-  for (const k of ['official', 'synthorai', 'openrouter']) assert.ok(p.sources[k], `prices.sources 缺 ${k}`);
-  assert.ok(Array.isArray(p.models) && p.models.length > 0, 'prices.models 应为非空数组');
-  // 价格元组：null（缺价/未上架）或恰好 [输入价, 输出价] 两个非负数。
+  assert.ok(p.unit && p.fetchedAt, 'prices missing unit/fetchedAt');
+  assert.ok(p.sources && typeof p.sources === 'object', 'prices missing sources');
+  for (const k of ['official', 'synthorai', 'openrouter']) assert.ok(p.sources[k], `prices.sources missing ${k}`);
+  assert.ok(Array.isArray(p.models) && p.models.length > 0, 'prices.models should be a non-empty array');
+  // Price tuple: null (missing price / not listed) or exactly [inputPrice, outputPrice], two non-negative numbers.
   const okCell = (c) => c === null || (Array.isArray(c) && c.length === 2 && c.every((n) => typeof n === 'number' && n >= 0));
   for (const m of p.models) {
-    assert.ok(m.model && typeof m.model === 'string', `prices 行缺 model: ${JSON.stringify(m).slice(0, 60)}`);
-    assert.ok(trackedIds.has(m.model), `prices 行「${m.model}」不在 tracked-models 内（孤儿行/拼写错误）`);
-    assert.ok(okCell(m.official), `${m.model} official 价格元组非法: ${JSON.stringify(m.official)}`);
-    assert.ok(m.cells && typeof m.cells === 'object', `${m.model} 缺 cells`);
+    assert.ok(m.model && typeof m.model === 'string', `prices row missing model: ${JSON.stringify(m).slice(0, 60)}`);
+    assert.ok(trackedIds.has(m.model), `prices row "${m.model}" not in tracked-models (orphan row / typo)`);
+    assert.ok(okCell(m.official), `${m.model} official price tuple invalid: ${JSON.stringify(m.official)}`);
+    assert.ok(m.cells && typeof m.cells === 'object', `${m.model} missing cells`);
     for (const [gw, cell] of Object.entries(m.cells)) {
-      assert.ok(okCell(cell), `${m.model}.cells.${gw} 价格元组非法: ${JSON.stringify(cell)}`);
+      assert.ok(okCell(cell), `${m.model}.cells.${gw} price tuple invalid: ${JSON.stringify(cell)}`);
     }
   }
 });

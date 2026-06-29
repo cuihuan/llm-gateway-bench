@@ -2,20 +2,20 @@
   "id": "siliconflow",
   "annotatedAt": "2026-06-13",
   "channel": {
-    "claim": "自营推理（开源权重模型一手渠道）",
+    "claim": "first-party inference (first-party channel for open-weight models)",
     "verify": "pending"
   },
   "promptRetention": {
     "status": "good",
-    "text": "官方对照表标明交互数据「平台不存储」；账户类用户信息按必要期限保留、存于中国境内",
+    "text": "The official comparison table marks interaction data as \"not stored by the platform\"; account-type user information is retained for as long as necessary and stored within mainland China",
     "evidence": "https://docs.siliconflow.cn/cn/legals/privacy-policy"
   },
   "training": {
     "status": "good",
-    "text": "中立技术渠道，承诺不对交互数据做任何非授权使用或披露（即不用于训练）",
+    "text": "A neutral technical channel; commits to no unauthorized use or disclosure of interaction data (i.e. not used for training)",
     "evidence": "https://docs.siliconflow.cn/cn/legals/privacy-policy"
   },
-  "entity": "北京硅基流动科技有限公司",
-  "invoice": "待标注",
+  "entity": "Beijing SiliconFlow Technology Co., Ltd.",
+  "invoice": "TBD",
   "disclosure": null
 }

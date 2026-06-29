@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { percentile, summarize, decodeTokensPerSec, stabilityOverTime, evalToolCall, isBurstStream, evalModelEcho, evalCjkIntegrity, evalNeedle, extractCachedTokens, evalCache } from './metrics.mjs';
-// 模型层价格价值计算的单一来源（浏览器与单测共用同一份）
+// Single source of truth for the model-level price/value calculations (shared by the browser and unit tests)
 import { taskCost, tokensForBudget, valuePerDollar } from '../web/calc.mjs';
 
 test('percentile: empty and basic cases', () => {
@@ -14,15 +14,15 @@ test('percentile: empty and basic cases', () => {
 });
 
 test('decodeTokensPerSec: rate uses tokens-after-first ÷ decode time (llmperf/AA)', () => {
-  // 41 token,首字 500ms,总 2500ms → 解码窗 2000ms,(41-1)/2s = 20 tok/s
+  // 41 tokens, first token at 500ms, total 2500ms → decode window 2000ms, (41-1)/2s = 20 tok/s
   assert.equal(decodeTokensPerSec({ tokens: 41, ttftMs: 500, totalMs: 2500 }), 20);
-  // 旧口径会算成 41/2s = 20.5,慢模型上偏差更大:此处差 2.5%,ttft 越大差越多
+  // The old convention would compute 41/2s = 20.5; the gap is larger on slow models: here it's 2.5%, growing with ttft
   assert.equal(decodeTokensPerSec({ tokens: 11, ttftMs: 1000, totalMs: 2000 }), 10); // (11-1)/1s
-  // 单 token 无法区分首/后续 → 不测速
+  // A single token can't distinguish first from subsequent → not measured
   assert.equal(decodeTokensPerSec({ tokens: 1, ttftMs: 100, totalMs: 200 }), null);
-  // 解码窗 ≤0(首字几乎等于总时延,典型假流式/一次性返回)→ null
+  // Decode window ≤0 (first token ~ total latency, typical of fake streaming / one-shot returns) → null
   assert.equal(decodeTokensPerSec({ tokens: 10, ttftMs: 500, totalMs: 500 }), null);
-  // 非法输入 → null,不抛
+  // Invalid input → null, no throw
   assert.equal(decodeTokensPerSec({ tokens: undefined, ttftMs: 1, totalMs: 2 }), null);
   assert.equal(decodeTokensPerSec({}), null);
 });
@@ -45,15 +45,15 @@ test('summarize: mixed success and failure samples', () => {
 
 test('summarize: p95 is null below MIN_P95_SAMPLES, present at/above it', () => {
   const ok = (ttftMs, totalMs) => ({ ok: true, ttftMs, totalMs, tokensPerSec: 50 });
-  // 3 个成功样本(默认采样数)→ p95 无意义,置 null;p50/avg 照常
+  // 3 successful samples (the default count) → p95 is meaningless, set to null; p50/avg as usual
   const few = summarize([ok(100, 1000), ok(200, 2000), ok(300, 3000)]);
   assert.equal(few.ttftMs.p95, null);
   assert.equal(few.totalMs.p95, null);
-  assert.equal(few.ttftMs.p50, 200);     // 中位数仍可信
+  assert.equal(few.ttftMs.p50, 200);     // the median is still credible
   assert.equal(few.ttftMs.avg, 200);
-  // 5 个成功样本(达 MIN_P95_SAMPLES)→ p95 给出
+  // 5 successful samples (reaching MIN_P95_SAMPLES) → p95 is given
   const enough = summarize([ok(100, 1000), ok(200, 2000), ok(300, 3000), ok(400, 4000), ok(500, 5000)]);
-  assert.equal(enough.ttftMs.p95, percentile([100, 200, 300, 400, 500], 95)); // 480(线性插值)
+  assert.equal(enough.ttftMs.p95, percentile([100, 200, 300, 400, 500], 95)); // 480 (linear interpolation)
   assert.ok(enough.totalMs.p95 != null);
 });
 
@@ -81,15 +81,15 @@ test('summarize: usageReportedRate over successful samples only', () => {
 });
 
 test('isBurstStream: fake-stream fingerprint vs legit fast/slow streaming', () => {
-  // 假流式：等 3s 才出首 token，然后 30 个 chunk 在 50ms 内 dump 完
+  // Fake streaming: 3s before the first token, then 30 chunks dumped within 50ms
   assert.equal(isBurstStream({ chunks: 30, ttftMs: 3000, streamWindowMs: 50 }), true);
-  // 快但真流式（LPU 类）：ttft 很小 → 不误伤
+  // Fast genuine streaming (LPU-like): tiny ttft → not misflagged
   assert.equal(isBurstStream({ chunks: 30, ttftMs: 90, streamWindowMs: 60 }), false);
-  // 慢但真流式：窗口大 → 不误伤
+  // Slow genuine streaming: large window → not misflagged
   assert.equal(isBurstStream({ chunks: 30, ttftMs: 1500, streamWindowMs: 2400 }), false);
-  // 窗口在阈值内但 ttft 不足窗口 4 倍（900 < 960）→ 证据不足，不判假
+  // Window within threshold but ttft below 4× the window (900 < 960) → not enough evidence, not flagged
   assert.equal(isBurstStream({ chunks: 10, ttftMs: 900, streamWindowMs: 240 }), false);
-  // chunk 太少不可判定
+  // Too few chunks to judge
   assert.equal(isBurstStream({ chunks: 3, ttftMs: 3000, streamWindowMs: 10 }), null);
   assert.equal(isBurstStream({ chunks: 8, ttftMs: undefined, streamWindowMs: 10 }), null);
 });
@@ -98,7 +98,7 @@ test('summarize: modelEchoRate over judgeable samples only', () => {
   const s = summarize([
     { ok: true, ttftMs: 1, modelEcho: { ok: true } },
     { ok: true, ttftMs: 1, modelEcho: { ok: false } },
-    { ok: true, ttftMs: 1, modelEcho: null },        // 无回显，不计
+    { ok: true, ttftMs: 1, modelEcho: null },        // no echo, not counted
     { ok: false, error: 'x' },
   ]);
   assert.equal(s.modelEchoRate, 0.5);
@@ -124,9 +124,9 @@ test('summarize: usage fingerprint null when no usage reported', () => {
 
 test('summarize: burstStreamRate over judgeable ok samples only', () => {
   const s = summarize([
-    { ok: true, ttftMs: 3000, chunks: 20, streamWindowMs: 40 },   // 假流式
-    { ok: true, ttftMs: 200, chunks: 20, streamWindowMs: 1500 },  // 真流式
-    { ok: true, ttftMs: 500, chunks: 2, streamWindowMs: 5 },      // 不可判定（chunk 少）
+    { ok: true, ttftMs: 3000, chunks: 20, streamWindowMs: 40 },   // fake streaming
+    { ok: true, ttftMs: 200, chunks: 20, streamWindowMs: 1500 },  // genuine streaming
+    { ok: true, ttftMs: 500, chunks: 2, streamWindowMs: 5 },      // not judgeable (too few chunks)
     { ok: false, error: 'HTTP 502' },
   ]);
   assert.equal(s.burstStreamRate, 0.5);
@@ -145,49 +145,50 @@ test('evalToolCall: valid call passes, wrong tool / bad args / missing rejected'
 
 test('evalModelEcho: matches normalized, flags family mismatch, null on missing', () => {
   assert.equal(evalModelEcho('deepseek-v4-flash', 'deepseek-v4-flash').ok, true);
-  assert.equal(evalModelEcho('deepseek/deepseek-v4-flash', 'deepseek-v4-flash').ok, true); // 供应商前缀
-  assert.equal(evalModelEcho('deepseek-v4-flash-0528', 'deepseek-v4-flash').ok, true);     // 版本后缀
-  assert.equal(evalModelEcho('gpt-4o-mini', 'deepseek-v4-flash').ok, false);               // 偷换
-  assert.equal(evalModelEcho(null, 'deepseek-v4-flash'), null);                            // 无回显
+  assert.equal(evalModelEcho('deepseek/deepseek-v4-flash', 'deepseek-v4-flash').ok, true); // vendor prefix
+  assert.equal(evalModelEcho('deepseek-v4-flash-0528', 'deepseek-v4-flash').ok, true);     // version suffix
+  assert.equal(evalModelEcho('gpt-4o-mini', 'deepseek-v4-flash').ok, false);               // substitution
+  assert.equal(evalModelEcho(null, 'deepseek-v4-flash'), null);                            // no echo
   assert.equal(evalModelEcho('', 'x'), null);
 });
 
 test('evalCjkIntegrity: real Chinese passes, corruption/escapes/no-CJK fail', () => {
-  assert.equal(evalCjkIntegrity('今天天气晴朗，适合出门。').ok, true);
-  assert.equal(evalCjkIntegrity('today the weather is nice').ok, false);          // 无中文
-  assert.equal(evalCjkIntegrity('\\u4eca\\u5929\\u5929\\u6c14').ok, false);       // 字面量转义
-  assert.equal(evalCjkIntegrity('今�天�气�').ok, false);                          // 替换符
+  // The Chinese fixtures are written as \u escapes so the source stays ASCII; at runtime they are real CJK.
+  assert.equal(evalCjkIntegrity('\u4eca\u5929\u5929\u6c14\u6674\u6717\uff0c\u9002\u5408\u51fa\u95e8\u3002').ok, true);
+  assert.equal(evalCjkIntegrity('today the weather is nice').ok, false);          // no Chinese
+  assert.equal(evalCjkIntegrity('\\u4eca\\u5929\\u5929\\u6c14').ok, false);       // literal escapes
+  assert.equal(evalCjkIntegrity('\u4eca\ufffd\u5929\ufffd\u6c14\ufffd').ok, false); // replacement chars
   assert.equal(evalCjkIntegrity('').ok, false);
 });
 
 test('taskCost: input+output token cost in USD', () => {
-  // Claude Fable 5 $10/$50；10 万 token 全输出 → 50/1M * 1e5 = $5
+  // Claude Fable 5 $10/$50; 100k tokens all output → 50/1M * 1e5 = $5
   assert.equal(taskCost({ input: 10, output: 50 }, 0, 100000), 5);
-  // DeepSeek-V3 $0.27/$1.10；2万输入+8万输出
+  // DeepSeek-V3 $0.27/$1.10; 20k input + 80k output
   assert.equal(taskCost({ input: 0.27, output: 1.10 }, 20000, 80000), (0.27*20000+1.10*80000)/1e6);
-  assert.equal(taskCost({ input: 0, output: 0 }, 99999, 99999), 0); // 本地免费
+  assert.equal(taskCost({ input: 0, output: 0 }, 99999, 99999), 0); // local / free
   assert.equal(taskCost({ input: 10, output: 50 }, 'x', 1), null);
 });
 
 test('tokensForBudget: tokens buyable for a USD budget; free → Infinity', () => {
-  assert.equal(tokensForBudget(10, 100), 1e7);         // $100 / $10per1M = 1000 万
-  assert.equal(tokensForBudget(0, 100), Infinity);     // 本地/免费
+  assert.equal(tokensForBudget(10, 100), 1e7);         // $100 / $10per1M = 10 million
+  assert.equal(tokensForBudget(0, 100), Infinity);     // local / free
   assert.equal(tokensForBudget(5, 0), 0);
   assert.equal(tokensForBudget('x', 10), null);
   assert.equal(tokensForBudget(5, -1), null);
 });
 
 test('valuePerDollar: benchmark points per $; free → Infinity, missing → null', () => {
-  assert.equal(valuePerDollar(75.9, 1.10), 75.9 / 1.10);  // DeepSeek-V3 MMLU-Pro / 输出价
+  assert.equal(valuePerDollar(75.9, 1.10), 75.9 / 1.10);  // DeepSeek-V3 MMLU-Pro / output price
   assert.equal(valuePerDollar(84.8, 4.5), 84.8 / 4.5);    // Qwen3-235B
-  assert.equal(valuePerDollar(80, 0), Infinity);          // 本地/免费
-  assert.equal(valuePerDollar(null, 5), null);            // 无分数不臆造
+  assert.equal(valuePerDollar(80, 0), Infinity);          // local / free
+  assert.equal(valuePerDollar(null, 5), null);            // no score, never fabricated
   assert.equal(valuePerDollar(80, 'x'), null);
 });
 
 test('evalNeedle: finds embedded needle, flags truncation', () => {
   assert.equal(evalNeedle('The code is ABC-12345-XYZ as requested.', 'ABC-12345-XYZ').ok, true);
-  assert.equal(evalNeedle('the code is abc-12345-xyz', 'ABC-12345-XYZ').ok, true); // 大小写无关
+  assert.equal(evalNeedle('the code is abc-12345-xyz', 'ABC-12345-XYZ').ok, true); // case-insensitive
   assert.equal(evalNeedle('I could not find any code.', 'ABC-12345-XYZ').ok, false);
   assert.equal(evalNeedle('x', '').ok, false);
 });

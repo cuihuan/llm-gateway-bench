@@ -1,54 +1,54 @@
-你下单前测了一次，延迟漂亮、成功率 100%，于是充了一年的量。三周后，每天晚上八点开始排队卡死，工单已读不回；又过一个月，域名解析失败，群被解散。这不是个例，而是中转站的典型生命周期。
+Before you ordered you tested once — pretty latency, 100% success rate — so you topped up a year's worth. Three weeks later, every night at 8pm it starts queuing and freezing, and your tickets get read but not answered; another month and DNS resolution fails, the group chat is disbanded. This isn't a fluke — it's the typical lifecycle of a relay.
 
-## 低价中转站的生命周期
+## The lifecycle of a cheap relay
 
-便宜往往不是终点，而是漏斗的入口。一条常见的轨迹是：
+Cheap is usually not the destination but the funnel's entrance. A common trajectory:
 
-- **引流期**：远低于官方价拉新，体验拉满，刷口碑、攒充值。
-- **拥挤期**：用户上量、上游成本上来，开始**高峰限速**——白天能用，晚高峰排队、`429` 刷屏，倍率被悄悄从 1.3 调到 1.5 不通知你。
-- **断流期**：上游封号潮波及账号池（社区记录约 70% 因脏数据中心 IP 被风控），整段时间成功率塌方。
-- **跑路期**：服务恶化、域名消失、退款无门。背景数据并不乐观：业内盘点的 **92+ 中转产品大多没有企业注册或 ICP 备案**，主体本就难追责。
+- **Acquisition phase**: well below official prices to pull in new users, experience cranked to the max, building word-of-mouth and amassing top-ups.
+- **Congestion phase**: as users pile on and upstream cost rises, **peak-hour throttling** begins — usable during the day, queues and `429` floods at the evening peak, the multiplier quietly bumped from 1.3 to 1.5 without notice.
+- **Outage phase**: an upstream ban wave hits the account pool (community records put ~70% of it down to dirty data-center IPs getting risk-flagged), and the success rate collapses for whole stretches.
+- **Exit phase**: service degrades, the domain vanishes, refunds are nowhere to be found. The background data isn't encouraging: industry tallies show **92+ relay products mostly without company registration or ICP filing**, so the legal entity was hard to hold accountable in the first place.
 
-这些事故都有一个共同点：**它们发生在你买单之后，而不是你测试的那一刻。**
+These incidents share one thing in common: **they happen after you've paid, not at the moment you tested.**
 
-## 为什么一次性快照不够
+## Why a one-off snapshot isn't enough
 
-下单前的单次拨测，本质上是被测方主场、你挑的时间点。它测不出三件最要命的事：
+A single probe before ordering is essentially the tested party's home turf, at a time you picked. It can't measure the three deadliest things:
 
-- **时段相关的退化**：高峰限速只在特定 UTC 小时出现，午夜测一次永远看不到。
-- **间歇性故障**：偶发 `5xx`、偶发超时，单次采样大概率漏掉。
-- **存活趋势**：一个正在走下坡路的站，今天的快照依旧光鲜——衰减是斜率，不是某一点的值。
+- **Time-of-day-dependent degradation**: peak-hour throttling only appears in specific UTC hours, and a midnight test will never see it.
+- **Intermittent failures**: occasional `5xx`, occasional timeouts — a single sample most likely misses them.
+- **Survival trend**: a site on the way down still looks pristine in today's snapshot — decay is a slope, not the value at a single point.
 
-> 单点数据可以伪装，**斜率和持续性骗不了人**。这正是数据积累的长线价值：跑得越久，曲线越有说服力，新站抄不走历史。
+> A single data point can be staged, but **the slope and the persistence can't lie**. This is exactly the long-term value of accumulated data: the longer it runs, the more convincing the curve, and a new shop can't fake history.
 
-## 平台怎么测
+## How the platform measures
 
-本平台用 GitHub Actions 每 6 小时黑盒拨测一次（每天约 4 个时段，跨天填满），把每次结果沉淀成时间序列，再静态渲染。稳定性维度具体落在这几个量上（聚合逻辑见 `probe/aggregate.mjs`）：
+The platform black-box probes once every 6 hours via GitHub Actions (about 4 slots per day, filling out across days), settles each result into a time series, and statically renders it. The stability dimension lands on these specific quantities (aggregation logic in `probe/aggregate.mjs`):
 
-- **30 天 / 7 天滚动成功率**：`uptimePct` 与 `uptime7dPct`。30 天看长期底子，7 天看近况是否变坏——两个一起看才能识别下行趋势。
-- **鉴权剔除**：探针自己 key 的 `401/403`（模型未授权、白名单）逐样本从分母剔除，并以「鉴权排除 ×N」单独披露。那是我们的配置问题，不算它的故障——**不做有罪推定**。
-- **错误画像**：失败不混为一谈，拆成 `429`（限流）/ `5xx`（故障）/ `timeout`（超时）/ `other`。性质完全不同：限流是容量与策略问题，5xx 是上游真崩，超时是网络或排队。
-- **时段画像与高峰漂移**：按 UTC 小时聚合 TTFT 与成功率，`peakDrift = 最慢小时 TTFT ÷ 最快小时 TTFT`。**≥2× 标红**——这是"高峰期限速/卡死"的直接证据。
-- **TTFT 趋势 + 存活历史**：每日 TTFT p50 曲线，以及按天的状态条带（绿=成功率≥99%、黄=≥80%、红=<80%、灰=无数据），一眼看出哪天塌过、塌了多久。
+- **30-day / 7-day rolling success rate**: `uptimePct` and `uptime7dPct`. The 30-day shows the long-term foundation, the 7-day shows whether things have recently gotten worse — read both together to spot a downtrend.
+- **Auth exclusion**: the probe's own key returning `401/403` (model not authorized, whitelist) is excluded from the denominator per sample, and disclosed separately as "auth excluded ×N". That's our config problem, not its outage — **no presumption of guilt**.
+- **Error breakdown**: failures aren't lumped together but split into `429` (rate-limit) / `5xx` (outage) / `timeout` / `other`. They mean completely different things: rate-limiting is a capacity/policy issue, 5xx is the upstream really crashing, timeout is network or queuing.
+- **Time-of-day profile and peak drift**: TTFT and success rate aggregated by UTC hour, `peakDrift = slowest-hour TTFT ÷ fastest-hour TTFT`. **≥2× goes red** — direct evidence of "peak-hour throttling/freezing".
+- **TTFT trend + survival history**: a daily TTFT p50 curve, plus a per-day status band (green = success rate ≥99%, yellow = ≥80%, red = <80%, gray = no data), so you can see at a glance which day it collapsed and for how long.
 
-时间窗口严格限定在 30 天内，更早的历史只留在原始数据 `data/results/` 里，不影响榜面数字——但它们让"这家活了多久、稳了多久"有据可查。
+The time window is strictly capped at 30 days; earlier history lives only in the raw data under `data/results/` and doesn't affect leaderboard numbers — but it documents "how long this shop has lived, and how long it stayed stable".
 
-## 榜面怎么看
+## How to read the leaderboard
 
-对应到排行榜的列，看稳定性建议这样读：
+Mapping to the leaderboard's columns, here's how to read stability:
 
-- **先看 7 天 vs 30 天的差值**。7 天明显低于 30 天 = 正在变坏，警惕引流期已过。
-- **错误列别只看总成功率**。`429` 高 = 高峰会限你；`5xx`/`timeout` 高 = 上游不稳或在跑路边缘。
-- **高峰漂移标红就当真**。`peakDrift ≥ 2` 意味着你最忙的时候它最慢，对 Agent 类高频场景是致命的。
-- **看存活条带的连续性**。零星一两天灰/红不致命，连续红才是事故。
+- **Look at the 7-day vs 30-day gap first.** A 7-day clearly below the 30-day = getting worse; be wary, the acquisition phase is over.
+- **Don't read only the total success rate in the error column.** High `429` = it'll throttle you at peak; high `5xx`/`timeout` = unstable upstream or on the edge of an exit.
+- **Take a red peak drift seriously.** `peakDrift ≥ 2` means it's slowest exactly when you're busiest — fatal for high-frequency Agent scenarios.
+- **Watch the continuity of the survival band.** A stray gray/red day or two isn't fatal; consecutive red is the incident.
 
-排行榜默认按 30 天稳定性排序，且**不做黑箱加权总分**——每一列各自独立，你按自己最在意的列排。
+The leaderboard defaults to sorting by 30-day stability and does **no black-box weighted score** — each column is independent, and you sort by whichever you care about most.
 
-## 给读者的行动建议
+## Action plan for readers
 
-- **小额试水，别梭哈**。先充小额，让它在榜上多跑几周；时间序列替你做尽调，成本是几杯咖啡。
-- **看历史，不看广告**。"官转直连""永不限速"都是声明，[渠道来源无法靠声明证明](methodology-trust)；持续多次的稳定表现才是证据。
-- **把高峰漂移当硬指标**。你的真实负载在晚高峰，就别信午夜跑出来的好成绩。
-- **稳定只是一半，配合保真度看**。便宜且稳，也可能是在偷换模型、虚报 token；稳定性回答"它在不在"，行为指纹回答"它是不是真货"。价格再低，也要先过[价格指数](price-index)这关确认没有隐藏倍率。
+- **Dip a small amount, don't go all in.** Top up a little and let it run on the leaderboard for a few more weeks; the time series does the due diligence for you, at the cost of a few cups of coffee.
+- **Read the history, not the ad.** "Official direct connection" and "never throttled" are claims; [channel origin can't be proven by claims](methodology-trust) — sustained behavior over many runs is the evidence.
+- **Treat peak drift as a hard metric.** Your real load is at the evening peak, so don't trust good numbers from a midnight run.
+- **Stability is only half — read it with fidelity.** Cheap and stable can still mean substituting models and inflating tokens; stability answers "is it there", behavioral fingerprints answer "is it the real thing". However low the price, it must first clear the [price index](price-index) to confirm there's no hidden multiplier.
 
-一句话：**别买快照，买曲线。** 一次测试证明不了任何长期承诺，能证明的只有持续跑出来的那条线。
+In a sentence: **don't buy the snapshot, buy the curve.** A single test proves no long-term promise; the only thing that proves it is the line drawn by running continuously.

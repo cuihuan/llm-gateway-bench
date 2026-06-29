@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { buildTarget, buildComparison, buildReport, renderReportHtml, priceIdxFor, buildBaselineRef, buildPriceMatrixReport, buildGap } from './report.mjs';
 
-// 一个典型的 probeGateway 产出（含 summarize 的字段形状）。
+// A typical probeGateway output (with the field shapes from summarize).
 const okRaw = {
   name: 'OpenRouter', host: 'openrouter.ai', connectivity: { ok: true, latencyMs: 120 },
   models: [{
@@ -29,7 +29,7 @@ test('buildTarget: flattens a healthy probe result, no key/baseUrl leak', () => 
   assert.equal(t.cjk, true);
   assert.equal(t.needle, true);
   assert.equal(t.error, null);
-  // 隐私红线：序列化后不得出现 key / baseUrl / Authorization
+  // Privacy red line: the serialized form must not contain key / baseUrl / Authorization
   const s = JSON.stringify(t);
   assert.ok(!/sk-|Bearer|https?:\/\//.test(s), 'target must not embed secrets or full URLs');
 });
@@ -102,7 +102,7 @@ test('buildTarget + buildGap: cache dimension (supported/none/unknown)', () => {
   assert.equal(buildTarget(okRaw).cache, null); // okRaw has no cache field
   const gap = buildGap([withCache], [{ name: 'X', ttftP50: 500, tps: 40, uptimePct: 99 }], 'C');
   assert.equal(gap.cache.mine, true);
-  assert.ok(gap.summary.includes('缓存命中'));
+  assert.ok(gap.summary.includes('cache hit'));
 });
 
 test('buildComparison: picks fastest TTFT and highest throughput', () => {
@@ -163,10 +163,10 @@ test('renderReportHtml: renders price + multiplier columns and cheapest winner',
     buildTarget({ ...okRaw, name: 'Cheap', price: [0.15, 0.6], official: [0.3, 1.2] }),
   ] });
   const html = renderReportHtml(r);
-  assert.ok(html.includes('价格 入/出'), 'price column header');
+  assert.ok(html.includes('Price in/out'), 'price column header');
   assert.ok(html.includes('0.15/0.6'), 'per-target price shown');
   assert.ok(html.includes('0.5×'), 'price multiplier shown');
-  assert.ok(html.includes('最便宜'), 'cheapest winner shown');
+  assert.ok(html.includes('Cheapest'), 'cheapest winner shown');
 });
 
 test('buildBaselineRef: extracts gateway headline, sorts by uptime, skips empty', () => {
@@ -188,48 +188,48 @@ test('buildReport: attaches baseline only when non-empty', () => {
   assert.ok(!('baseline' in noBase), 'empty baseline omitted');
 });
 
-test('buildGap: 你 vs 最好——逐维度差距，含基线作为最优候选', () => {
-  const mineT = buildTarget({ name: '我的网关', host: 'mine.io', price: [0.4, 1.6], official: [0.3, 1.2], models: [{
+test('buildGap: you vs best — per-dimension gap, baseline included as best candidate', () => {
+  const mineT = buildTarget({ name: 'My Gateway', host: 'mine.io', price: [0.4, 1.6], official: [0.3, 1.2], models: [{
     samples: 3, success: 3, successRate: 1, ttftMs: { p50: 700, p95: 900 }, tokensPerSec: { avg: 40 },
     modelEchoRate: 1, burstStreamRate: 0, toolCall: { ok: true }, cjk: { ok: true }, needle: { ok: false }, errors: [],
   }] });
   const baseline = [{ name: 'OpenRouter', ttftP50: 500, tps: 50, uptimePct: 99.8 }];
-  const gap = buildGap([mineT], baseline, '我的网关');
-  assert.equal(gap.mine, '我的网关');
+  const gap = buildGap([mineT], baseline, 'My Gateway');
+  assert.equal(gap.mine, 'My Gateway');
   const ttft = gap.dims.find((d) => d.key === 'ttft');
   assert.equal(ttft.best, 500); assert.equal(ttft.bestName, 'OpenRouter');
-  assert.equal(ttft.verdict, '落后'); // 700 vs 500 = 40% slower
+  assert.equal(ttft.verdict, 'behind'); // 700 vs 500 = 40% slower
   assert.equal(ttft.behindPct, 40);
   const tps = gap.dims.find((d) => d.key === 'tps');
-  assert.equal(tps.verdict, '落后'); // 40 vs 50 = 20% below
-  // 价格按倍率对标官方：mine [0.4,1.6] vs official [0.3,1.2] → idx 1.33，best=官方价 1.0× → 落后
+  assert.equal(tps.verdict, 'behind'); // 40 vs 50 = 20% below
+  // Price benchmarked by multiplier vs official: mine [0.4,1.6] vs official [0.3,1.2] → idx 1.33, best = official price 1.0× → behind
   const price = gap.dims.find((d) => d.key === 'price');
   assert.equal(price.yours, 1.33);
-  assert.equal(price.best, 1); assert.equal(price.bestName, '官方价');
-  assert.equal(price.verdict, '落后');
+  assert.equal(price.best, 1); assert.equal(price.bestName, 'official price');
+  assert.equal(price.verdict, 'behind');
   assert.equal(gap.integrity.ok, false);
-  assert.deepEqual(gap.integrity.failed, ['长文本']); // needle failed
-  assert.ok(gap.summary.includes('TTFT落后40%'));
+  assert.deepEqual(gap.integrity.failed, ['long context']); // needle failed
+  assert.ok(gap.summary.includes('TTFT behind 40%'));
 });
 
-test('buildGap: 你最优的维度标 最优；mine 不存在 → null', () => {
+test('buildGap: dimensions where you are best are marked best; mine missing → null', () => {
   const mineT = buildTarget({ name: 'Fast', host: 'f.io', models: [{
     samples: 2, success: 2, successRate: 1, ttftMs: { p50: 300 }, tokensPerSec: { avg: 80 }, errors: [],
   }] });
   const gap = buildGap([mineT], [{ name: 'Slower', ttftP50: 600, tps: 40, uptimePct: 99 }], 'Fast');
-  assert.equal(gap.dims.find((d) => d.key === 'ttft').verdict, '最优');
-  assert.equal(gap.dims.find((d) => d.key === 'tps').verdict, '最优');
-  assert.equal(buildGap([mineT], [], '不存在的'), null);
+  assert.equal(gap.dims.find((d) => d.key === 'ttft').verdict, 'best');
+  assert.equal(gap.dims.find((d) => d.key === 'tps').verdict, 'best');
+  assert.equal(buildGap([mineT], [], 'nonexistent'), null);
 });
 
-test('buildReport: mine 给定时附 gap；renderReportHtml 顶部出差距体检卡', () => {
-  const mineT = buildTarget({ name: '我的', host: 'm.io', models: [{ samples: 2, success: 2, successRate: 1, ttftMs: { p50: 800 }, tokensPerSec: { avg: 30 }, errors: [] }] });
+test('buildReport: attaches gap when mine is given; renderReportHtml shows the gap-check card on top', () => {
+  const mineT = buildTarget({ name: 'Mine', host: 'm.io', models: [{ samples: 2, success: 2, successRate: 1, ttftMs: { p50: 800 }, tokensPerSec: { avg: 30 }, errors: [] }] });
   const r = buildReport({ model: 'm', generatedAt: 't', version: '0.2.0', targets: [mineT],
-    baseline: [{ name: 'Best', ttftP50: 400, tps: 60, uptimePct: 99.9 }], mine: '我的' });
-  assert.ok(r.gap, 'report 带 gap');
+    baseline: [{ name: 'Best', ttftP50: 400, tps: 60, uptimePct: 99.9 }], mine: 'Mine' });
+  assert.ok(r.gap, 'report carries gap');
   const html = renderReportHtml(r);
-  assert.ok(html.includes('差距体检'), '渲染差距体检卡');
-  assert.ok(html.includes('最好'), '显示最好的值');
+  assert.ok(html.includes('Gap check'), 'renders the gap-check card');
+  assert.ok(html.includes('best'), 'shows the best value');
 });
 
 test('buildPriceMatrixReport: real public pricing → model×gateway matrix, cheapest per row', () => {
@@ -259,8 +259,8 @@ test('renderReportHtml: renders pricematrix table, no-key caption, cheapest high
     models: [{ model: 'deepseek-v4-flash', official: null, cells: { synthorai: [0.138, 0.275], openrouter: [0.098, 0.196] } }] };
   const pm = buildPriceMatrixReport(prices, { gateways: [{ id: 'synthorai', name: 'Synthorai' }, { id: 'openrouter', name: 'OpenRouter' }], generatedAt: 't', version: '0.2.0' });
   const html = renderReportHtml(pm);
-  assert.ok(html.includes('价格横评'), 'pricematrix title');
-  assert.ok(html.includes('无需 key'), 'no-key honesty caption');
+  assert.ok(html.includes('Price comparison'), 'pricematrix title');
+  assert.ok(html.includes('no key needed'), 'no-key honesty caption');
   assert.ok(html.includes('class="r cheap"'), 'cheapest cell highlighted');
   assert.ok(html.includes('deepseek-v4-flash'));
   assert.ok(!/sk-|Bearer/.test(html));
@@ -271,17 +271,17 @@ test('renderReportHtml: renders public-baseline reference section when present',
     targets: [buildTarget(okRaw)],
     baseline: [{ name: 'OpenRouter', host: 'openrouter.ai', uptimePct: 99.8, ttftP50: 510, priceIdx: 1.0, region: 'gh-us' }] });
   const html = renderReportHtml(r);
-  assert.ok(html.includes('公共基线参照'), 'baseline section heading');
+  assert.ok(html.includes('Public baseline reference'), 'baseline section heading');
   assert.ok(html.includes('99.8%'), 'baseline uptime shown');
-  assert.ok(html.includes('没有别家 key 也能对个大概'), 'honest caption');
+  assert.ok(html.includes("Get a rough read even without other providers' keys"), 'honest caption');
 });
 
 test('renderReportHtml: includes serverless share affordance (download + share link)', () => {
   const r = buildReport({ model: 'm', generatedAt: 't', version: '0.2.0', targets: [buildTarget(okRaw)] });
   const html = renderReportHtml(r);
   assert.ok(html.includes('id="gw-dl"'), 'has download button');
-  assert.ok(html.includes('下载报告 JSON'));
-  assert.ok(html.includes('分享到报告广场'), 'has share-to-gallery link');
+  assert.ok(html.includes('Download report JSON'));
+  assert.ok(html.includes('Share to report gallery'), 'has share-to-gallery link');
   assert.ok(html.includes('createObjectURL'), 'download wired from embedded JSON');
 });
 

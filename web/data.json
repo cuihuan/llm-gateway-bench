@@ -13,7 +13,7 @@
       "host": "synthorai.io",
       "website": "https://synthorai.io",
       "protocols": "OpenAI · Anthropic",
-      "category": "网关",
+      "category": "Gateway",
       "pricing": "https://synthorai.io/api/pricing",
       "probeModels": [
         "gemini-2.5-flash",
@@ -26,22 +26,22 @@
         "id": "synthorai",
         "annotatedAt": "2026-06-13",
         "channel": {
-          "claim": "官方直连（自声明）",
+          "claim": "Official Direct (self-claimed)",
           "verify": "pending"
         },
         "promptRetention": {
           "status": "warn",
-          "text": "官网自称零留存（zero-retention, audited gateway / No data kept），但未见正式隐私政策/ToS 文档、且未独立核验；维护者与 Synthorai 有利益关联（见下方披露）",
+          "text": "The site self-claims zero retention (zero-retention, audited gateway / No data kept), but no formal privacy policy / ToS document is available and it has not been independently verified; the maintainer has a conflict of interest with Synthorai (see disclosure below)",
           "evidence": "https://synthorai.io"
         },
         "training": {
           "status": "warn",
-          "text": "由「零留存」自声明推断不用于训练（官网未单独表述训练用途）；同属自声明、无正式政策文档、未独立核验",
+          "text": "Inferred not used for training from the \"zero retention\" self-claim (the site does not separately state training use); likewise self-claimed, with no formal policy document and not independently verified",
           "evidence": "https://synthorai.io"
         },
-        "entity": "未公开披露",
-        "invoice": "待标注",
-        "disclosure": "本仓库维护者为 Synthorai 开发者（利益关联，已披露）"
+        "entity": "not publicly disclosed",
+        "invoice": "to be annotated",
+        "disclosure": "The maintainer of this repository is a Synthorai developer (conflict of interest, disclosed)"
       },
       "region": "gh-us",
       "byRegion": {
@@ -397,7 +397,7 @@
       "host": "openrouter.ai/api",
       "website": "https://openrouter.ai",
       "protocols": "OpenAI",
-      "category": "网关",
+      "category": "Gateway",
       "pricing": "https://openrouter.ai/models",
       "probeModels": [
         "openai/gpt-4o-mini",
@@ -408,21 +408,21 @@
         "id": "openrouter",
         "annotatedAt": "2026-06-10",
         "channel": {
-          "claim": "官方/公开供应商路由",
+          "claim": "Official / public provider routing",
           "verify": "pending"
         },
         "promptRetention": {
           "status": "warn",
-          "text": "默认不留存正文；可 opt-in 记录换折扣",
+          "text": "Content not retained by default; opt-in logging available in exchange for a discount",
           "evidence": "https://openrouter.ai/docs/features/privacy-and-logging"
         },
         "training": {
           "status": "good",
-          "text": "否（默认）",
+          "text": "No (default)",
           "evidence": "https://openrouter.ai/docs/features/privacy-and-logging"
         },
         "entity": "OpenRouter, Inc. (US)",
-        "invoice": "国际发票",
+        "invoice": "international invoice",
         "disclosure": null
       },
       "region": null,
@@ -583,7 +583,7 @@
       "host": "aihubmix.com",
       "website": "https://aihubmix.com",
       "protocols": "OpenAI",
-      "category": "网关",
+      "category": "Gateway",
       "pricing": "https://aihubmix.com/models",
       "probeModels": [
         "gpt-4o-mini",
@@ -594,21 +594,21 @@
         "id": "aihubmix",
         "annotatedAt": "2026-06-13",
         "channel": {
-          "claim": "自声明官转",
+          "claim": "self-claimed official relay",
           "verify": "pending"
         },
         "promptRetention": {
           "status": "warn",
-          "text": "仅概括性「按必要期限保留个人信息」，未专门承诺 API 正文留存期限；服务器在美国 Azure",
+          "text": "Only a generic \"retain personal information for as long as necessary\"; no specific commitment on API content retention period; servers on Azure in the US",
           "evidence": "https://docs.aihubmix.com/en/terms-and-privacy/Privacy"
         },
         "training": {
           "status": "good",
-          "text": "官方隐私政策：We do not use the content you send via the API to train models",
+          "text": "Official privacy policy: We do not use the content you send via the API to train models",
           "evidence": "https://docs.aihubmix.com/en/terms-and-privacy/Privacy"
         },
-        "entity": "美国 Delaware 注册公司（法人名未披露）",
-        "invoice": "待标注",
+        "entity": "US company registered in Delaware (legal entity name not disclosed)",
+        "invoice": "to be annotated",
         "disclosure": null
       },
       "region": null,
@@ -765,11 +765,11 @@
     },
     {
       "id": "openai-direct",
-      "name": "OpenAI (官方直连基线)",
+      "name": "OpenAI (Official Direct Baseline)",
       "host": "api.openai.com",
       "website": "https://platform.openai.com",
       "protocols": "OpenAI",
-      "category": "官方直连",
+      "category": "Official Direct",
       "pricing": "https://platform.openai.com/docs/pricing",
       "probeModels": [
         "gpt-4o-mini"
@@ -779,21 +779,21 @@
         "id": "openai-direct",
         "annotatedAt": "2026-06-10",
         "channel": {
-          "claim": "官方",
+          "claim": "official",
           "verify": "baseline"
         },
         "promptRetention": {
           "status": "good",
-          "text": "API 数据默认不用于训练；滥用监测留存后删除",
+          "text": "API data not used for training by default; abuse-monitoring data retained then deleted",
           "evidence": "https://openai.com/enterprise-privacy/"
         },
         "training": {
           "status": "good",
-          "text": "否（默认）",
+          "text": "No (default)",
           "evidence": "https://openai.com/enterprise-privacy/"
         },
         "entity": "OpenAI, Inc.",
-        "invoice": "国际发票",
+        "invoice": "international invoice",
         "disclosure": null
       },
       "region": null,
@@ -950,11 +950,11 @@
     },
     {
       "id": "deepseek-direct",
-      "name": "DeepSeek (官方直连基线)",
+      "name": "DeepSeek (Official Direct Baseline)",
       "host": "api.deepseek.com",
       "website": "https://platform.deepseek.com",
       "protocols": "OpenAI",
-      "category": "官方直连",
+      "category": "Official Direct",
       "pricing": "https://api-docs.deepseek.com/quick_start/pricing",
       "probeModels": [
         "deepseek-chat"
@@ -964,21 +964,21 @@
         "id": "deepseek-direct",
         "annotatedAt": "2026-06-13",
         "channel": {
-          "claim": "官方",
+          "claim": "official",
           "verify": "baseline"
         },
         "promptRetention": {
           "status": "warn",
-          "text": "保留期与账户存续挂钩（账户存在期间保留），未承诺短期删除；数据存储于中国境内服务器",
+          "text": "Retention tied to account lifetime (kept while the account exists), no commitment to short-term deletion; data stored on servers in China",
           "evidence": "https://cdn.deepseek.com/policies/en-US/deepseek-privacy-policy.html"
         },
         "training": {
           "status": "warn",
-          "text": "默认用于训练/改进模型，提供 opt-out 退出权（非默认关闭，与 OpenAI 默认不训练相反）",
+          "text": "Used for training / improving models by default, with an opt-out right (not off by default, the opposite of OpenAI's not-trained-by-default)",
           "evidence": "https://cdn.deepseek.com/policies/en-US/deepseek-privacy-policy.html"
         },
-        "entity": "杭州深度求索人工智能基础技术研究有限公司",
-        "invoice": "待标注",
+        "entity": "Hangzhou DeepSeek Artificial Intelligence Fundamental Technology Research Co., Ltd.",
+        "invoice": "to be annotated",
         "disclosure": null
       },
       "region": null,
@@ -1135,11 +1135,11 @@
     },
     {
       "id": "moonshot-direct",
-      "name": "Moonshot Kimi (官方直连基线)",
+      "name": "Moonshot Kimi (Official Direct Baseline)",
       "host": "api.moonshot.cn",
       "website": "https://platform.moonshot.cn",
       "protocols": "OpenAI",
-      "category": "官方直连",
+      "category": "Official Direct",
       "pricing": "https://platform.moonshot.cn/docs/pricing/chat",
       "probeModels": [
         "moonshot-v1-8k"
@@ -1149,21 +1149,21 @@
         "id": "moonshot-direct",
         "annotatedAt": "2026-06-13",
         "channel": {
-          "claim": "官方",
+          "claim": "official",
           "verify": "baseline"
         },
         "promptRetention": {
           "status": "warn",
-          "text": "§5.2 仅在「实现服务目的所必需的时间内」保留，未给具体期限；§5.1 数据存储于中国境内",
+          "text": "§5.2 retains data only \"for as long as necessary to fulfill the service purpose,\" with no specific period; §5.1 data stored in China",
           "evidence": "https://platform.kimi.com/docs/agreement/userprivacy"
         },
         "training": {
           "status": "warn",
-          "text": "§2.3 对话信息用于「优化模型」，未明确区分默认/单独授权、无专门训练 opt-out（§7.1 仅概括性撤回授权权）",
+          "text": "§2.3 conversation data is used to \"improve the model,\" without clearly distinguishing default vs separate consent and with no dedicated training opt-out (§7.1 only a generic right to withdraw consent)",
           "evidence": "https://platform.kimi.com/docs/agreement/userprivacy"
         },
-        "entity": "北京月之暗面科技有限公司",
-        "invoice": "待标注",
+        "entity": "Beijing Moonshot AI Technology Co., Ltd.",
+        "invoice": "to be annotated",
         "disclosure": null
       },
       "region": null,
@@ -1320,11 +1320,11 @@
     },
     {
       "id": "siliconflow",
-      "name": "SiliconFlow 硅基流动",
+      "name": "SiliconFlow",
       "host": "api.siliconflow.cn",
       "website": "https://siliconflow.cn",
       "protocols": "OpenAI",
-      "category": "供应商",
+      "category": "Provider",
       "pricing": "https://siliconflow.cn/pricing",
       "probeModels": [
         "Qwen/Qwen2.5-7B-Instruct"
@@ -1334,21 +1334,21 @@
         "id": "siliconflow",
         "annotatedAt": "2026-06-13",
         "channel": {
-          "claim": "自营推理（开源权重模型一手渠道）",
+          "claim": "First-party inference (first-hand channel for open-weight models)",
           "verify": "pending"
         },
         "promptRetention": {
           "status": "good",
-          "text": "官方对照表标明交互数据「平台不存储」；账户类用户信息按必要期限保留、存于中国境内",
+          "text": "The official comparison table marks interaction data as \"not stored by the platform\"; account-level user information is retained as long as necessary and stored in China",
           "evidence": "https://docs.siliconflow.cn/cn/legals/privacy-policy"
         },
         "training": {
           "status": "good",
-          "text": "中立技术渠道，承诺不对交互数据做任何非授权使用或披露（即不用于训练）",
+          "text": "A neutral technical channel; commits to no unauthorized use or disclosure of interaction data (i.e. not used for training)",
           "evidence": "https://docs.siliconflow.cn/cn/legals/privacy-policy"
         },
-        "entity": "北京硅基流动科技有限公司",
-        "invoice": "待标注",
+        "entity": "Beijing SiliconFlow Technology Co., Ltd.",
+        "invoice": "to be annotated",
         "disclosure": null
       },
       "region": null,
@@ -1509,7 +1509,7 @@
       "host": "api.groq.com/openai",
       "website": "https://groq.com",
       "protocols": "OpenAI",
-      "category": "供应商",
+      "category": "Provider",
       "pricing": "https://groq.com/pricing",
       "probeModels": [
         "llama-3.1-8b-instant"
@@ -1519,21 +1519,21 @@
         "id": "groq",
         "annotatedAt": "2026-06-13",
         "channel": {
-          "claim": "自营 LPU 推理（开源权重模型一手渠道）",
+          "claim": "First-party LPU inference (first-hand channel for open-weight models)",
           "verify": "pending"
         },
         "promptRetention": {
           "status": "good",
-          "text": "默认不留存推理数据（官方：does not retain customer data for inference requests），仅排障日志≤30天；ZDR 全员可开",
+          "text": "Inference data not retained by default (official: does not retain customer data for inference requests), only troubleshooting logs ≤30 days; ZDR available to everyone",
           "evidence": "https://console.groq.com/docs/your-data"
         },
         "training": {
           "status": "good",
-          "text": "服务协议 §4.2：未经客户授权不得用 Inputs/Outputs 训练或微调任何模型",
+          "text": "Services Agreement §4.2: Inputs/Outputs must not be used to train or fine-tune any model without customer authorization",
           "evidence": "https://console.groq.com/docs/legal/services-agreement"
         },
         "entity": "Groq, Inc. (US)",
-        "invoice": "待标注",
+        "invoice": "to be annotated",
         "disclosure": null
       },
       "region": null,
@@ -1694,7 +1694,7 @@
       "host": "api.together.xyz",
       "website": "https://www.together.ai",
       "protocols": "OpenAI",
-      "category": "供应商",
+      "category": "Provider",
       "pricing": "https://www.together.ai/pricing",
       "probeModels": [
         "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo"
@@ -1704,21 +1704,21 @@
         "id": "together",
         "annotatedAt": "2026-06-13",
         "channel": {
-          "claim": "自营推理（开源权重模型一手渠道）",
+          "claim": "First-party inference (first-hand channel for open-weight models)",
           "verify": "pending"
         },
         "promptRetention": {
           "status": "good",
-          "text": "默认不存储输入/输出（官方 docs：does not store inputs or outputs by default），仅临时缓存提性能",
+          "text": "Inputs/outputs not stored by default (official docs: does not store inputs or outputs by default), only temporary caching for performance",
           "evidence": "https://docs.together.ai/docs/privacy-and-security"
         },
         "training": {
           "status": "good",
-          "text": "训练为 opt-in、默认不启用（官方 docs：opt-in and not enabled by default）",
+          "text": "Training is opt-in and not enabled by default (official docs: opt-in and not enabled by default)",
           "evidence": "https://docs.together.ai/docs/privacy-and-security"
         },
         "entity": "Together Computer, Inc. (US)",
-        "invoice": "待标注",
+        "invoice": "to be annotated",
         "disclosure": null
       },
       "region": null,
@@ -1879,7 +1879,7 @@
       "host": "api.ohmygpt.com",
       "website": "https://www.ohmygpt.com",
       "protocols": "OpenAI",
-      "category": "网关",
+      "category": "Gateway",
       "pricing": "https://www.ohmygpt.com",
       "probeModels": [
         "gpt-4o-mini"
@@ -1889,21 +1889,21 @@
         "id": "ohmygpt",
         "annotatedAt": "2026-06-13",
         "channel": {
-          "claim": "自声明官转",
+          "claim": "self-claimed official relay",
           "verify": "pending"
         },
         "promptRetention": {
           "status": "warn",
-          "text": "官方保留「store, review, and investigate」通信数据之权利；销户后 30 天内删除、服务器位置未披露；上游（如 OpenAI）可能另行记录，平台称 usually unable to prevent",
+          "text": "Officially reserves the right to \"store, review, and investigate\" communication data; deleted within 30 days after account closure, server location not disclosed; upstream providers (e.g. OpenAI) may log separately, which the platform says it is usually unable to prevent",
           "evidence": "https://www.ohmygpt.com/privacy"
         },
         "training": {
           "status": "unknown",
-          "text": "政策仅承诺不出售（not sell）交互内容，未提及是否用于训练——未表态",
+          "text": "The policy only promises not to sell interaction content and does not mention whether it is used for training — no position stated",
           "evidence": "https://www.ohmygpt.com/privacy"
         },
-        "entity": "待标注",
-        "invoice": "待标注",
+        "entity": "to be annotated",
+        "invoice": "to be annotated",
         "disclosure": null
       },
       "region": null,
@@ -2064,7 +2064,7 @@
       "host": "api.closeai-asia.com",
       "website": "https://www.closeai-asia.com",
       "protocols": "OpenAI",
-      "category": "网关",
+      "category": "Gateway",
       "pricing": "https://www.closeai-asia.com",
       "probeModels": [
         "gpt-4o-mini"
@@ -2074,21 +2074,21 @@
         "id": "closeai",
         "annotatedAt": "2026-06-13",
         "channel": {
-          "claim": "自声明官转",
+          "claim": "self-claimed official relay",
           "verify": "pending"
         },
         "promptRetention": {
           "status": "warn",
-          "text": "可能临时记录请求与响应「部分或全部内容」，通常留存 30 天（计费/排障/安全审计）后清理或匿名化；调用第三方模型时数据转发上游、按其政策处理（平台不担保）",
+          "text": "May temporarily log \"part or all of\" request and response content, usually retained 30 days (billing / troubleshooting / security audit) then cleared or anonymized; when calling third-party models, data is forwarded upstream and handled per their policies (the platform makes no guarantee)",
           "evidence": "https://doc.closeai-asia.com/legal/privacy-policy.html"
         },
         "training": {
           "status": "good",
-          "text": "官方明示：不利用用户业务数据进行模型训练/微调/蒸馏，亦不出售 API 业务数据",
+          "text": "Officially states: does not use user business data for model training / fine-tuning / distillation, and does not sell API business data",
           "evidence": "https://doc.closeai-asia.com/legal/privacy-policy.html"
         },
-        "entity": "境外公司（具体实体未披露）",
-        "invoice": "待标注",
+        "entity": "Overseas company (specific entity not disclosed)",
+        "invoice": "to be annotated",
         "disclosure": null
       },
       "region": null,

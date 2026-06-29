@@ -1,74 +1,74 @@
-# 调研 + 设计：以"我 vs 最好的网关，差距在哪"为核心重组数据
+# Research + design: reorganizing the data around "me vs the best gateway, where's the gap"
 
-> 2026-06-23。回应用户核心诉求：**我新加一个网关，怎么快速知道它和线上最好的网关
-> 差多少、差在哪（价格 / 性能 / 缓存 / 稳定 / 合规）**。这是第一要务；评测报告选网关/
-> 模型是上层。本文先诊断数据组织、再给重组与"差距体检"设计，作为实现准绳。
+> 2026-06-23. Responding to the user's core need: **I just added a new gateway — how do I quickly know how far it lags the best gateway online,
+> and where (price / performance / cache / stability / compliance)**. This is the top priority; the eval reports for choosing a gateway/
+> model are the upper layer. This document first diagnoses the data organization, then gives the reorganization and the "gap check" design as the implementation guide.
 
-## 一、核心用户任务（JTBD）
+## 1. Core user job (JTBD)
 
-> "我接了一个新网关。它到底行不行？比最好的差在哪——是贵，还是慢，还是降智？"
+> "I plugged in a new gateway. Is it any good? Where does it lag the best — is it pricey, slow, or degraded?"
 
-一句话产出：**一张差距体检卡**——逐维度给"你的值 / 最好的值 / 差距%（领先还是落后）"，
-让用户 5 秒看懂"我差在哪、差多少"。这比一张并排大表更直达目的。
+The one-sentence output: **a gap check card** — per dimension, give "your value / the best value / gap% (ahead or behind)",
+so the user grasps "where I lag and by how much" in 5 seconds. This hits the goal more directly than a big side-by-side table.
 
-## 二、诊断：现状为什么"偏乱"
+## 2. Diagnosis: why the status quo feels "messy"
 
-数据资产按不同主键组织，**主轴是"网关"，而用户的问题主轴是"模型 × 维度 → 谁最好"**：
+The data assets are organized by different primary keys, **with the main axis being "gateway", while the user's question's main axis is "model × dimension → who's best"**:
 
-| 文件 | 组织主键 | 服务于 |
+| File | Organizing primary key | Serves |
 |---|---|---|
-| `data/gateways.json` | 网关 | 注册表 |
-| `data/tracked-models.json` | 模型（含各网关别名） | 价格抓取 / 横评目标解析 |
-| `data/prices.json` | 模型 × 网关 cell | 价格 |
-| `data/results/*.json` | 时间(run) → 网关 → 模型 | 原始拨测 |
-| `web/data.json` | **网关**（聚合榜单） | gateway-centric 排行 |
+| `data/gateways.json` | Gateway | Registry |
+| `data/tracked-models.json` | Model (with each gateway's alias) | Price scraping / matrix-target resolution |
+| `data/prices.json` | Model × gateway cell | Price |
+| `data/results/*.json` | Time (run) → gateway → model | Raw probes |
+| `web/data.json` | **Gateway** (aggregated leaderboard) | Gateway-centric ranking |
 
-**错位**：用户要的是"**给定我用的模型，各维度谁最好、我差多少**"（comparison-centric，
-model × dimension），而榜单是 gateway-centric。缺一个一等公民概念：**Best-of（每个
-模型 × 每个维度的最优值与最优网关）**，以及**Gap（把你的网关塞进去算差距）**。
+**The mismatch**: the user wants "**given the model I use, who's best per dimension, and how far do I lag**" (comparison-centric,
+model × dimension), while the leaderboard is gateway-centric. A first-class concept is missing: **Best-of (the optimal value and optimal gateway
+for each model × each dimension)**, and **Gap (drop your gateway in and compute the gap)**.
 
-## 三、重组方案：引入 Best-of 与 Gap 两个派生视图
+## 3. Reorganization plan: introduce two derived views, Best-of and Gap
 
-不推翻底层文件（它们各有用途），而是在聚合层新增两个**派生视图**，把主轴转到比较：
+Without overturning the underlying files (each has its own purpose), add two **derived views** at the aggregation layer to shift the main axis to comparison:
 
-1. **Best-of 视图**（`bestOf`）：对每个被追踪模型 × 每个维度，算出"最优值 + 最优网关"。
-   - 价格：`prices.json` 里该模型各网关的最低 (入+出)；锚点附官方价。
-   - 速度/稳定：来自 `web/data.json` 的公共基线（**网关级跨模型聚合**，诚实标注口径）。
-   - 来源混合时，每个维度标清楚是"该模型实测"还是"网关级参照"。
-2. **Gap 视图**（`buildGap`）：给定"你的网关"在某模型的实测 + Best-of，逐维度算
-   `{ 维度, 你的值, 最优值, 最优网关, 差距%, 判定(领先/持平/落后) }`，并给一句话总览。
+1. **Best-of view** (`bestOf`): for each tracked model × each dimension, compute "the optimal value + optimal gateway".
+   - Price: the lowest (in+out) across gateways for that model in `prices.json`; anchor with the official price.
+   - Speed/stability: from the public baseline in `web/data.json` (**gateway-level cross-model aggregation**, honestly labeled as such).
+   - When sources are mixed, each dimension clearly states whether it's "measured for that model" or a "gateway-level reference".
+2. **Gap view** (`buildGap`): given "your gateway"'s measurement on a model + Best-of, compute per dimension
+   `{ dimension, your value, best value, best gateway, gap%, verdict (ahead/even/behind) }`, plus a one-sentence overview.
 
-## 四、差距体检卡：维度与口径
+## 4. The gap check card: dimensions and conventions
 
-| 维度 | 你的值来源 | 最优来源 | 越低越好? | 判定 |
+| Dimension | Source of your value | Source of the best | Lower is better? | Verdict |
 |---|---|---|---|---|
-| **价格** | 你网关该模型价（--price-in/out 或 cells） | 各网关该模型最低价 | 是 | 倍率 / Δ% |
-| **TTFT** | 本次实测 p50 | 基线最快网关 | 是 | Δ% |
-| **吞吐 tok/s** | 本次实测 | 基线最高 | 否 | Δ% |
-| **稳定性** | 本次成功率 / 基线 uptime | 基线最高 uptime | 否 | Δ 百分点 |
-| **缓存** | 提示缓存命中（usage.cache_read_tokens / 重复 prompt TTFT 骤降） | 支持缓存的最优 | — | 支持/不支持（**待测**，见 §六） |
-| **合规指纹** | 本次（回显/CJK/needle/工具/假流式） | 全过 | — | 你是否漏过某项 |
+| **Price** | Your gateway's price for that model (--price-in/out or cells) | Lowest price across gateways for that model | Yes | Multiplier / Δ% |
+| **TTFT** | This run's measured p50 | The baseline's fastest gateway | Yes | Δ% |
+| **Throughput tok/s** | This run's measurement | The baseline's highest | No | Δ% |
+| **Stability** | This run's success rate / baseline uptime | The baseline's highest uptime | No | Δ percentage points |
+| **Cache** | Prompt-cache hit (usage.cache_read_tokens / repeated-prompt TTFT drop) | The best among those supporting cache | — | Supported/unsupported (**to be measured**, see §6) |
+| **Compliance fingerprint** | This run (echo/CJK/needle/tool/fake-streaming) | All passing | — | Whether you missed any item |
 
-**判定阈值**：|Δ| < 8% 记"持平"；否则"领先/落后 X%"。价格按倍率，性能按相对差。
-**诚实标注**：价格是该模型精确对比；速度/稳定的"最优"目前是网关级聚合参照，卡片注明。
+**Verdict thresholds**: |Δ| < 8% records "even"; otherwise "ahead/behind X%". Price uses the multiplier, performance uses the relative gap.
+**Honest labeling**: price is an exact comparison for that model; the "best" for speed/stability is currently a gateway-level aggregated reference, noted on the card.
 
-## 五、信息架构（三层，从核心到外围）
+## 5. Information architecture (three layers, from core to periphery)
 
-- **第 0 层（核心，新增）· 差距体检**：`compare` / 报告**顶部**先给"你 vs 最好"的差距卡 +
-  一句话总览（"比最好的贵 30%、TTFT 慢 40%、其余持平"）。这是用户第一眼要的答案。
-- **第 1 层 · 明细对比**：现有并排表（速度/价格/指纹/基线参照）作为支撑展开。
-- **第 2 层 · 选型报告**：榜单、模型评测、经典模型×网关横评——"选哪个网关/模型"的上层思维。
+- **Layer 0 (core, new) · Gap check**: at the **top** of `compare` / the report, first give the "you vs best" gap card +
+  a one-sentence overview ("30% pricier than the best, 40% slower TTFT, even on the rest"). This is the answer the user wants at first glance.
+- **Layer 1 · Detailed comparison**: the existing side-by-side table (speed/price/fingerprints/baseline reference) as the supporting expansion.
+- **Layer 2 · Selection reports**: the leaderboard, model evals, classic-model × gateway matrix — the upper-level thinking of "which gateway/model to choose".
 
-## 六、缓存维度（用户点名）——可行性
+## 6. The cache dimension (named by the user) — feasibility
 
-提示缓存（prompt caching）黑盒可测信号：① 响应 `usage` 里的 `cache_read_input_tokens` /
-`prompt_tokens_details.cached_tokens`（OpenAI / Anthropic 风格）；② 同一长 prompt 连发两次，
-第二次 TTFT/价显著下降。**P1**：先在探针里采集 usage 的 cached 字段（零成本搭车），
-够样本再纳入差距卡。本版先把维度位留好、标"待测"。
+Black-box-measurable signals for prompt caching: ① the `cache_read_input_tokens` /
+`prompt_tokens_details.cached_tokens` in the response `usage` (OpenAI / Anthropic style); ② send the same long prompt twice,
+and the second's TTFT/price drops significantly. **P1**: first collect usage's cached fields in the probe (zero-cost piggyback),
+and fold it into the gap card once there are enough samples. This version reserves the dimension slot and labels it "to be measured".
 
-## 七、实现计划（本版先做核心）
+## 7. Implementation plan (this version does the core first)
 
-1. `report.mjs`：纯函数 `buildBestOf` + `buildGap`；compare 报告顶部渲染"差距体检卡"。✅本版
-2. `compare.mjs`：标记 ad-hoc(`--url`) 目标为"你的网关"，传入 `mine`；基线即 Best-of 速度/稳定源。✅本版
-3. 单测覆盖 best-of / gap / 渲染。✅本版
-4. （后续）缓存维度采集；Best-of 升级为模型级速度（需 matrix 真实数据）。
+1. `report.mjs`: pure functions `buildBestOf` + `buildGap`; render the "gap check card" at the top of the compare report. ✅ this version
+2. `compare.mjs`: mark the ad-hoc (`--url`) target as "your gateway", pass in `mine`; the baseline is the Best-of speed/stability source. ✅ this version
+3. Unit tests covering best-of / gap / rendering. ✅ this version
+4. (Later) cache-dimension collection; upgrade Best-of to model-level speed (needs real matrix data).

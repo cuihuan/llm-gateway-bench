@@ -5,7 +5,7 @@
   "description": "Open, user-perspective benchmark for LLM API gateways: connectivity, latency, stability, price.",
   "license": "MIT",
   "type": "module",
-  "keywords": ["llm", "api-gateway", "benchmark", "evaluation", "openai-compatible", "中转站", "大模型评测"],
+  "keywords": ["llm", "api-gateway", "benchmark", "evaluation", "openai-compatible", "relay-station", "llm-benchmark"],
   "homepage": "https://github.com/cuihuan/llm-gateway-bench#readme",
   "repository": { "type": "git", "url": "git+https://github.com/cuihuan/llm-gateway-bench.git" },
   "bugs": { "url": "https://github.com/cuihuan/llm-gateway-bench/issues" },

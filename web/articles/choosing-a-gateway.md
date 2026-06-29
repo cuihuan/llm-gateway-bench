@@ -1,57 +1,57 @@
-便宜一半的中转 API 摆在面前，你点头之前真正该问的不是"它支持哪些模型"，而是四个更难的问题。CISPA 的审计《Real Money, Fake Models》给了一组冷数据：**45.83% 的中转端点过不了模型身份指纹验证**，按官方价付费实际只拿到约 **38% 的 token**；调研到的 92+ 中转产品里，多数没有企业注册、没有 ICP。声明谁都会写，所以这套框架只问一件事——**行为对得上吗**。
+A relay API that's half the price sits in front of you, and before you nod, the question you really should ask isn't "which models does it support" but four harder ones. CISPA's audit *Real Money, Fake Models* offers a set of cold numbers: **45.83% of relay endpoints fail model-identity fingerprint verification**, and paying official prices gets you only about **38% of the tokens**; of the 92+ relay products surveyed, most have no company registration and no ICP filing. Anyone can write a claim, so this framework asks only one thing — **does the behavior match?**
 
-把选型拆成四个问题，每个问题都能落到榜面上的具体列。
+We break selection into four questions, each of which maps to a concrete column on the leaderboard.
 
-## 问题一：它给的是真模型吗
+## Question 1: is it giving you the real model?
 
-中转站最常见的手法是挂着 Claude/GPT 的名卖便宜模型，或者"概率性降级"——一部分请求悄悄路由到廉价或量化版本。这件事**无法靠声明证明**，只能用黑盒指纹组合画像：
+A relay's most common move is selling a cheap model under the Claude/GPT name, or "probabilistic downgrading" — quietly routing a fraction of requests to a cheaper or quantized version. This **can't be proven by claims**; it can only be profiled with a combination of black-box fingerprints:
 
-- **模型回显校验**：响应里的 `model` 字段对不对得上请求；
-- **工具调用转发**：带 `tools` 定义的请求，模型是否返回合法 JSON 调用，还是字段被悄悄剥离（K2 Vendor Verifier 思路）；
-- **CJK 输出完整性**：中文是否出现损坏、`\u` 字面量转义、替换符——量化降智的典型 tell；
-- **上下文截断 needle**：长填充里埋一个 UUID 要求原样回读，尾部被裁会丢。
+- **Model echo check**: does the `model` field in the response match what you requested?
+- **Tool-call forwarding**: for a request carrying a `tools` definition, does the model return a valid JSON call, or were the fields quietly stripped (the K2 Vendor Verifier approach)?
+- **CJK output integrity**: is the Chinese corrupted, escaped as `\u` literals, or full of replacement characters — the classic tell of quantization degradation?
+- **Context-truncation needle**: bury a UUID in long filler and ask for it back verbatim; a tail cut drops it.
 
-对应榜面的**信任与合规**和**行为体检**两组列。详见 [偷换模型与降智：黑盒怎么识别](model-substitution)。
+These map to the **Trust & integrity** and **Behavioral check** column groups on the leaderboard. See [Model substitution and degradation: how to detect it black-box](model-substitution).
 
-> 红线：行为体检多项标红（工具被剥离 + CJK 损坏 + needle 丢失同时出现），基本可以判定不是直连官方上游。
+> Red line: when multiple behavioral-check items go red (tools stripped + CJK corrupted + needle lost all at once), you can basically conclude it isn't a direct connection to the official upstream.
 
-## 问题二：它有没有多收钱
+## Question 2: is it overcharging you?
 
-价格便宜不等于划算，要分两层看。**标价**层用价格指数衡量：同模型网关价 ÷ 官方价（官方价取 litellm 开放价格库），输入/输出比值算术平均后跨模型几何平均，`<1` 便宜、`>1` 贵。**实付**层看 usage 重算指纹：
+A cheap price isn't the same as good value; look at it in two layers. The **list-price** layer is measured by the price index: gateway price ÷ official price for the same model (official price from the litellm open price library), with input/output ratios averaged arithmetically and then geometric-mean'd across models — `<1` is cheaper, `>1` is pricier. The **actual-pay** layer looks at the usage-recomputation fingerprint:
 
-- `charsPerToken`（每 token 字符数）异常偏低 = 疑似虚报 token；
-- `promptTokens` 远超基线 = 疑似偷偷注入隐藏 system prompt；
-- 流式是否带 usage，决定你能不能核账。
+- `charsPerToken` (characters per token) unusually low = suspected inflated token usage;
+- `promptTokens` far above baseline = suspected secret injection of a hidden system prompt;
+- whether streaming carries usage at all, which determines whether you can even audit the bill.
 
-对应**价格指数**列与 usage 指纹。详见 [价格指数怎么算、怎么看](price-index) 与 [计费陷阱：虚报 token、假流式、上下文截断](billing-traps)。
+These map to the **Price index** column and the usage fingerprint. See [How the price index is computed and read](price-index) and [Billing traps: inflated tokens, fake streaming, context truncation](billing-traps).
 
-> 红线：**便宜得反常（价格指数 < 0.5×）**。官方直连不可能长期亏本卖，0.5× 以下要么是虚报 token 把差价赚回来，要么是偷换了更便宜的模型。
+> Red line: **suspiciously cheap (price index < 0.5×)**. A direct official connection can't sustainably sell at a loss; below 0.5× either means inflating tokens to claw back the difference, or swapping in a cheaper model.
 
-## 问题三：它稳不稳、会不会跑路
+## Question 3: is it stable, and will it vanish?
 
-这是数据积累的长线价值——**新站抄不走历史**。看三类信号：
+This is the long-term value of accumulated data — **a new shop can't fake history**. Look at three kinds of signal:
 
-- **30/7 天滚动成功率**（已剔除探针 key 鉴权失败的 401/403）；
-- **错误画像**：429 限流、5xx 故障、超时分开看，性质完全不同；
-- **TTFT 趋势**与**时段画像**：按 UTC 小时聚合，高峰漂移 = 最慢小时 ÷ 最快小时 TTFT，`≥2×` 说明高峰期被限速。
+- **30/7-day rolling success rate** (with the probe key's 401/403 auth failures already excluded);
+- **Error breakdown**: 429 rate-limits, 5xx outages, and timeouts read separately — they mean completely different things;
+- **TTFT trend** and **time-of-day profile**: aggregated by UTC hour, peak drift = slowest-hour ÷ fastest-hour TTFT; `≥2×` means you get throttled at peak.
 
-对应**稳定性**面板。详见 [稳定性与跑路风险：时间序列才是护城河](stability-and-exit-risk)。
+These map to the **Stability** panel. See [Stability and exit risk: the time series is the moat](stability-and-exit-risk).
 
-> 红线：**新站无历史**。一个上线两周的站点，成功率曲线再漂亮也没有说服力——稳定要看持续多次的稳定表现，不是一次快照。
+> Red line: **a new shop with no history**. A two-week-old site, however pretty its success-rate curve, is unconvincing — stability is about sustained behavior over many runs, not a single snapshot.
 
-## 问题四：它合规吗
+## Question 4: is it compliant?
 
-跑路、无发票、prompt 被记录用于训练，都属于这一层。这部分无法自动拨测，平台采用**人工标注 + 证据链接**：渠道来源、数据留存政策、主体资质，每条都附原文链接和标注日期，接受 PR 纠错。评级只有三档——`已验证` / `声明但未验证` / `未验证`，缺证据链接的一律不给 `已验证`。详见 [我们怎么拨测、为什么可信](methodology-trust)。
+Exit scams, no invoices, prompts logged for training — these all live in this layer. This part can't be auto-probed; the platform uses **manual annotation + evidence links**: channel origin, data-retention policy, and legal-entity qualifications each carry a link to the original text and an annotation date, and corrections are accepted via PR. Ratings have only three tiers — `verified` / `claimed but unverified` / `unverified` — and anything missing an evidence link never gets `verified`. See [How we probe, and why it's trustworthy](methodology-trust).
 
-## 一个决策流程
+## A decision flow
 
-按这个顺序走，任一步踩红线就停：
+Walk it in this order; stop at any step that hits a red line:
 
-1. **先看价格指数**——低于 0.5× 直接警惕，进第 2 步重点查；
-2. **看行为体检**——工具调用 / 流式真实性 / CJK / needle 多项红 → 淘汰；
-3. **查 usage 指纹**——`charsPerToken` 偏低或 `promptTokens` 超基线 → 实付不可信；
-4. **看稳定性历史**——没有 30 天数据先观望，有数据看错误画像和高峰漂移；
-5. **看信任标注**——主体资质/数据留存按你的合规要求一票否决；
-6. **小流量灰度**——上述都过了，也先跑一周真实流量再切主链路。
+1. **Start with the price index** — below 0.5× is an immediate warning; proceed to step 2 for a closer look.
+2. **Check the behavioral panel** — tool calling / streaming authenticity / CJK / needle multiple reds → eliminate.
+3. **Inspect the usage fingerprint** — `charsPerToken` low or `promptTokens` above baseline → the actual pay isn't trustworthy.
+4. **Look at the stability history** — without 30 days of data, wait and watch; with data, read the error breakdown and peak drift.
+5. **Check the trust annotations** — legal-entity qualifications / data retention are a veto against your own compliance requirements.
+6. **Canary at low volume** — even if all the above pass, run a week of real traffic before switching your main path over.
 
-这套框架不做黑箱加权总分，也不做有罪推定——每一列你自己排序、自己权衡。它只坚持一点：**不看声明，看持续多次稳定的行为表现**。
+This framework does no black-box weighted score and presumes no guilt — you sort and weigh each column yourself. It insists on only one thing: **don't read the claims, read sustained, repeatedly stable behavior.**

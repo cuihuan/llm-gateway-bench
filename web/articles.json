@@ -1,89 +1,89 @@
 [
   {
     "slug": "choosing-a-gateway",
-    "title": "选大模型网关的完整分析框架",
-    "summary": "用四个问题和一套决策流程把网关选型拆成可验证的列",
+    "title": "A Complete Framework for Choosing an LLM Gateway",
+    "summary": "Break gateway selection into verifiable columns with four questions and a decision flow",
     "tags": [
-      "选型框架",
-      "网关评测",
-      "行为指纹"
+      "Selection framework",
+      "Gateway benchmarks",
+      "Behavior fingerprints"
     ],
     "date": "2026-06-11"
   },
   {
     "slug": "model-substitution",
-    "title": "偷换模型与降智：黑盒怎么识别",
-    "summary": "挂名卖廉价模型与静默量化，靠四类黑盒指纹组合识别。",
+    "title": "Model Substitution and Degradation: How to Spot It Black-box",
+    "summary": "Cheap models sold under a premium name and silent quantization, identified by a combination of four black-box fingerprints.",
     "tags": [
-      "偷换模型",
-      "降智检测",
-      "行为指纹"
+      "Model substitution",
+      "Degradation detection",
+      "Behavior fingerprints"
     ],
     "date": "2026-06-11"
   },
   {
     "slug": "billing-traps",
-    "title": "计费陷阱：虚报 token、假流式、上下文截断",
-    "summary": "三类计费/质量陷阱：虚报token、假流式、上下文截断,及黑盒复现方法",
+    "title": "Billing Traps: Inflated Tokens, Fake Streaming, Context Truncation",
+    "summary": "Three classes of billing/quality traps — inflated tokens, fake streaming, context truncation — and how to reproduce them black-box.",
     "tags": [
-      "计费透明",
-      "行为指纹",
-      "网关评测"
+      "Billing transparency",
+      "Behavior fingerprints",
+      "Gateway benchmarks"
     ],
     "date": "2026-06-11"
   },
   {
     "slug": "stability-and-exit-risk",
-    "title": "稳定性与跑路风险：时间序列才是护城河",
-    "summary": "一次快照测不出高峰限速和跑路，30/7天时序曲线才可信。",
+    "title": "Stability and Exit Risk: The Time Series Is the Moat",
+    "summary": "A single snapshot can't reveal peak-hour throttling or an operator vanishing; only 30/7-day time-series curves are trustworthy.",
     "tags": [
-      "稳定性",
-      "跑路风险",
-      "时间序列"
+      "Stability",
+      "Exit risk",
+      "Time series"
     ],
     "date": "2026-06-11"
   },
   {
     "slug": "price-index",
-    "title": "价格指数怎么算、怎么看",
-    "summary": "价格指数=网关价÷官方价的几何平均，<1便宜但过低要警惕逆向渠道，须配行为体检看。",
+    "title": "How the Price Index Is Computed and Read",
+    "summary": "The price index is the geometric mean of gateway price ÷ official price; <1 is cheaper, but suspiciously low warrants caution about reverse-engineered channels — read it alongside the behavior check.",
     "tags": [
-      "价格指数",
-      "网关评测",
-      "方法论"
+      "Price index",
+      "Gateway benchmarks",
+      "Methodology"
     ],
     "date": "2026-06-11"
   },
   {
     "slug": "methodology-trust",
-    "title": "我们怎么拨测、为什么可信",
-    "summary": "公开拨测方法论：每6h探测、随机串防缓存、原始数据逐次commit、可用自己key复现。",
+    "title": "How We Probe and Why It's Trustworthy",
+    "summary": "Open probing methodology: probed every 6h, a random string defeats caching, raw data committed run by run, reproducible with your own key.",
     "tags": [
-      "方法论",
-      "可信度",
-      "复现"
+      "Methodology",
+      "Trustworthiness",
+      "Reproducibility"
     ],
     "date": "2026-06-11"
   },
   {
     "slug": "self-host-probing",
-    "title": "开源工具与自建拨测：把这套搬到你自己的环境",
-    "summary": "三分钟用自己的 key 拨测任意网关，测榜上没有的渠道、用你的真实网络视角。",
+    "title": "Open-Source Tools and Self-Hosted Probing: Bring This to Your Own Environment",
+    "summary": "Probe any gateway with your own key in three minutes, test channels not on the board, from your real network vantage point.",
     "tags": [
-      "开源工具",
-      "自测",
-      "可复现"
+      "Open-source tools",
+      "Self-testing",
+      "Reproducible"
     ],
     "date": "2026-06-11"
   },
   {
     "slug": "openai-compat-pitfalls",
-    "title": "OpenAI 兼容 ≠ 行为一致：协议层的坑",
-    "summary": "tool_calls 剥离、usage 缺失、假流式、model 回显——兼容接口不等于行为一致。",
+    "title": "OpenAI-Compatible ≠ Behaviorally Identical: Protocol-Layer Pitfalls",
+    "summary": "Stripped tool_calls, missing usage, fake streaming, model echo — a compatible interface doesn't mean identical behavior.",
     "tags": [
-      "协议兼容",
-      "工具调用",
-      "行为指纹"
+      "Protocol compatibility",
+      "Tool calling",
+      "Behavior fingerprints"
     ],
     "date": "2026-06-11"
   }

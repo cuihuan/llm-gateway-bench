@@ -1,115 +1,116 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>定价 · 托管拨测 / 报告托管 · LLM Gateway Bench</title>
-<meta name="description" content="自助拨测永久免费、key 不出本机。付费层：托管拨测（我们用自己的 infra 跑贵活）、Pro 报告托管（私有/带品牌/定时复测/告警）、封装各厂商 SDK 的统一 benchmark 客户端。">
+<title>Pricing · Managed Probing / Report Hosting · LLM Gateway Bench</title>
+<meta name="description" content="Self-service probing is free forever and your key never leaves your machine. Paid tiers: managed probing (we run the expensive jobs on our own infra), Pro report hosting (private / branded / scheduled re-tests / alerts), and a unified benchmark client wrapping each vendor's SDK.">
 <meta name="theme-color" content="#6366f1">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%236366f1'/><rect x='7' y='17' width='4' height='8' rx='1' fill='%23fff'/><rect x='14' y='12' width='4' height='13' rx='1' fill='%23fff'/><rect x='21' y='7' width='4' height='18' rx='1' fill='%23fff'/></svg>">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="LLM Gateway Bench">
-<meta property="og:title" content="定价 · 托管拨测 / 报告托管">
+<meta property="og:title" content="Pricing · Managed Probing / Report Hosting">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <nav><div class="wrap">
-  <div class="logo">LLM Gateway Bench<span>大模型网关评测</span></div>
-  <a class="lnk" href="index.html#leaderboard">网关评测</a>
-  <a class="lnk" href="evals.html">模型评测</a>
-  <a class="lnk" href="reports.html">报告广场</a>
-  <a class="lnk" href="pricing.html">定价</a>
-  <div class="right"><a class="lnk" href="index.html">← 返回平台</a></div>
+  <div class="logo">LLM Gateway Bench<span>Benchmarking LLM Gateways</span></div>
+  <a class="lnk" href="index.html#leaderboard">Gateway Benchmarks</a>
+  <a class="lnk" href="evals.html">Model Benchmarks</a>
+  <a class="lnk" href="reports.html">Reports</a>
+  <a class="lnk" href="pricing.html">Pricing</a>
+  <div class="right"><a class="lnk" href="index.html">← Back to platform</a></div>
 </div></nav>
 
 <header><div class="wrap">
-  <h1>定价</h1>
-  <p class="tagline"><b>自助拨测永久免费</b>，key 只存你本机的环境变量、绝不上传。付费的只有两件事：① 你不想烧自己的 token / 不想配环境，让我们用<b>自己的 infra 跑贵活</b>（长文本 128K、与官方对拍、模型身份指纹）；② 你想把报告<b>私有托管、带品牌、定时复测、变更告警</b>。仅 benchmark 维度，不碰你的业务数据。</p>
+  <h1>Pricing</h1>
+  <p class="tagline"><b>Self-service probing is free forever</b>, and your key lives only in your local environment variables — never uploaded. There are only two things we charge for: ① you don't want to burn your own tokens / set up the environment, so we <b>run the expensive jobs on our own infra</b> (128K long context, cross-checks against the official API, model-identity fingerprinting); ② you want reports <b>privately hosted, branded, re-tested on a schedule, with change alerts</b>. Benchmark dimensions only — we never touch your business data.</p>
 </div></header>
 
 <section><div class="wrap">
-  <h2>分层<span class="anchor">从免费自测到企业托管，按 benchmark 用量计费</span></h2>
+  <h2>Tiers<span class="anchor">From free self-testing to enterprise hosting, billed by benchmark usage</span></h2>
   <div class="tiers">
 
     <div class="tier">
-      <span class="t-tag">免费 · 永久</span>
-      <div class="t-name">自助拨测</div>
+      <span class="t-tag">Free · Forever</span>
+      <div class="t-name">Self-Service Probing</div>
       <div class="t-price">¥0</div>
       <ul>
-        <li>本地跑 gwbench compare / longcontext，无限次</li>
-        <li>用你自己的 key，key 不出本机</li>
-        <li>便携报告 report.html / report.json</li>
-        <li>浏览报告广场全部公开报告</li>
-        <li>把报告公开分享到广场（提 PR）</li>
+        <li>Run gwbench compare / longcontext locally, unlimited</li>
+        <li>Use your own key — it never leaves your machine</li>
+        <li>Portable reports: report.html / report.json</li>
+        <li>Browse all public reports in the Reports gallery</li>
+        <li>Share your reports publicly to the gallery (via PR)</li>
       </ul>
-      <a class="cta" href="reports.html">立即开测 →</a>
+      <a class="cta" href="reports.html">Start testing now →</a>
     </div>
 
     <div class="tier feat">
-      <span class="t-tag">最受欢迎</span>
-      <div class="t-name">托管拨测</div>
-      <div class="t-price">按次 / 按量</div>
+      <span class="t-tag">Most Popular</span>
+      <div class="t-name">Managed Probing</div>
+      <div class="t-price">Per-run / metered</div>
       <ul>
-        <li>我们用自己的 infra + key 跑，你不烧 token</li>
-        <li>贵活全包：长文本 128K needle、与官方 API 对拍、模型身份指纹</li>
-        <li>多地域探针（含国内直连视角）</li>
-        <li>一键出报告，免配环境</li>
-        <li>结果可直接发布到广场或私有保存</li>
+        <li>We run it on our own infra + keys, so you don't burn tokens</li>
+        <li>All the expensive jobs included: 128K long-context needle, cross-checks against the official API, model-identity fingerprinting</li>
+        <li>Multi-region probes (including a domestic direct-connect view)</li>
+        <li>One-click reports, no environment setup</li>
+        <li>Publish results to the gallery or keep them private</li>
       </ul>
-      <a class="cta cta-primary" href="#contact">加入候补 →</a>
+      <a class="cta cta-primary" href="#contact">Join the waitlist →</a>
     </div>
 
     <div class="tier">
-      <span class="t-tag">订阅</span>
-      <div class="t-name">Pro 报告托管</div>
-      <div class="t-price">包月</div>
+      <span class="t-tag">Subscription</span>
+      <div class="t-name">Pro Report Hosting</div>
+      <div class="t-price">Monthly</div>
       <ul>
-        <li>私有报告，带你的品牌/水印</li>
-        <li>定时复测（每日/每周），趋势留存</li>
-        <li>偷换 / 截断 / 限速 变更告警</li>
-        <li>团队共享与权限</li>
-        <li>导出 PDF / 分享短链</li>
+        <li>Private reports with your branding / watermark</li>
+        <li>Scheduled re-tests (daily / weekly), trend retention</li>
+        <li>Alerts on substitution / truncation / rate-limiting changes</li>
+        <li>Team sharing and permissions</li>
+        <li>Export PDF / share short links</li>
       </ul>
-      <a class="cta" href="#contact">加入候补 →</a>
+      <a class="cta" href="#contact">Join the waitlist →</a>
     </div>
 
     <div class="tier">
-      <span class="t-tag">企业 / 开发者</span>
-      <div class="t-name">统一 benchmark 客户端</div>
-      <div class="t-price">License / 用量</div>
+      <span class="t-tag">Enterprise / Developer</span>
+      <div class="t-name">Unified Benchmark Client</div>
+      <div class="t-price">License / usage</div>
       <ul>
-        <li>封装各厂商 SDK，一套接口横评多家</li>
-        <li>国内用户友好：一处接入，跑遍主流网关</li>
-        <li>把 gwbench 探针嵌进你自己的 CI</li>
-        <li>私有部署与定制指标</li>
-        <li>SLA 与技术支持</li>
+        <li>Wraps each vendor's SDK — one interface to benchmark many</li>
+        <li>Friendly for domestic users: integrate once, run across mainstream gateways</li>
+        <li>Embed the gwbench probe into your own CI</li>
+        <li>Private deployment and custom metrics</li>
+        <li>SLA and technical support</li>
       </ul>
-      <a class="cta" href="#contact">商务洽谈 →</a>
+      <a class="cta" href="#contact">Contact sales →</a>
     </div>
 
   </div>
-  <p class="fn">付费的是<b>我们替你跑拨测 + 托管报告</b>，不是把开源能力锁起来——自助拨测与公开报告永久免费、可复现。计费与支付通道即将上线。</p>
+  <p class="fn">What you pay for is <b>us running the probes for you + hosting reports</b>, not locking up the open-source capabilities — self-service probing and public reports are free forever and reproducible. Billing and payment channels are coming soon.</p>
 </div></section>
 
 <section id="contact"><div class="wrap">
-  <h2>加入候补 / 联系<span class="anchor">支付通道上线前，先登记需求，优先开放</span></h2>
-  <p class="sub">想要托管拨测或 Pro 报告托管？现在就告诉我们你要测哪些网关、哪些维度。支付与自助下单通道接入后第一时间通知你。</p>
+  <h2>Join the Waitlist / Contact<span class="anchor">Before payment channels go live, register your needs for priority access</span></h2>
+  <p class="sub">Want managed probing or Pro report hosting? Tell us now which gateways and which dimensions you want tested. We'll notify you as soon as payment and self-service ordering are available.</p>
   <div class="hero-cta">
-    <a class="cta cta-primary" href="https://github.com/cuihuan/llm-gateway-bench/issues/new?title=%5B%E5%80%99%E8%A1%A5%5D%20%E6%89%98%E7%AE%A1%E6%8B%A8%E6%B5%8B%2FPro%E6%8A%A5%E5%91%8A&body=%E6%83%B3%E6%B5%8B%E7%9A%84%E7%BD%91%E5%85%B3%EF%BC%9A%0A%E5%85%B3%E5%BF%83%E7%9A%84%E7%BB%B4%E5%BA%A6%EF%BC%9A%0A%E8%81%94%E7%B3%BB%E6%96%B9%E5%BC%8F%EF%BC%9A" target="_blank" rel="noopener">用 GitHub Issue 登记 →</a>
-    <a class="cta" href="reports.html">先免费自测一把</a>
+    <a class="cta cta-primary" href="https://github.com/cuihuan/llm-gateway-bench/issues/new?title=%5B%E5%80%99%E8%A1%A5%5D%20%E6%89%98%E7%AE%A1%E6%8B%A8%E6%B5%8B%2FPro%E6%8A%A5%E5%91%8A&body=%E6%83%B3%E6%B5%8B%E7%9A%84%E7%BD%91%E5%85%B3%EF%BC%9A%0A%E5%85%B3%E5%BF%83%E7%9A%84%E7%BB%B4%E5%BA%A6%EF%BC%9A%0A%E8%81%94%E7%B3%BB%E6%96%B9%E5%BC%8F%EF%BC%9A" target="_blank" rel="noopener">Register via a GitHub Issue →</a>
+    <a class="cta" href="reports.html">Try free self-testing first</a>
   </div>
-  <!-- 支付：选定'无服务器·轻量变现'——下单走收款链接（Lemon Squeezy / Stripe Payment Link /
-       国内收款码）。拿到正式链接后，把上面候补 CTA 的 href 换成收款链接即可，无需后端。 -->
+  <!-- Payment: settled on 'serverless / lightweight monetization' — checkout goes through a payment link
+       (Lemon Squeezy / Stripe Payment Link / domestic payment QR). Once you have the live link,
+       just swap the waitlist CTA href above for the payment link; no backend needed. -->
 </div></section>
 
 <section id="more"><div class="wrap">
-  <h2>关于这个平台<span class="anchor">benchmark 是入口，不是终点</span></h2>
-  <p class="sub">这套工具与报告平台只做一件事——<b>把网关/模型 benchmark 这件事做扎实、做开放</b>。如果它帮你选对了网关，欢迎到主项目看看更完整的能力。</p>
+  <h2>About This Platform<span class="anchor">The benchmark is the entry point, not the destination</span></h2>
+  <p class="sub">This toolkit and reporting platform does one thing — <b>make gateway/model benchmarking solid and open</b>. If it helped you pick the right gateway, come see the fuller capabilities in the main project.</p>
   <div class="hero-cta">
-    <!-- 引流·主项目：当前占位指向 GitHub 仓库；拿到主项目 URL 后替换此处 href 即可。 -->
-    <a class="cta cta-primary" href="https://github.com/cuihuan/llm-gateway-bench" target="_blank" rel="noopener">了解主项目 →</a>
-    <a class="cta" href="index.html#leaderboard">回到公共榜单</a>
+    <!-- Funnel · main project: currently a placeholder pointing at the GitHub repo; once you have the main project URL, just swap this href. -->
+    <a class="cta cta-primary" href="https://github.com/cuihuan/llm-gateway-bench" target="_blank" rel="noopener">Learn about the main project →</a>
+    <a class="cta" href="index.html#leaderboard">Back to the public leaderboard</a>
   </div>
 </div></section>
 

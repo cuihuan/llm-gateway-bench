@@ -1,35 +1,35 @@
 {
   "unit": "USD per 1M tokens",
-  "note": "官方标价（list price），随厂商调整；可在本文件维护。本地/开源自建模型按 0 计（自付算力）。bench 为公开评测分，每条挂来源；缺失记 null 不臆造，欢迎带来源 PR 补充。2026-06 已对全部 bench 做源-值一致性审计（逐条核对数值是否真在所挂来源内）：修正 GPT-4o MMLU-Pro 81.7→72.6、Qwen3-235B 84.8→84.4 两处错值，余者核对一致。",
+  "note": "Official list prices, subject to vendor changes; maintained in this file. Local / self-hosted open-weight models count as 0 (you pay for your own compute). bench values are public benchmark scores, each citing a source; missing values are recorded as null rather than fabricated, and sourced PR contributions are welcome. As of 2026-06 a source-value consistency audit was run on all bench values (checking each figure actually appears in its cited source): corrected two wrong values, GPT-4o MMLU-Pro 81.7→72.6 and Qwen3-235B 84.8→84.4; the rest checked out.",
   "asOf": "2026-06-12",
   "benchCols": [
-    { "key": "mmluPro", "label": "MMLU-Pro", "hint": "综合知识推理 %" },
-    { "key": "gpqa",    "label": "GPQA",     "hint": "研究生级科学难题 %" },
-    { "key": "swe",     "label": "SWE-bench Verified", "hint": "真实工程修复 %" },
-    { "key": "aime",    "label": "AIME",     "hint": "竞赛数学 %" }
+    { "key": "mmluPro", "label": "MMLU-Pro", "hint": "general knowledge & reasoning %" },
+    { "key": "gpqa",    "label": "GPQA",     "hint": "graduate-level science problems %" },
+    { "key": "swe",     "label": "SWE-bench Verified", "hint": "real-world engineering fixes %" },
+    { "key": "aime",    "label": "AIME",     "hint": "competition math %" }
   ],
   "benchHubs": [
-    { "label": "Artificial Analysis（综合智能指数/价格/速度）", "url": "https://artificialanalysis.ai/models" },
-    { "label": "LM Council Benchmarks（多榜聚合）", "url": "https://lmcouncil.ai/benchmarks" },
-    { "label": "OpenCompass / SuperCLUE（中文向）", "url": "https://opencompass.org.cn/" }
+    { "label": "Artificial Analysis (composite intelligence index / price / speed)", "url": "https://artificialanalysis.ai/models" },
+    { "label": "LM Council Benchmarks (multi-leaderboard aggregate)", "url": "https://lmcouncil.ai/benchmarks" },
+    { "label": "OpenCompass / SuperCLUE (Chinese-oriented)", "url": "https://opencompass.org.cn/" }
   ],
   "models": [
-    { "id": "claude-fable-5",   "name": "Claude Fable 5",   "vendor": "Anthropic", "input": 10,   "output": 50,   "kind": "闭源", "source": "platform.claude.com", "bench": null },
-    { "id": "claude-opus-4-8",  "name": "Claude Opus 4.8",  "vendor": "Anthropic", "input": 5,    "output": 25,   "kind": "闭源", "source": "platform.claude.com", "bench": null },
-    { "id": "claude-opus-4-5",  "name": "Claude Opus 4.5",  "vendor": "Anthropic", "input": 15,   "output": 75,   "kind": "闭源", "source": "用户提供",
-      "bench": { "swe": 76.7, "src": "LM Council Benchmarks（Opus 4.5 no-thinking 变体）", "srcUrl": "https://lmcouncil.ai/benchmarks", "asOf": "2026-06" } },
-    { "id": "claude-sonnet-4-6","name": "Claude Sonnet 4.6","vendor": "Anthropic", "input": 3,    "output": 15,   "kind": "闭源", "source": "platform.claude.com", "bench": null },
-    { "id": "claude-haiku-4-5", "name": "Claude Haiku 4.5", "vendor": "Anthropic", "input": 1,    "output": 5,    "kind": "闭源", "source": "platform.claude.com", "bench": null },
-    { "id": "gpt-4o",           "name": "GPT-4o",           "vendor": "OpenAI",    "input": 5,    "output": 15,   "kind": "闭源", "source": "用户提供",
-      "bench": { "mmluPro": 72.6, "src": "MMLU-Pro 论文 Table 2（TIGER-Lab）", "srcUrl": "https://arxiv.org/abs/2406.01574", "asOf": "2024-06" } },
-    { "id": "gemini-2.5-pro",   "name": "Gemini 2.5 Pro",   "vendor": "Google",    "input": 2.5,  "output": 10,   "kind": "闭源", "source": "用户提供",
+    { "id": "claude-fable-5",   "name": "Claude Fable 5",   "vendor": "Anthropic", "input": 10,   "output": 50,   "kind": "closed-source", "source": "platform.claude.com", "bench": null },
+    { "id": "claude-opus-4-8",  "name": "Claude Opus 4.8",  "vendor": "Anthropic", "input": 5,    "output": 25,   "kind": "closed-source", "source": "platform.claude.com", "bench": null },
+    { "id": "claude-opus-4-5",  "name": "Claude Opus 4.5",  "vendor": "Anthropic", "input": 15,   "output": 75,   "kind": "closed-source", "source": "user-provided",
+      "bench": { "swe": 76.7, "src": "LM Council Benchmarks (Opus 4.5 no-thinking variant)", "srcUrl": "https://lmcouncil.ai/benchmarks", "asOf": "2026-06" } },
+    { "id": "claude-sonnet-4-6","name": "Claude Sonnet 4.6","vendor": "Anthropic", "input": 3,    "output": 15,   "kind": "closed-source", "source": "platform.claude.com", "bench": null },
+    { "id": "claude-haiku-4-5", "name": "Claude Haiku 4.5", "vendor": "Anthropic", "input": 1,    "output": 5,    "kind": "closed-source", "source": "platform.claude.com", "bench": null },
+    { "id": "gpt-4o",           "name": "GPT-4o",           "vendor": "OpenAI",    "input": 5,    "output": 15,   "kind": "closed-source", "source": "user-provided",
+      "bench": { "mmluPro": 72.6, "src": "MMLU-Pro paper Table 2 (TIGER-Lab)", "srcUrl": "https://arxiv.org/abs/2406.01574", "asOf": "2024-06" } },
+    { "id": "gemini-2.5-pro",   "name": "Gemini 2.5 Pro",   "vendor": "Google",    "input": 2.5,  "output": 10,   "kind": "closed-source", "source": "user-provided",
       "bench": { "gpqa": 86.4, "aime": 88.0, "swe": 59.6, "src": "Gemini 2.5 Pro Model Card (GA)", "srcUrl": "https://storage.googleapis.com/deepmind-media/Model-Cards/Gemini-2-5-Pro-Model-Card.pdf", "asOf": "2025-06" } },
-    { "id": "deepseek-v3",      "name": "DeepSeek-V3",      "vendor": "DeepSeek",  "input": 0.27, "output": 1.10, "kind": "开源权重", "source": "用户提供",
+    { "id": "deepseek-v3",      "name": "DeepSeek-V3",      "vendor": "DeepSeek",  "input": 0.27, "output": 1.10, "kind": "open-weight", "source": "user-provided",
       "bench": { "mmluPro": 75.9, "gpqa": 59.1, "swe": 42.0, "aime": 39.2, "src": "DeepSeek-V3 Technical Report", "srcUrl": "https://arxiv.org/abs/2412.19437", "asOf": "2024-12" } },
-    { "id": "qwen3-235b",       "name": "Qwen3-235B",       "vendor": "Alibaba",   "input": 1.5,  "output": 4.5,  "kind": "开源权重", "source": "用户提供",
-      "bench": { "mmluPro": 84.4, "gpqa": 81.1, "aime": 92.3, "src": "Qwen3-235B-A22B-Thinking-2507 模型卡（HF）", "srcUrl": "https://huggingface.co/Qwen/Qwen3-235B-A22B-Thinking-2507", "asOf": "2025-07" } },
-    { "id": "glm-5-130b",       "name": "GLM-5-130B",       "vendor": "Zhipu",     "input": 1.0,  "output": 3.0,  "kind": "开源权重", "source": "用户提供", "bench": null },
-    { "id": "mimo-2.5-pro",     "name": "MiMo 2.5 Pro",     "vendor": "Xiaomi",    "input": 8,    "output": 24,   "kind": "闭源", "source": "用户提供", "bench": null },
-    { "id": "gemma-4-local",    "name": "Gemma 4（本地自建）", "vendor": "Google",  "input": 0,    "output": 0,    "kind": "本地/免费", "source": "自付算力", "bench": null }
+    { "id": "qwen3-235b",       "name": "Qwen3-235B",       "vendor": "Alibaba",   "input": 1.5,  "output": 4.5,  "kind": "open-weight", "source": "user-provided",
+      "bench": { "mmluPro": 84.4, "gpqa": 81.1, "aime": 92.3, "src": "Qwen3-235B-A22B-Thinking-2507 model card (HF)", "srcUrl": "https://huggingface.co/Qwen/Qwen3-235B-A22B-Thinking-2507", "asOf": "2025-07" } },
+    { "id": "glm-5-130b",       "name": "GLM-5-130B",       "vendor": "Zhipu",     "input": 1.0,  "output": 3.0,  "kind": "open-weight", "source": "user-provided", "bench": null },
+    { "id": "mimo-2.5-pro",     "name": "MiMo 2.5 Pro",     "vendor": "Xiaomi",    "input": 8,    "output": 24,   "kind": "closed-source", "source": "user-provided", "bench": null },
+    { "id": "gemma-4-local",    "name": "Gemma 4 (local self-host)", "vendor": "Google",  "input": 0,    "output": 0,    "kind": "local/free", "source": "self-funded compute", "bench": null }
   ]
 }

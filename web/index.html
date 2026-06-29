@@ -1,18 +1,18 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>LLM Gateway Bench · 大模型网关评测</title>
-<meta name="description" content="开源的大模型网关 / 中转 API 评测平台：黑盒拨测合规安全、价格、稳定性，配合模型层的价格价值与权威 benchmark——不看声明，看实测，可复现。">
+<title>LLM Gateway Bench · Benchmarking LLM Gateways</title>
+<meta name="description" content="Open benchmark platform for LLM gateways / relay APIs: black-box probing of compliance, safety, price, and stability, paired with model-layer price-value and authoritative benchmarks — don't trust claims, measure it, reproducibly.">
 <link rel="canonical" href="https://cuihuan.github.io/llm-gateway-bench/">
 <meta name="theme-color" content="#6366f1">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%236366f1'/><rect x='7' y='17' width='4' height='8' rx='1' fill='%23fff'/><rect x='14' y='12' width='4' height='13' rx='1' fill='%23fff'/><rect x='21' y='7' width='4' height='18' rx='1' fill='%23fff'/></svg>">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="LLM Gateway Bench">
 <meta property="og:url" content="https://cuihuan.github.io/llm-gateway-bench/">
-<meta property="og:title" content="LLM Gateway Bench · 大模型网关评测">
-<meta property="og:description" content="黑盒拨测大模型网关的合规/价格/稳定性 + 模型价格价值与权威 benchmark。不看声明，看实测。">
+<meta property="og:title" content="LLM Gateway Bench · Benchmarking LLM Gateways">
+<meta property="og:description" content="Black-box probing of LLM gateway compliance / price / stability + model price-value and authoritative benchmarks. Don't trust claims, measure it.">
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -20,7 +20,7 @@
   "name": "LLM Gateway Bench",
   "url": "https://cuihuan.github.io/llm-gateway-bench/",
   "description": "Open, user-perspective, black-box benchmark for LLM API gateways: latency, success rate, price multiple, and trust/fidelity fingerprints — reproducible with your own key.",
-  "inLanguage": ["zh-CN", "en"],
+  "inLanguage": "en",
   "isBasedOn": "https://github.com/cuihuan/llm-gateway-bench"
 }
 </script>
@@ -31,207 +31,207 @@
 <body>
 
 <nav><div class="wrap">
-  <div class="logo">LLM Gateway Bench<span>大模型网关评测</span></div>
-  <a class="lnk" href="#recommend">帮我选</a>
-  <a class="lnk" href="#leaderboard">网关排行</a>
-  <a class="lnk" href="#fingerprint">行为体检</a>
-  <a class="lnk" href="#price">价格</a>
-  <a class="lnk" href="#stability">稳定性</a>
-  <a class="lnk" href="evals.html">模型评测</a>
-  <a class="lnk" href="reports.html">报告广场</a>
-  <a class="lnk" href="#articles">分析框架</a>
+  <div class="logo">LLM Gateway Bench<span>Benchmarking LLM Gateways</span></div>
+  <a class="lnk" href="#recommend">Help Me Choose</a>
+  <a class="lnk" href="#leaderboard">Gateway Ranking</a>
+  <a class="lnk" href="#fingerprint">Behavior Check</a>
+  <a class="lnk" href="#price">Pricing</a>
+  <a class="lnk" href="#stability">Stability</a>
+  <a class="lnk" href="evals.html">Model Benchmarks</a>
+  <a class="lnk" href="reports.html">Reports</a>
+  <a class="lnk" href="#articles">Analysis Framework</a>
   <div class="right">
-    <a class="lnk" href="https://github.com/cuihuan/llm-gateway-bench/blob/main/docs/methodology.md">方法论</a>
+    <a class="lnk" href="https://github.com/cuihuan/llm-gateway-bench/blob/main/docs/methodology.md">Methodology</a>
     <a class="lnk" href="https://github.com/cuihuan/llm-gateway-bench">GitHub</a>
   </div>
 </div></nav>
 
 <header><div class="wrap">
-  <h1>大模型网关评测</h1>
-  <p class="tagline">选中转 API / 网关最怕什么：<b>偷换模型降智、虚报 token、假流式、跑路、高峰卡死</b>。这些<b>不靠网关自己声明</b>，靠持续拨测出的<b>行为指纹</b>来判。脚本、原始数据、聚合逻辑全开源，你也能用自己的 key 复现去测自己的网关。</p>
+  <h1>Benchmarking LLM Gateways</h1>
+  <p class="tagline">What you fear most when picking a relay API / gateway: <b>model substitution and degradation, inflated token counts, fake streaming, vanishing operators, and peak-hour stalls</b>. These <b>can't be judged from a gateway's own claims</b> — only from <b>behavior fingerprints</b> built up through continuous probing. The scripts, raw data, and aggregation logic are all open source, so you can reproduce them with your own key to test your own gateway.</p>
   <div class="hero-cta">
-    <a class="cta cta-primary" href="reports.html">测你自己的网关 →</a>
-    <a class="cta" href="#leaderboard">看公共榜单</a>
-    <a class="cta" href="pricing.html">托管拨测 / 报告托管</a>
+    <a class="cta cta-primary" href="reports.html">Test Your Own Gateway →</a>
+    <a class="cta" href="#leaderboard">See the Public Leaderboard</a>
+    <a class="cta" href="pricing.html">Managed Probing / Report Hosting</a>
   </div>
   <div class="meta-row">
-    <div class="meta-item"><div class="k">最近拨测</div><div class="v" id="m-last">—</div></div>
-    <div class="meta-item"><div class="k">拨测频率</div><div class="v">6h / 次</div></div>
-    <div class="meta-item"><div class="k">数据积累</div><div class="v" id="m-days">—</div></div>
-    <div class="meta-item"><div class="k">在测网关</div><div class="v" id="m-gw">—</div></div>
-    <div class="meta-item"><div class="k">探测地域</div><div class="v" id="m-region">—</div></div>
+    <div class="meta-item"><div class="k">Last Probe</div><div class="v" id="m-last">—</div></div>
+    <div class="meta-item"><div class="k">Probe Frequency</div><div class="v">every 6h</div></div>
+    <div class="meta-item"><div class="k">Data Collected</div><div class="v" id="m-days">—</div></div>
+    <div class="meta-item"><div class="k">Gateways Tested</div><div class="v" id="m-gw">—</div></div>
+    <div class="meta-item"><div class="k">Probe Region</div><div class="v" id="m-region">—</div></div>
   </div>
   <div class="pains">
-    <div class="pain"><div class="no">怕被坑 #1</div><h3>它给的是真模型吗？</h3>
-      <p>偷换成便宜模型、悄悄量化降智、工具调用被剥离、假流式（憋完再吐装流式）。看<a href="#catalog">工具调用 / 流式真实性 ↓</a>与<a href="#trust">行为指纹 ↓</a></p></div>
-    <div class="pain"><div class="no">怕被坑 #2</div><h3>它有没有多收钱？</h3>
-      <p>虚报 token 倍率、隐藏 system prompt 注入、缓存按全价计、便宜得反常的逆向渠道。看<a href="#price">价格矩阵 ↓</a>与 usage 重算指纹</p></div>
-    <div class="pain"><div class="no">怕被坑 #3</div><h3>它会不会崩 / 跑路？</h3>
-      <p>高峰限速卡死、封号波及断流、低价引流后涨价跑路。看<a href="#stability">30 天成功率时序 ↓</a>——跑得越久越能看出端倪</p></div>
+    <div class="pain"><div class="no">Risk #1</div><h3>Is it giving you the real model?</h3>
+      <p>Swapped for a cheaper model, silent quantization degradation, stripped tool calls, fake streaming (buffer then dump as if streaming). See <a href="#catalog">tool calling / streaming authenticity ↓</a> and <a href="#trust">behavior fingerprints ↓</a></p></div>
+    <div class="pain"><div class="no">Risk #2</div><h3>Is it overcharging you?</h3>
+      <p>Inflated token multiples, hidden system prompt injection, cache billed at full price, suspiciously cheap reverse-engineered channels. See <a href="#price">the price matrix ↓</a> and usage-recompute fingerprints</p></div>
+    <div class="pain"><div class="no">Risk #3</div><h3>Will it crash or disappear?</h3>
+      <p>Peak-hour rate limiting and stalls, account bans cutting off traffic, cheap acquisition followed by price hikes or exit. See <a href="#stability">the 30-day success-rate time series ↓</a> — the longer it runs, the more the cracks show.</p></div>
   </div>
   <div class="mock-banner" id="banner" hidden></div>
 </div></header>
 
 <section id="suite"><div class="wrap">
-  <h2>评测集导览<span class="anchor">两层评测，覆盖"选哪个模型"到"走哪个网关"</span></h2>
+  <h2>Benchmark Suite Overview<span class="anchor">Two layers of evaluation, from "which model" to "which gateway"</span></h2>
   <div class="pains">
-    <div class="pain"><div class="no">第一层 · 模型评测</div><h3>选哪个模型最值？</h3>
-      <p>同任务比花费、同预算比产出（<a href="evals.html#cost">价格价值实测</a>）· 公开权威 benchmark（<a href="evals.html#benchmarks">硬分数挂来源</a>）· 分场景能力（<a href="evals.html#scenarios">编码/数学/科学/知识</a>）。</p></div>
-    <div class="pain"><div class="no">第二层 · 网关评测</div><h3>走哪个网关靠谱？</h3>
-      <p>同一个模型，不同中转/网关的<b>合规与安全</b>（<a href="#fingerprint">行为体检</a>）· <b>价格</b>是否虚高（<a href="#price">价格矩阵</a>）· <b>稳定性</b>会不会崩（<a href="#stability">30 天时序</a>）——黑盒实测，不看声明。</p></div>
-    <div class="pain"><div class="no">方法 · 全开源</div><h3>凭什么可信？</h3>
-      <p>拨测脚本、判定阈值、原始数据逐次 commit，可用自己的 key 复现；不做黑箱加权总分。完整分析框架见 <a href="articles.html">知识库</a>。</p></div>
+    <div class="pain"><div class="no">Layer 1 · Model Benchmarks</div><h3>Which model gives the best value?</h3>
+      <p>Same task, compare cost; same budget, compare output (<a href="evals.html#cost">price-value measurements</a>) · public authoritative benchmarks (<a href="evals.html#benchmarks">hard scores with sources</a>) · per-scenario capability (<a href="evals.html#scenarios">coding / math / science / knowledge</a>).</p></div>
+    <div class="pain"><div class="no">Layer 2 · Gateway Benchmarks</div><h3>Which gateway is trustworthy?</h3>
+      <p>For the same model, different relays/gateways differ in <b>compliance and safety</b> (<a href="#fingerprint">behavior check</a>) · whether <b>price</b> is inflated (<a href="#price">price matrix</a>) · whether <b>stability</b> holds up (<a href="#stability">30-day time series</a>) — black-box measured, not claimed.</p></div>
+    <div class="pain"><div class="no">Method · Fully Open Source</div><h3>Why trust it?</h3>
+      <p>Probe scripts, decision thresholds, and raw data are committed run by run, reproducible with your own key; no black-box weighted total score. See the full analysis framework in the <a href="articles.html">knowledge base</a>.</p></div>
   </div>
 </div></section>
 
 <section id="recommend"><div class="wrap">
-  <h2>帮我选网关<span class="anchor">勾选你看重的，给你一个有理由的推荐——按所选维度的排名聚合，每项排名都摊开，不藏加权</span></h2>
+  <h2>Help Me Choose a Gateway<span class="anchor">Check what matters to you and get a recommendation with reasons — aggregated by rank across the chosen dimensions, with every rank laid out, no hidden weighting</span></h2>
   <div class="wizard">
-    <div class="wz-row"><span class="pk-label">我看重</span>
+    <div class="wz-row"><span class="pk-label">I care about</span>
       <div class="chips" id="rec-dims">
-        <button class="chip on" data-r="price">便宜</button>
-        <button class="chip on" data-r="stab">稳定</button>
-        <button class="chip" data-r="fast">快</button>
-        <button class="chip" data-r="fp">合规</button>
-        <button class="chip" data-r="many">模型全</button>
+        <button class="chip on" data-r="price">Cheap</button>
+        <button class="chip on" data-r="stab">Stable</button>
+        <button class="chip" data-r="fast">Fast</button>
+        <button class="chip" data-r="fp">Compliant</button>
+        <button class="chip" data-r="many">Many Models</button>
       </div>
     </div>
-    <div class="wz-row"><span class="pk-label">类型</span>
-      <select id="rec-cat"><option value="">不限</option><option>网关</option><option>官方直连</option><option>供应商</option></select>
-      <span class="muted" style="font-size:12px">多选取并重；可与下方榜单联动查看</span>
+    <div class="wz-row"><span class="pk-label">Type</span>
+      <select id="rec-cat"><option value="">Any</option><option>Gateway</option><option>Official Direct</option><option>Provider</option></select>
+      <span class="muted" style="font-size:12px">Multiple selections are weighted equally; can be cross-referenced with the leaderboard below</span>
     </div>
     <div class="rec-out" id="rec-out"></div>
   </div>
 </div></section>
 
 <section id="leaderboard"><div class="wrap">
-  <h2>网关排行榜<span class="anchor">先选你最看重什么，榜单按那一维实时重排——不做黑箱总分，每一维都是公开口径 · <a href="article.html?slug=choosing-a-gateway">读懂这一维 →</a></span></h2>
+  <h2>Gateway Leaderboard<span class="anchor">Pick what matters most and the board re-ranks live by that dimension — no black-box total score, every dimension uses a public definition · <a href="article.html?slug=choosing-a-gateway">Understand this dimension →</a></span></h2>
   <div class="picker" id="picker">
     <div class="picker-row">
-      <span class="pk-label">我最看重</span>
+      <span class="pk-label">I care most about</span>
       <div class="chips" id="pri-chips">
-        <button class="chip on" data-k="uptime" data-asc="0">更稳</button>
-        <button class="chip" data-k="priceIdx" data-asc="1">更便宜</button>
-        <button class="chip" data-k="ttft" data-asc="1">更快</button>
-        <button class="chip" data-k="fpScore" data-asc="0">更合规</button>
-        <button class="chip" data-k="models" data-asc="0">模型多</button>
+        <button class="chip on" data-k="uptime" data-asc="0">More Stable</button>
+        <button class="chip" data-k="priceIdx" data-asc="1">Cheaper</button>
+        <button class="chip" data-k="ttft" data-asc="1">Faster</button>
+        <button class="chip" data-k="fpScore" data-asc="0">More Compliant</button>
+        <button class="chip" data-k="models" data-asc="0">More Models</button>
       </div>
     </div>
     <div class="picker-row">
-      <span class="pk-label">筛选</span>
-      <select id="f-proto"><option value="">协议：全部</option><option>OpenAI</option><option>OpenAI · Anthropic</option></select>
-      <select id="f-cat"><option value="">类型：全部</option><option>网关</option><option>官方直连</option><option>供应商</option></select>
-      <a class="pk-self" href="reports.html">＋ 测我自己的网关</a>
+      <span class="pk-label">Filter</span>
+      <select id="f-proto"><option value="">Protocol: All</option><option>OpenAI</option><option>OpenAI · Anthropic</option></select>
+      <select id="f-cat"><option value="">Type: All</option><option>Gateway</option><option>Official Direct</option><option>Provider</option></select>
+      <a class="pk-self" href="reports.html">+ Test my own gateway</a>
     </div>
     <div class="verdict" id="verdict"></div>
   </div>
   <div class="lenses" id="lenses">
-    <button class="lens on" data-lens="rank">排行</button>
-    <button class="lens" data-lens="price">价格</button>
-    <button class="lens" data-lens="stab">稳定</button>
-    <button class="lens" data-lens="fp">行为体检</button>
-    <button class="lens" data-lens="lite">简表</button>
+    <button class="lens on" data-lens="rank">Ranking</button>
+    <button class="lens" data-lens="price">Pricing</button>
+    <button class="lens" data-lens="stab">Stability</button>
+    <button class="lens" data-lens="fp">Behavior Check</button>
+    <button class="lens" data-lens="lite">Compact</button>
     <span class="lens-hint" id="lens-hint"></span>
   </div>
   <div class="tablebox"><table id="lb">
     <thead></thead>
     <tbody></tbody>
   </table></div>
-  <p class="fn">信任评级三档：<span class="bdg ok">直连已验证</span> 通过对拍验证；<span class="bdg warn">声明未验证</span> 网关自声明、暂无对拍证据；<span class="bdg unk">未验证</span> 无声明或拒测。详见下节。</p>
+  <p class="fn">Trust rating, three tiers: <span class="bdg ok">Direct Verified</span> passed cross-check verification; <span class="bdg warn">Claimed, Unverified</span> gateway self-claims, no cross-check evidence yet; <span class="bdg unk">Unverified</span> no claim or refused testing. See the next section for details.</p>
 </div></section>
 
 <section id="trust"><div class="wrap">
-  <h2>信任与合规<span class="anchor">不看声明，看行为指纹；政策类结论挂证据链接，接受 PR 纠错 · <a href="article.html?slug=methodology-trust">读懂这一维 →</a></span></h2>
-  <p class="sub">渠道来源难以直接"证明"，本评测的立场是<b>行为指纹组合</b>：工具调用是否被剥离、流式是否真实（逐 chunk 计时）、usage 是否被虚报（本地重算比对）、延迟特征是否与官方一致——多个黑盒可测信号共同画像，而非采信网关自我声明。条件具备时再做 K2 式与官方 API 对拍（固定请求集比对 finish_reason F1 与 schema 合法率）。数据留存与主体资质来自条款原文人工标注，附标注日期。</p>
+  <h2>Trust & Compliance<span class="anchor">Don't trust claims, look at behavior fingerprints; policy conclusions carry evidence links, corrections via PR welcome · <a href="article.html?slug=methodology-trust">Understand this dimension →</a></span></h2>
+  <p class="sub">A channel's source is hard to "prove" directly, so this benchmark takes the position of a <b>combination of behavior fingerprints</b>: whether tool calls are stripped, whether streaming is genuine (per-chunk timing), whether usage is inflated (recomputed and compared locally), whether latency characteristics match the official endpoint — multiple black-box-measurable signals form a composite picture, rather than taking the gateway's self-claims at face value. When conditions allow, a K2-style cross-check against the official API is added (a fixed request set comparing finish_reason F1 and schema validity rate). Data retention and operating entity are manually annotated from the original terms, with the annotation date attached.</p>
   <div class="tablebox"><table id="trust-tbl">
     <thead><tr>
-      <th>网关</th><th>渠道来源</th><th>对拍验证</th>
-      <th>Prompt 留存</th><th>用于训练</th><th>经营主体</th><th>发票</th><th>证据</th>
+      <th>Gateway</th><th>Channel Source</th><th>Cross-check</th>
+      <th>Prompt Retention</th><th>Used for Training</th><th>Operating Entity</th><th>Invoice</th><th>Evidence</th>
     </tr></thead>
     <tbody></tbody>
   </table></div>
 </div></section>
 
 <section id="fingerprint"><div class="wrap">
-  <h2>行为体检<span class="anchor">黑盒拨测出的"它给的是不是真东西"——不看声明，看实测 · <a href="article.html?slug=model-substitution">读懂这一维 →</a></span></h2>
-  <p class="sub">每项都是固定脚本可复现的黑盒探测：<b>模型回显</b>响应 model 字段是否与请求一致（揪偷换）·<b>工具调用</b>是否被剥离 ·<b>流式真实</b>是否憋完再吐装流式 ·<b>CJK 完整</b>中文输出是否损坏（量化降智 tell）·<b>上下文</b>长文本里的标记是否被悄悄截断。绿=全部探测模型通过，红=有模型未通过，—=暂无可判定数据。</p>
+  <h2>Behavior Check<span class="anchor">Black-box probing of "is it giving you the real thing" — don't trust claims, measure it · <a href="article.html?slug=model-substitution">Understand this dimension →</a></span></h2>
+  <p class="sub">Every item is a black-box probe reproducible from a fixed script: <b>Model Echo</b> — whether the response's model field matches the request (catches substitution) · <b>Tool Calling</b> — whether tool calls are stripped · <b>Real Streaming</b> — whether output is buffered then dumped as fake streaming · <b>CJK Integrity</b> — whether Chinese output is corrupted (a quantization-degradation tell) · <b>Context</b> — whether markers in long text are silently truncated. Green = all probed models passed, red = some models failed, — = no decidable data yet.</p>
   <div class="tablebox"><table id="fp-tbl">
     <thead><tr>
-      <th>网关</th><th>模型回显</th><th>工具调用</th><th>流式真实</th><th>CJK 完整</th><th>上下文</th><th>缓存</th><th>usage 指纹</th>
+      <th>Gateway</th><th>Model Echo</th><th>Tool Calling</th><th>Real Streaming</th><th>CJK Integrity</th><th>Context</th><th>Cache</th><th>Usage Fingerprint</th>
     </tr></thead>
     <tbody></tbody>
   </table></div>
-  <p class="fn">这些信号<b>不构成有罪推定</b>：单次失败可能是网络抖动或模型本身能力所限，看的是<b>持续多次</b>的稳定表现。<b>usage 指纹</b>列给"每 token 字符数"，同一模型跨网关该值异常偏低=疑似虚报 token，需对照官方基线（基线对齐后点亮比对）。</p>
+  <p class="fn">These signals <b>are not a presumption of guilt</b>: a single failure may be network jitter or a limit of the model itself; what matters is <b>consistent, repeated</b> behavior. The <b>Usage Fingerprint</b> column shows "characters per token"; for the same model across gateways, an abnormally low value = suspected token inflation, to be checked against the official baseline (comparison lights up once the baseline is aligned).</p>
 </div></section>
 
 <section id="price"><div class="wrap">
-  <h2>价格<span class="anchor">USD / 1M tokens（输入 / 输出）· 倍率 = 网关价 ÷ 官方价 · 官方价源自 litellm · <a href="article.html?slug=price-index">读懂这一维 →</a></span></h2>
+  <h2>Pricing<span class="anchor">USD / 1M tokens (input / output) · multiple = gateway price ÷ official price · official price from litellm · <a href="article.html?slug=price-index">Understand this dimension →</a></span></h2>
   <div class="tablebox"><table id="price-tbl"><thead></thead><tbody></tbody></table></div>
-  <p class="fn"><b>价格指数</b> = 该网关全部可比模型倍率的几何平均：<span class="num good">&lt;1.00</span> 比官方便宜，<span class="num bad">&gt;1.00</span> 比官方贵。便宜得反常（&lt;0.5×）通常意味着逆向渠道，请对照信任评级一起看。</p>
+  <p class="fn"><b>Price Index</b> = the geometric mean of the gateway's multiples across all comparable models: <span class="num good">&lt;1.00</span> cheaper than official, <span class="num bad">&gt;1.00</span> more expensive than official. Suspiciously cheap (&lt;0.5×) usually means a reverse-engineered channel — read it alongside the trust rating.</p>
 </div></section>
 
 <section id="stability"><div class="wrap">
-  <h2>稳定性<span class="anchor">每 6 小时拨测 · 错误按性质分类（429≠5xx≠超时）· 时段画像揭示高峰是否变慢 · <a href="article.html?slug=stability-and-exit-risk">读懂这一维 →</a></span></h2>
+  <h2>Stability<span class="anchor">Probed every 6 hours · errors classified by nature (429 ≠ 5xx ≠ timeout) · hourly profile reveals whether peak hours slow down · <a href="article.html?slug=stability-and-exit-risk">Understand this dimension →</a></span></h2>
   <div class="stab-grid" id="stab-grid"></div>
 </div></section>
 
 <section id="catalog"><div class="wrap">
-  <h2>网关清单<span class="anchor">新网关：PR 提交 data/gateways.json 即可进入拨测 · <a href="article.html?slug=choosing-a-gateway">读懂这一维 →</a></span></h2>
+  <h2>Gateway Catalog<span class="anchor">New gateway: submit data/gateways.json via PR to enter probing · <a href="article.html?slug=choosing-a-gateway">Understand this dimension →</a></span></h2>
   <div class="tablebox"><table id="cat-tbl">
     <thead><tr>
-      <th>网关</th><th>协议</th><th class="r">模型数</th><th>探测模型</th><th>价格透明度</th><th class="r">直连延迟</th>
+      <th>Gateway</th><th>Protocol</th><th class="r">Models</th><th>Probed Models</th><th>Price Transparency</th><th class="r">Direct Latency</th>
     </tr></thead>
     <tbody></tbody>
   </table></div>
 </div></section>
 
 <section id="articles"><div class="wrap">
-  <h2>分析框架<span class="anchor">怎么判断一个网关靠不靠谱——把拨测数据读懂的方法论 · <a href="articles.html">进入知识库 →</a></span></h2>
-  <p class="sub">榜面上的每一列背后都有一套判断逻辑。这些文章把"它给的是不是真模型、有没有多收钱、稳不稳会不会跑路"拆成可操作的分析框架，并解释平台怎么测、你怎么读。<a href="articles.html">查看全部文章 →</a></p>
-  <div class="pains" id="article-list"><div class="pain"><p class="muted">文章加载中…</p></div></div>
+  <h2>Analysis Framework<span class="anchor">How to judge whether a gateway is trustworthy — the methodology for reading the probe data · <a href="articles.html">Enter the knowledge base →</a></span></h2>
+  <p class="sub">Behind every column on the board is a logic for making the call. These articles break down "is it the real model, is it overcharging, is it stable or about to disappear" into an actionable analysis framework, and explain how the platform measures and how you should read it. <a href="articles.html">See all articles →</a></p>
+  <div class="pains" id="article-list"><div class="pain"><p class="muted">Loading articles…</p></div></div>
 </div></section>
 
 <section id="selftest"><div class="wrap">
-  <h2>自测指南<span class="anchor">用你自己的 key，三分钟拨测任意一个网关 · <a href="article.html?slug=methodology-trust">读懂这一维 →</a></span></h2>
-  <p class="sub">榜单上没有你在用的网关？或者想亲自验一下它给的是不是真模型？把它加进 <code>data/gateways.json</code>，用你的 key 在本地跑同一套拨测脚本——和榜单完全一致、可复现。</p>
+  <h2>Self-Test Guide<span class="anchor">Probe any gateway in three minutes with your own key · <a href="article.html?slug=methodology-trust">Understand this dimension →</a></span></h2>
+  <p class="sub">Not seeing the gateway you use on the board? Or want to verify for yourself whether it's giving you the real model? Add it to <code>data/gateways.json</code> and run the same probe scripts locally with your key — identical to the board, and reproducible.</p>
   <div class="tablebox" style="padding:16px 18px">
-    <pre style="margin:0;overflow-x:auto;font-family:var(--mono);font-size:12.5px;line-height:1.7;color:var(--text)"><span class="muted"># Node ≥ 20，零依赖。克隆后：</span>
+    <pre style="margin:0;overflow-x:auto;font-family:var(--mono);font-size:12.5px;line-height:1.7;color:var(--text)"><span class="muted"># Node ≥ 20, zero dependencies. After cloning:</span>
 git clone https://github.com/cuihuan/llm-gateway-bench &amp;&amp; cd llm-gateway-bench
 
-<span class="muted"># 最快：--url 直接拨测任意 OpenAI 兼容端点，免改文件、结果打到 stdout：</span>
+<span class="muted"># Fastest: --url probes any OpenAI-compatible endpoint directly, no file edits, results to stdout:</span>
 PROBE_KEY=sk-... node probe/probe.mjs --url https://your-gateway.com --model gpt-4o-mini --samples 3
 
-<span class="muted"># 纳入榜单+本地看板：加进 data/gateways.json 后</span>
+<span class="muted"># To include in the board + local dashboard: after adding to data/gateways.json</span>
 node probe/probe.mjs --gateway &lt;id&gt; --out data/results &amp;&amp; npm run aggregate &amp;&amp; npm run serve
   </div>
   <div class="pains" style="margin-top:14px">
-    <div class="pain"><h3>它测出来的"行为指纹"</h3>
-      <p><b>工具调用</b>是否被剥离 · <b>流式真实性</b>（假流式 = TTFT≈总延迟后一次性吐）· <b>usage 重算</b>（每 token 字符数异常偏低 = 疑似虚报）· <b>TTFT/吞吐</b>实测分位数。</p></div>
-    <div class="pain"><h3>为什么可信</h3>
-      <p>探测 prompt、采样数、判定阈值全写在脚本里，带随机串防缓存；原始结果逐次 commit 进 <code>data/results/</code>，任何人可用自己的 key 复现同一结论。不做黑箱加权总分。</p></div>
-    <div class="pain"><h3>把你的网关加进榜单</h3>
-      <p>PR 修改 <code>data/gateways.json</code>（填 baseUrl / authEnv / probeModels），维护者在 Secrets 配 key 后自动进入每 6 小时拨测，数据随时间积累。</p></div>
+    <div class="pain"><h3>The "behavior fingerprints" it measures</h3>
+      <p>Whether <b>tool calls</b> are stripped · <b>streaming authenticity</b> (fake streaming = TTFT ≈ total latency then dumped at once) · <b>usage recompute</b> (abnormally low characters per token = suspected inflation) · measured <b>TTFT/throughput</b> percentiles.</p></div>
+    <div class="pain"><h3>Why it's trustworthy</h3>
+      <p>The probe prompts, sample counts, and decision thresholds are all written in the scripts, with a random string to defeat caching; raw results are committed run by run into <code>data/results/</code>, so anyone can reproduce the same conclusion with their own key. No black-box weighted total score.</p></div>
+    <div class="pain"><h3>Add your gateway to the board</h3>
+      <p>Submit a PR editing <code>data/gateways.json</code> (fill in baseUrl / authEnv / probeModels); once the maintainer adds the key in Secrets, it automatically enters the 6-hourly probing and data accumulates over time.</p></div>
   </div>
 </div></section>
 
 <footer><div class="wrap">
-  <p><b>方法论摘要</b> — 拨测：GitHub Actions 每 6h，固定 prompt 流式请求，每模型 3 采样报分位数，并发 ≤4（拨测不是压测）；cron 抖动以真实时间戳为准。政策类标注必须附证据链接与日期。</p>
-  <p><b>公正性</b> — 原始数据逐次 commit 于 data/results/，任何人可用自己的 key 复现；维护者与某网关存在利益关联时在条目中披露。</p>
+  <p><b>Methodology summary</b> — Probing: GitHub Actions every 6h, fixed-prompt streaming requests, 3 samples per model reporting percentiles, concurrency ≤4 (probing is not load testing); cron jitter is recorded by real timestamp. Policy annotations must carry an evidence link and date.</p>
+  <p><b>Fairness</b> — Raw data is committed run by run in data/results/, reproducible by anyone with their own key; when the maintainer has a conflict of interest with a gateway, it is disclosed in that entry.</p>
   <p>MIT License · <a href="https://github.com/cuihuan/llm-gateway-bench">github.com/cuihuan/llm-gateway-bench</a></p>
 </div></footer>
 
 <script>
-// ============ 数据来源 ============
-// 正式数据：web/data.json（probe/aggregate.mjs 聚合 data/results + annotations + prices 产出）。
-// fetch 失败（如 file:// 直接打开）时回退到内置 DEMO 数据并显示横幅。
+// ============ Data sources ============
+// Live data: web/data.json (produced by probe/aggregate.mjs aggregating data/results + annotations + prices).
+// On fetch failure (e.g. opened directly via file://) it falls back to the built-in DEMO data and shows a banner.
 
-// ---- 真实 schema → 视图模型适配 ----
+// ---- Real schema → view-model adaptation ----
 const VERIFY_MAP = {
-  baseline: { level:'ok',   levelText:'官方基线',   cls:'muted', text:'基线本体' },
-  pass:     { level:'ok',   levelText:'直连已验证', cls:'good',  text:'对拍通过' },
-  fail:     { level:'bad',  levelText:'对拍未通过', cls:'bad',   text:'对拍未通过' },
-  pending:  { level:'warn', levelText:'声明未验证', cls:'warn',  text:'待对拍' },
-  none:     { level:'unk',  levelText:'未验证',     cls:'muted', text:'无标注' },
+  baseline: { level:'ok',   levelText:'Official Baseline', cls:'muted', text:'baseline itself' },
+  pass:     { level:'ok',   levelText:'Direct Verified',   cls:'good',  text:'cross-check passed' },
+  fail:     { level:'bad',  levelText:'Cross-check Failed', cls:'bad',  text:'cross-check failed' },
+  pending:  { level:'warn', levelText:'Claimed, Unverified', cls:'warn', text:'pending cross-check' },
+  none:     { level:'unk',  levelText:'Unverified',       cls:'muted', text:'no annotation' },
 };
 const STATUS_TONE = {
   good:    { cls:'good',  bdg:'ok' },
@@ -242,9 +242,9 @@ const STATUS_TONE = {
 const tone = (s)=> STATUS_TONE[s?.status] ?? STATUS_TONE.unknown;
 
 function adaptTrust(a){
-  if(!a) return { level:'unk', levelText:'未验证', channel:'—',
-    verify:{cls:'muted',text:'无标注'},
-    prompt:{cls:'muted',bdg:'unk',text:'未标注'}, train:{cls:'muted',bdg:'unk',text:'未标注'},
+  if(!a) return { level:'unk', levelText:'Unverified', channel:'—',
+    verify:{cls:'muted',text:'no annotation'},
+    prompt:{cls:'muted',bdg:'unk',text:'not annotated'}, train:{cls:'muted',bdg:'unk',text:'not annotated'},
     entity:'—', invoice:'—', evidence:null, disclosure:null };
   const v = VERIFY_MAP[a.channel?.verify] ?? VERIFY_MAP.none;
   const evUrl = a.promptRetention?.evidence || a.training?.evidence || null;
@@ -252,16 +252,17 @@ function adaptTrust(a){
     level: v.level, levelText: v.levelText,
     channel: a.channel?.claim ?? '—',
     verify: { cls: v.cls, text: v.text },
-    prompt: { ...tone(a.promptRetention), text: a.promptRetention?.text ?? '未标注' },
-    train:  { ...tone(a.training),        text: a.training?.text ?? '未标注' },
+    prompt: { ...tone(a.promptRetention), text: a.promptRetention?.text ?? 'not annotated' },
+    train:  { ...tone(a.training),        text: a.training?.text ?? 'not annotated' },
     entity: a.entity ?? '—', invoice: a.invoice ?? '—',
-    evidence: evUrl ? { url: evUrl, text: `政策原文 · ${a.annotatedAt ?? ''}` } : null,
+    evidence: evUrl ? { url: evUrl, text: `policy source · ${a.annotatedAt ?? ''}` } : null,
     disclosure: a.disclosure ?? null,
   };
 }
 
-// 合规指纹综合命中率（0–1）：模型回显/CJK/needle/工具调用/真流式 各项通过率的均值；
-// 仅作"更合规"排序用，不是黑箱总分（各维度在体检表里仍独立可查）。
+// Compliance fingerprint composite hit rate (0–1): the mean of the pass rates for
+// model echo / CJK / needle / tool calling / real streaming; used only for the "more compliant"
+// sort, not a black-box total score (each dimension is still independently inspectable in the check table).
 function fpScoreOf(g){
   const parts=[]; const it=g.integrity;
   for(const k of ['modelEcho','cjk','needle']){ const s=it?.[k]; if(s&&s.total) parts.push(s.ok/s.total); }
@@ -271,7 +272,7 @@ function fpScoreOf(g){
 }
 function adapt(raw){
   const gateways = (raw.gateways ?? []).map(g=>({
-    id:g.id, name:g.name, host:g.host, website:g.website, protocols:g.protocols, category:g.category ?? '网关',
+    id:g.id, name:g.name, host:g.host, website:g.website, protocols:g.protocols, category:g.category ?? 'Gateway',
     pricing:g.pricing, probeModels:g.probeModels ?? [],
     priceIdx:g.priceIdx, uptime:g.uptimePct, uptime7:g.uptime7dPct ?? null, probes:g.probes ?? 0,
     ttft:g.speed?.ttftP50 ?? null, tps:g.speed?.tps ?? null,
@@ -295,48 +296,48 @@ function adapt(raw){
   return {
     lastProbe: lastRuns.length ? lastRuns[lastRuns.length-1].replace('T',' ').slice(0,16)+' UTC' : '—',
     windowDays: raw.windowDays ?? 30, runCount: raw.runCount ?? 0,
-    region: (raw.regions?.length ? raw.regions.join(' · ') : '—') + '（国内/香港探针 roadmap）',
+    region: (raw.regions?.length ? raw.regions.join(' · ') : '—') + ' (CN / Hong Kong probes on roadmap)',
     gateways, priceModels: raw.prices?.models ?? [],
   };
 }
 
-// ---- DEMO 回退（fetch 不可用时；形态与视图模型一致） ----
+// ---- DEMO fallback (when fetch is unavailable; shape matches the view model) ----
 function seeded(seed){ let s=seed; return ()=> (s = (s*9301+49297)%233280)/233280; }
 const DEMO = {
-  lastProbe:'2026-06-10 07:59 UTC', windowDays:30, runCount:120, region:'gh-us（演示）',
+  lastProbe:'2026-06-10 07:59 UTC', windowDays:30, runCount:120, region:'gh-us (demo)',
   gateways: [
     { id:'synthorai', name:'Synthorai', host:'synthorai.io', website:'https://synthorai.io',
       protocols:'OpenAI · Anthropic', connMs:327, uptime:99.72, ttft:480, tps:86, priceIdx:0.92, models:46,
       probeModels:['deepseek-v4-flash','gemini-2.5-flash'], pricing:'https://synthorai.io/api/pricing',
       probes:120, authExcluded:0, errors:{ '429':2, '5xx':0, timeout:1, other:0 },
-      trust:{ level:'ok', levelText:'直连已验证', channel:'官方直连',
-        verify:{cls:'good', text:'对拍 12/12 通过'}, prompt:{cls:'good', bdg:'ok', text:'不留存正文'},
-        train:{cls:'good', text:'否'}, entity:'已公开', invoice:'支持',
-        evidence:{url:'#', text:'政策原文 · 2026-06'}, disclosure:null } },
+      trust:{ level:'ok', levelText:'Direct Verified', channel:'Official Direct',
+        verify:{cls:'good', text:'cross-check 12/12 passed'}, prompt:{cls:'good', bdg:'ok', text:'no content retained'},
+        train:{cls:'good', text:'No'}, entity:'disclosed', invoice:'supported',
+        evidence:{url:'#', text:'policy source · 2026-06'}, disclosure:null } },
     { id:'openrouter', name:'OpenRouter', host:'openrouter.ai', website:'https://openrouter.ai',
       protocols:'OpenAI', connMs:88, uptime:99.41, ttft:620, tps:74, priceIdx:1.00, models:320,
       probeModels:['openai/gpt-4o-mini','google/gemini-2.5-flash'], pricing:'https://openrouter.ai/models',
       probes:120, authExcluded:0, errors:{ '429':3, '5xx':4, timeout:0, other:0 },
-      trust:{ level:'ok', levelText:'直连已验证', channel:'官方直连（供应商公开）',
-        verify:{cls:'good', text:'对拍 11/12 通过'}, prompt:{cls:'warn', bdg:'warn', text:'默认不留存，opt-in 记录换折扣'},
-        train:{cls:'good', text:'否（默认）'}, entity:'已公开 (US)', invoice:'国际发票',
-        evidence:{url:'#', text:'政策原文 · 2026-05'}, disclosure:null } },
+      trust:{ level:'ok', levelText:'Direct Verified', channel:'Official Direct (provider-published)',
+        verify:{cls:'good', text:'cross-check 11/12 passed'}, prompt:{cls:'warn', bdg:'warn', text:'not retained by default, opt-in logging for a discount'},
+        train:{cls:'good', text:'No (default)'}, entity:'disclosed (US)', invoice:'international invoice',
+        evidence:{url:'#', text:'policy source · 2026-05'}, disclosure:null } },
     { id:'aihubmix', name:'AiHubMix', host:'aihubmix.com', website:'https://aihubmix.com',
       protocols:'OpenAI', connMs:210, uptime:98.63, ttft:710, tps:61, priceIdx:0.86, models:180,
       probeModels:['gpt-4o-mini','gemini-2.5-flash'], pricing:'https://aihubmix.com/models',
       probes:120, authExcluded:0, errors:{ '429':0, '5xx':2, timeout:9, other:0 },
-      trust:{ level:'warn', levelText:'声明未验证', channel:'自声明官转',
-        verify:{cls:'warn', text:'待对拍'}, prompt:{cls:'muted', bdg:'unk', text:'条款未明示'},
-        train:{cls:'muted', text:'未知'}, entity:'已公开 (CN)', invoice:'支持',
+      trust:{ level:'warn', levelText:'Claimed, Unverified', channel:'self-claimed official relay',
+        verify:{cls:'warn', text:'pending cross-check'}, prompt:{cls:'muted', bdg:'unk', text:'not stated in terms'},
+        train:{cls:'muted', text:'unknown'}, entity:'disclosed (CN)', invoice:'supported',
         evidence:null, disclosure:null } },
-    { id:'openai-direct', name:'OpenAI 官方', host:'api.openai.com', website:'https://platform.openai.com',
+    { id:'openai-direct', name:'OpenAI Official', host:'api.openai.com', website:'https://platform.openai.com',
       protocols:'OpenAI', connMs:65, uptime:99.93, ttft:390, tps:95, priceIdx:1.00, models:38,
       probeModels:['gpt-4o-mini'], pricing:'https://platform.openai.com/docs/pricing',
       probes:120, authExcluded:0, errors:{ '429':1, '5xx':0, timeout:0, other:0 },
-      trust:{ level:'ok', levelText:'官方基线', channel:'官方',
-        verify:{cls:'muted', text:'基线本体'}, prompt:{cls:'good', bdg:'ok', text:'API 默认不训练'},
-        train:{cls:'good', text:'否'}, entity:'OpenAI, Inc.', invoice:'国际发票',
-        evidence:{url:'#', text:'政策原文 · 2026-04'}, disclosure:null } },
+      trust:{ level:'ok', levelText:'Official Baseline', channel:'official',
+        verify:{cls:'muted', text:'baseline itself'}, prompt:{cls:'good', bdg:'ok', text:'API not used for training by default'},
+        train:{cls:'good', text:'No'}, entity:'OpenAI, Inc.', invoice:'international invoice',
+        evidence:{url:'#', text:'policy source · 2026-04'}, disclosure:null } },
   ],
   priceModels: [
     { model:'claude-sonnet-4-5', official:[3.0,15.0],
@@ -356,10 +357,10 @@ DEMO.gateways.forEach((g,gi)=>{
   g.toolCalls = { ok: g.probeModels.length, total: g.probeModels.length, nonStreamMs: g.ttft*2 };
   g.streamBurst = { suspect: 0, total: g.probeModels.length };
   const n = g.probeModels.length;
-  // 演示：aihubmix 故意展示 CJK 不通过（量化降智）以示意红态
+  // Demo: aihubmix deliberately shows CJK failing (quantization degradation) to illustrate a red state
   g.integrity = { modelEcho:{ok:n,total:n}, cjk:{ok: gi===2?n-1:n, total:n}, needle:{ok:n,total:n} };
-  g.category = g.id==='openai-direct' ? '官方直连' : '网关';
-  // 演示：synthorai/官方直连 命中提示缓存，其余不支持（示意缓存维度的红/绿）
+  g.category = g.id==='openai-direct' ? 'Official Direct' : 'Gateway';
+  // Demo: synthorai / official-direct hit prompt cache, the rest don't (illustrates red/green for the cache dimension)
   g.cache = { supported: (gi===0||g.id==='openai-direct')?n:0, reported:n, total:n };
   g.fpScore = fpScoreOf(g);
   g.usageByModel = g.probeModels.map(m=>({ model:m.split('/').pop(), charsPerToken: 3.5+(gi*0.3)%1.5, promptTokens: 30+gi }));
@@ -367,40 +368,40 @@ DEMO.gateways.forEach((g,gi)=>{
   g.daysArr = Array.from({length:30},()=>{ const r=rnd();
     return { s: r > (1 - (100-g.uptime)/100*6) ? (r>0.985?'b':'w') : 'g', d:null }; });
   g.trend = Array.from({length:30},()=> Math.round(g.ttft*(0.85+rnd()*0.4)));
-  // 演示：四个 cron 时段，傍晚(19h)明显变慢模拟高峰漂移
+  // Demo: four cron time slots, with evening (19h) noticeably slower to simulate peak-hour drift
   g.hourly = [1,7,13,19].map(h=>({ hour:h, ttftP50: Math.round(g.ttft*(h===19?1.8:0.9+rnd()*0.2)), okRate: h===19?96.5:100, n:6 }));
   const slow=g.hourly.reduce((a,b)=>b.ttftP50>a.ttftP50?b:a), fast=g.hourly.reduce((a,b)=>b.ttftP50<a.ttftP50?b:a);
   g.peakDrift = { ratio: Math.round(slow.ttftP50/fast.ttftP50*100)/100, slowHour:slow.hour, slowTtft:slow.ttftP50, fastHour:fast.hour, fastTtft:fast.ttftP50, worstOkRateHour:19, worstOkRate:96.5 };
 });
 
-// ============ 渲染 ============
+// ============ Rendering ============
 const $ = (s)=>document.querySelector(s);
 const fmt = (n,d=0)=> n==null?'—':n.toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d});
 const uptimeCls = (u)=> u==null?'muted':u>=99.5?'good':u>=98.5?'warn':'bad';
 const priceCls = (p)=> p==null?'muted':p<1?'good':p>1?'bad':'muted';
 const bdg = (cls,text)=>`<span class="bdg ${cls}">${text}</span>`;
-// 标注/网关清单文件是 PR 贡献的，所有进 innerHTML 的字符串一律转义，链接只放行 http(s)
+// Annotation / gateway-catalog files are PR-contributed; every string going into innerHTML is escaped, and links allow only http(s)
 const esc = (s)=> String(s??'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const safeUrl = (u)=> /^https?:\/\//.test(u??'') ? esc(u) : null;
-const DAY_LABEL = { g:'正常', w:'降级', b:'故障', n:'无数据' };
+const DAY_LABEL = { g:'OK', w:'degraded', b:'outage', n:'no data' };
 
 const strip = (days)=>'<span class="uptime-strip">'+
   days.map(x=>`<i class="${x.s==='g'?'':x.s}" title="${x.d?x.d+' · ':''}${DAY_LABEL[x.s]??''}"></i>`).join('')+'</span>';
 
 function spark(vals,w=110,h=24){
-  if(!vals || vals.length<2) return '<span class="muted" style="font-size:11px">积累中</span>';
+  if(!vals || vals.length<2) return '<span class="muted" style="font-size:11px">collecting</span>';
   const min=Math.min(...vals),max=Math.max(...vals);
   const pts=vals.map((v,i)=>`${(i/(vals.length-1)*w).toFixed(1)},${(h-2-(v-min)/(max-min||1)*(h-4)).toFixed(1)}`).join(' ');
-  const label=`TTFT 趋势：${vals.length} 个采样点，区间 ${min}–${max} ms`;
+  const label=`TTFT trend: ${vals.length} sample points, range ${min}–${max} ms`;
   return `<svg class="spark" width="${w}" height="${h}" role="img" aria-label="${label}"><title>${label}</title><polyline points="${pts}"/></svg>`;
 }
 
 function trendChart(vals,w=460,h=64){
   if(!vals || vals.length<2)
-    return `<span class="muted" style="font-size:12px">数据积累中（${vals?.length??0} 个采样日，需 ≥2 天出趋势）</span>`;
+    return `<span class="muted" style="font-size:12px">collecting data (${vals?.length??0} sample days, need ≥2 days for a trend)</span>`;
   const min=Math.min(...vals),max=Math.max(...vals),pad=4;
   const pts=vals.map((v,i)=>`${(pad+i/(vals.length-1)*(w-pad-44)).toFixed(1)},${(h-10-(v-min)/(max-min||1)*(h-20)).toFixed(1)}`).join(' ');
-  const label=`TTFT 趋势：${vals.length} 个采样日，区间 ${min}–${max} ms`;
+  const label=`TTFT trend: ${vals.length} sample days, range ${min}–${max} ms`;
   return `<svg width="${w}" height="${h}" style="max-width:100%" role="img" aria-label="${label}"><title>${label}</title>
     <line class="gridline" x1="${pad}" y1="${h-10}" x2="${w-44}" y2="${h-10}"/>
     <line class="gridline" x1="${pad}" y1="10" x2="${w-44}" y2="10"/>
@@ -409,62 +410,62 @@ function trendChart(vals,w=460,h=64){
     <polyline points="${pts}" fill="none" stroke="var(--accent)" stroke-width="1.5"/></svg>`;
 }
 
-const ERR_META = { '429':{c:'var(--warn)',label:'429 限流'}, '5xx':{c:'var(--bad)',label:'5xx 故障'},
-  timeout:{c:'#a371f7',label:'超时'}, other:{c:'var(--faint)',label:'其他'} };
+const ERR_META = { '429':{c:'var(--warn)',label:'429 rate-limit'}, '5xx':{c:'var(--bad)',label:'5xx error'},
+  timeout:{c:'#a371f7',label:'timeout'}, other:{c:'var(--faint)',label:'other'} };
 
-// 行为指纹格子：ok/total，全过=绿，部分=橙，全挂=红
+// Behavior fingerprint cell: ok/total, all pass = green, partial = orange, all fail = red
 const fpCell = (s)=> s==null ? '<td class="muted">—</td>'
   : `<td><span class="num ${s.ok===s.total?'good':s.ok>0?'warn':'bad'}">${s.ok}/${s.total}</span></td>`;
 const errCellMini = (g)=>{
   const e=g.errors||{}; const parts=[];
   for(const [k,meta] of Object.entries(ERR_META)) if(e[k]) parts.push(`<span style="color:${meta.c}">${meta.label.split(' ')[0]} ${e[k]}</span>`);
-  return `<td class="num" style="font-size:11.5px">${parts.join(' · ')||'<span class="good">无失败</span>'}</td>`;
+  return `<td class="num" style="font-size:11.5px">${parts.join(' · ')||'<span class="good">no failures</span>'}</td>`;
 };
-// 多视角：同一份网关、同一套筛选/排序，切换列组（借鉴 helpaio 的简表/Bench/可用切换）。
-// 每列可带 sort（点表头/被 chip 联动排序）。name 列由 renderLB 统一加（含榜首 ★）。
+// Multi-lens: same gateways, same filters/sort, switch column groups (compact / bench / availability views).
+// Each column may carry sort (click header / chip-linked sort). The name column is added uniformly by renderLB (incl. top-rank ★).
 const COL = {
-  trust:  { th:'信任评级', cell:g=>`<td>${bdg(g.trust.level, esc(g.trust.levelText))}</td>` },
-  retain: { th:'数据留存', cell:g=>`<td>${bdg(g.trust.prompt.bdg??'unk', esc(g.trust.prompt.text))}</td>` },
-  price:  { th:'价格指数', r:true, sort:'priceIdx', cell:g=>`<td class="r num ${priceCls(g.priceIdx)}">${g.priceIdx==null?'—':fmt(g.priceIdx,2)+'×'}</td>` },
-  uptime: { th:'稳定性 30D', sort:'uptime', cell:g=>`<td><span class="num ${uptimeCls(g.uptime)}">${g.uptime==null?'—':fmt(g.uptime,2)+'%'}</span>&nbsp; ${strip(g.daysArr)}</td>` },
-  uptime7:{ th:'近 7D', r:true, sort:'uptime7', cell:g=>`<td class="r num ${uptimeCls(g.uptime7)}">${g.uptime7==null?'—':fmt(g.uptime7,2)+'%'}</td>` },
+  trust:  { th:'Trust Rating', cell:g=>`<td>${bdg(g.trust.level, esc(g.trust.levelText))}</td>` },
+  retain: { th:'Data Retention', cell:g=>`<td>${bdg(g.trust.prompt.bdg??'unk', esc(g.trust.prompt.text))}</td>` },
+  price:  { th:'Price Index', r:true, sort:'priceIdx', cell:g=>`<td class="r num ${priceCls(g.priceIdx)}">${g.priceIdx==null?'—':fmt(g.priceIdx,2)+'×'}</td>` },
+  uptime: { th:'Stability 30D', sort:'uptime', cell:g=>`<td><span class="num ${uptimeCls(g.uptime)}">${g.uptime==null?'—':fmt(g.uptime,2)+'%'}</span>&nbsp; ${strip(g.daysArr)}</td>` },
+  uptime7:{ th:'Last 7D', r:true, sort:'uptime7', cell:g=>`<td class="r num ${uptimeCls(g.uptime7)}">${g.uptime7==null?'—':fmt(g.uptime7,2)+'%'}</td>` },
   ttft:   { th:'TTFT P50', r:true, sort:'ttft', cell:g=>`<td class="r num">${g.ttft==null?'—':fmt(g.ttft)+' ms'}</td>` },
   tps:    { th:'TOK/S', r:true, sort:'tps', cell:g=>`<td class="r num">${fmt(g.tps)}</td>` },
-  models: { th:'模型数', r:true, sort:'models', cell:g=>`<td class="r num">${fmt(g.models)}</td>` },
+  models: { th:'Models', r:true, sort:'models', cell:g=>`<td class="r num">${fmt(g.models)}</td>` },
   trend:  { th:'TTFT 30D', cell:g=>`<td>${spark(g.trend)}</td>` },
-  errs:   { th:'错误画像', cell:g=>errCellMini(g) },
-  echo:   { th:'模型回显', cell:g=>fpCell(g.integrity?.modelEcho) },
-  tool:   { th:'工具调用', cell:g=>fpCell(g.toolCalls) },
-  burst:  { th:'真流式', cell:g=>g.streamBurst==null?'<td class="muted">—</td>':`<td><span class="num ${g.streamBurst.suspect===0?'good':'bad'}">${g.streamBurst.total-g.streamBurst.suspect}/${g.streamBurst.total}</span></td>` },
+  errs:   { th:'Error Profile', cell:g=>errCellMini(g) },
+  echo:   { th:'Model Echo', cell:g=>fpCell(g.integrity?.modelEcho) },
+  tool:   { th:'Tool Calling', cell:g=>fpCell(g.toolCalls) },
+  burst:  { th:'Real Streaming', cell:g=>g.streamBurst==null?'<td class="muted">—</td>':`<td><span class="num ${g.streamBurst.suspect===0?'good':'bad'}">${g.streamBurst.total-g.streamBurst.suspect}/${g.streamBurst.total}</span></td>` },
   cjk:    { th:'CJK', cell:g=>fpCell(g.integrity?.cjk) },
-  needle: { th:'上下文', cell:g=>fpCell(g.integrity?.needle) },
-  cache:  { th:'缓存', cell:g=> (g.cache==null||!g.cache.reported) ? '<td class="muted">—</td>'
+  needle: { th:'Context', cell:g=>fpCell(g.integrity?.needle) },
+  cache:  { th:'Cache', cell:g=> (g.cache==null||!g.cache.reported) ? '<td class="muted">—</td>'
     : `<td><span class="num ${g.cache.supported===g.cache.reported?'good':g.cache.supported>0?'warn':'bad'}">${g.cache.supported}/${g.cache.reported}</span></td>` },
-  fp:     { th:'合规命中', r:true, sort:'fpScore', cell:g=>`<td class="r num ${g.fpScore==null?'muted':g.fpScore>=0.999?'good':g.fpScore>=0.8?'warn':'bad'}">${g.fpScore==null?'—':Math.round(g.fpScore*100)+'%'}</td>` },
+  fp:     { th:'Compliance', r:true, sort:'fpScore', cell:g=>`<td class="r num ${g.fpScore==null?'muted':g.fpScore>=0.999?'good':g.fpScore>=0.8?'warn':'bad'}">${g.fpScore==null?'—':Math.round(g.fpScore*100)+'%'}</td>` },
 };
 const LENSES = {
-  rank:  { cols:['trust','retain','price','uptime','ttft','tps','models','trend'], hint:'综合各维度概览' },
-  price: { cols:['price','tps','models','uptime'], hint:'价格指数=网关价÷官方价，点"更便宜"排序' },
-  stab:  { cols:['uptime','uptime7','ttft','errs'], hint:'30/7 天成功率与错误画像' },
-  fp:    { cols:['echo','tool','burst','cjk','needle','cache','fp'], hint:'黑盒行为指纹，绿=全过；缓存=命中/上报数' },
-  lite:  { cols:['price','uptime','ttft'], hint:'最少列，快速扫一眼' },
+  rank:  { cols:['trust','retain','price','uptime','ttft','tps','models','trend'], hint:'Overview across all dimensions' },
+  price: { cols:['price','tps','models','uptime'], hint:'Price index = gateway price ÷ official price; click "Cheaper" to sort' },
+  stab:  { cols:['uptime','uptime7','ttft','errs'], hint:'30/7-day success rate and error profile' },
+  fp:    { cols:['echo','tool','burst','cjk','needle','cache','fp'], hint:'Black-box behavior fingerprints, green = all pass; cache = hits/reported' },
+  lite:  { cols:['price','uptime','ttft'], hint:'Fewest columns, quick glance' },
 };
 
-// 时段画像：按 UTC 小时的 TTFT 柱状图，最慢柱标红。括号注 UTC，下方给本地换算提示。
+// Hourly profile: a TTFT bar chart by UTC hour, with the slowest bar in red. Hours are labeled UTC.
 function hourlyChart(hourly){
   const pts = (hourly||[]).filter(h=>h.ttftP50!=null);
-  if(pts.length<2) return `<span class="muted" style="font-size:12px">时段数据积累中（${pts.length} 个时段，每天 4 个 cron 时段，需跨天填满）</span>`;
+  if(pts.length<2) return `<span class="muted" style="font-size:12px">collecting hourly data (${pts.length} slots, 4 cron slots per day, needs days to fill in)</span>`;
   const max=Math.max(...pts.map(h=>h.ttftP50)), min=Math.min(...pts.map(h=>h.ttftP50));
   const bw=18, gap=8, h=54, n=pts.length, w=n*(bw+gap)+30;
   const bars = pts.map((p,i)=>{
     const bh=Math.max(3, (p.ttftP50/max)*(h-18));
     const isSlow=p.ttftP50===max, col=isSlow?'var(--bad)':'var(--accent)';
     const x=i*(bw+gap)+2;
-    return `<rect x="${x}" y="${h-14-bh}" width="${bw}" height="${bh}" fill="${col}" rx="1"><title>${String(p.hour).padStart(2,'0')}:00 UTC · TTFT ${p.ttftP50}ms · 成功率 ${p.okRate==null?'—':p.okRate+'%'} · ${p.n} 采样</title></rect>`+
+    return `<rect x="${x}" y="${h-14-bh}" width="${bw}" height="${bh}" fill="${col}" rx="1"><title>${String(p.hour).padStart(2,'0')}:00 UTC · TTFT ${p.ttftP50}ms · success rate ${p.okRate==null?'—':p.okRate+'%'} · ${p.n} samples</title></rect>`+
       `<text class="axis" x="${x+bw/2}" y="${h-3}" text-anchor="middle">${String(p.hour).padStart(2,'0')}</text>`;
   }).join('');
   const slow=pts.reduce((a,b)=>b.ttftP50>a.ttftP50?b:a), fast=pts.reduce((a,b)=>b.ttftP50<a.ttftP50?b:a);
-  const label=`时段 TTFT 画像：${pts.length} 个 UTC 时段；最慢 ${String(slow.hour).padStart(2,'0')}:00 ${max}ms，最快 ${String(fast.hour).padStart(2,'0')}:00 ${min}ms`;
+  const label=`Hourly TTFT profile: ${pts.length} UTC slots; slowest ${String(slow.hour).padStart(2,'0')}:00 ${max}ms, fastest ${String(fast.hour).padStart(2,'0')}:00 ${min}ms`;
   return `<svg width="${w}" height="${h}" style="max-width:100%" role="img" aria-label="${label}"><title>${label}</title>
     <text class="axis" x="${w-26}" y="14">${max}ms</text>
     <text class="axis" x="${w-26}" y="${h-16}">${min}ms</text>${bars}</svg>`;
@@ -474,27 +475,27 @@ function render(site, isDemo){
   const banner = $('#banner');
   if(isDemo){
     banner.hidden = false;
-    banner.textContent = '⚠ 演示数据：未能加载 web/data.json（file:// 直接打开时浏览器禁止 fetch，请用 python3 -m http.server 起服务后访问）。';
+    banner.textContent = '⚠ Demo data: could not load web/data.json (browsers block fetch when opened via file://; please serve with python3 -m http.server and visit over http).';
   } else if(site.runCount < 28){
     banner.hidden = false;
-    banner.textContent = `ℹ 数据积累早期：当前共 ${site.runCount} 次拨测。CI 每 6 小时拨测一次，30 天窗口将逐步填满；缺 key 的网关显示为无数据。`;
+    banner.textContent = `ℹ Early data collection: ${site.runCount} probes so far. CI probes every 6 hours, and the 30-day window will fill in gradually; gateways missing a key show as no data.`;
   }
 
   $('#m-last').textContent = site.lastProbe;
-  $('#m-days').textContent = `${site.runCount} 次 / ${site.windowDays} 天窗口`;
-  $('#m-gw').textContent = site.gateways.length+' 个';
+  $('#m-days').textContent = `${site.runCount} probes / ${site.windowDays}-day window`;
+  $('#m-gw').textContent = site.gateways.length+'';
   $('#m-region').textContent = site.region;
 
-  // ---- 排行榜：速选 + 多视角（同一份数据/筛选/排序，切换列组）。null 永远排末尾 ----
+  // ---- Leaderboard: quick-pick + multi-lens (same data/filters/sort, switch column groups). null always sorts last ----
   let sortKey='uptime', sortAsc=false, fProto='', fCat='', lens='rank';
-  const PRI_LABEL = { uptime:'稳定', priceIdx:'价格', ttft:'速度', fpScore:'合规', tps:'吞吐', models:'模型数' };
+  const PRI_LABEL = { uptime:'Stability', priceIdx:'Price', ttft:'Speed', fpScore:'Compliance', tps:'Throughput', models:'Models' };
   const metricStr = (g,k)=> k==='priceIdx'?(g.priceIdx==null?'—':fmt(g.priceIdx,2)+'×')
     : k==='ttft'?(g.ttft==null?'—':fmt(g.ttft)+'ms') : k==='uptime'?(g.uptime==null?'—':fmt(g.uptime,2)+'%')
     : k==='fpScore'?(g.fpScore==null?'—':Math.round(g.fpScore*100)+'%') : k==='tps'?fmt(g.tps) : fmt(g.models);
   const doSort = (th)=>{ const k=th.dataset.k; if(!k) return; if(sortKey===k) sortAsc=!sortAsc; else { sortKey=k; sortAsc=false; } renderLB(); };
   const renderLB = ()=>{
     const cols = LENSES[lens].cols;
-    $('#lb thead').innerHTML = '<tr><th>网关</th>'+cols.map(id=>{const c=COL[id];
+    $('#lb thead').innerHTML = '<tr><th>Gateway</th>'+cols.map(id=>{const c=COL[id];
       return `<th class="${c.r?'r ':''}${c.sort?'sortable':''}"${c.sort?` data-k="${c.sort}"`:''}>${c.th}${c.sort?' <span class="arr">↕</span>':''}</th>`;
     }).join('')+'</tr>';
     $('#lens-hint').textContent = LENSES[lens].hint;
@@ -503,11 +504,11 @@ function render(site, isDemo){
       .sort((a,b)=>{ const av=a[sortKey],bv=b[sortKey]; if(av==null&&bv==null)return 0; if(av==null)return 1; if(bv==null)return -1; return (av-bv)*(sortAsc?1:-1); });
     const top = (rows[0] && rows[0][sortKey]!=null) ? rows[0] : null;
     $('#verdict').innerHTML = rows.length
-      ? (top ? `最看重<b>${PRI_LABEL[sortKey]}</b> → 当前第一 <b>${esc(top.name)}</b>（${metricStr(top,sortKey)}）<span class="muted">· ${rows.length} 个网关参与排序</span>`
-             : `<span class="muted">该维度暂无数据</span>`)
-      : `<span class="muted">当前筛选下无网关</span>`;
+      ? (top ? `Prioritizing <b>${PRI_LABEL[sortKey]}</b> → currently #1 <b>${esc(top.name)}</b> (${metricStr(top,sortKey)}) <span class="muted">· ${rows.length} gateways ranked</span>`
+             : `<span class="muted">No data for this dimension yet</span>`)
+      : `<span class="muted">No gateways under the current filter</span>`;
     $('#lb tbody').innerHTML = rows.map(g=>{
-      const nameCell = `<td><div class="gw-name">${g===top?'<span class="pick-star" title="当前优先级下第一">★</span> ':''}<a href="${safeUrl(g.website)??'#'}" target="_blank" rel="noopener">${esc(g.name)}</a></div><div class="gw-sub">${esc(g.host)} · ${esc(g.category)}</div></td>`;
+      const nameCell = `<td><div class="gw-name">${g===top?'<span class="pick-star" title="#1 under the current priority">★</span> ':''}<a href="${safeUrl(g.website)??'#'}" target="_blank" rel="noopener">${esc(g.name)}</a></div><div class="gw-sub">${esc(g.host)} · ${esc(g.category)}</div></td>`;
       return `<tr class="${g===top?'toppick':''}">${nameCell}${cols.map(id=>COL[id].cell(g)).join('')}</tr>`;
     }).join('');
     document.querySelectorAll('#lb thead th.sortable').forEach(th=>{
@@ -515,7 +516,7 @@ function render(site, isDemo){
       th.classList.toggle('sorted', active);
       th.setAttribute('aria-sort', active ? (sortAsc?'ascending':'descending') : 'none');
       const arr=th.querySelector('.arr'); if(arr) arr.textContent = active ? (sortAsc?'▲':'▼') : '↕';
-      th.setAttribute('tabindex','0'); th.setAttribute('role','columnheader'); th.setAttribute('title','点击或回车按此列排序');
+      th.setAttribute('tabindex','0'); th.setAttribute('role','columnheader'); th.setAttribute('title','Click or press Enter to sort by this column');
       th.onclick = ()=>doSort(th);
       th.onkeydown = (e)=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); doSort(th); } };
     });
@@ -530,16 +531,16 @@ function render(site, isDemo){
     b.addEventListener('click', ()=>{ lens=b.dataset.lens; document.querySelectorAll('#lenses .lens').forEach(x=>x.classList.toggle('on',x===b)); renderLB(); }));
   renderLB();
 
-  // ---- 帮我选网关：按所选维度的"维度内排名"聚合（透明，逐维排名摊开，不做隐藏加权）----
-  const RDIMS = { price:{label:'便宜',k:'priceIdx',asc:true}, stab:{label:'稳定',k:'uptime',asc:false},
-    fast:{label:'快',k:'ttft',asc:true}, fp:{label:'合规',k:'fpScore',asc:false}, many:{label:'模型全',k:'models',asc:false} };
+  // ---- Help Me Choose: aggregate by within-dimension rank across the chosen dimensions (transparent, every rank laid out, no hidden weighting) ----
+  const RDIMS = { price:{label:'Cheap',k:'priceIdx',asc:true}, stab:{label:'Stable',k:'uptime',asc:false},
+    fast:{label:'Fast',k:'ttft',asc:true}, fp:{label:'Compliant',k:'fpScore',asc:false}, many:{label:'Many Models',k:'models',asc:false} };
   const recommend = ()=>{
     const sel = [...document.querySelectorAll('#rec-dims .chip.on')].map(c=>c.dataset.r);
     const cat = $('#rec-cat').value, out = $('#rec-out');
-    if(!sel.length){ out.innerHTML = '<span class="muted">勾选至少一个你看重的维度。</span>'; return; }
+    if(!sel.length){ out.innerHTML = '<span class="muted">Check at least one dimension you care about.</span>'; return; }
     const pool = site.gateways.filter(g=> !cat || g.category===cat);
-    if(!pool.length){ out.innerHTML = '<span class="muted">该类型下暂无网关。</span>'; return; }
-    const rank = {};                                   // id -> { dim: 维度内位次(1最好) }
+    if(!pool.length){ out.innerHTML = '<span class="muted">No gateways under this type yet.</span>'; return; }
+    const rank = {};                                   // id -> { dim: within-dimension rank (1 = best) }
     for(const d of sel){ const {k,asc}=RDIMS[d];
       pool.filter(g=>g[k]!=null).sort((a,b)=>(a[k]-b[k])*(asc?1:-1)).forEach((g,i)=>{ (rank[g.id]=rank[g.id]||{})[d]=i+1; });
     }
@@ -548,7 +549,7 @@ function render(site, isDemo){
       for(const d of sel){ const r=rank[g.id]?.[d]; if(r!=null){sum+=r;have++;} else sum+=worst; }
       return { g, sum, have };
     }).filter(x=>x.have>0).sort((a,b)=> a.sum-b.sum || a.g.name.localeCompare(b.g.name));
-    if(!scored.length){ out.innerHTML = '<span class="muted">所选维度暂无数据（多为缺 key 未拨测）。</span>'; return; }
+    if(!scored.length){ out.innerHTML = '<span class="muted">No data for the chosen dimensions yet (mostly gateways not yet probed due to missing keys).</span>'; return; }
     const top = scored[0];
     const why = sel.map(d=>{ const r=rank[top.g.id]?.[d]; return `${RDIMS[d].label} <b>${r?('#'+r):'—'}</b>`; }).join(' · ');
     const list = scored.slice(0,3).map((x,i)=>`<tr class="${i===0?'toppick':''}">
@@ -557,16 +558,16 @@ function render(site, isDemo){
       ${sel.map(d=>{ const r=rank[x.g.id]?.[d]; return `<td class="r num">${r?('#'+r):'—'} <span class="muted" style="font-size:11px">${metricStr(x.g,RDIMS[d].k)}</span></td>`; }).join('')}
     </tr>`).join('');
     out.innerHTML = `
-      <div class="rec-pick">按你看重的 <b>${sel.map(d=>RDIMS[d].label).join('、')}</b>${cat?`（${esc(cat)}）`:''} → 推荐 <b class="rec-name">${esc(top.g.name)}</b> —— ${why}</div>
-      <div class="tablebox" style="margin-top:10px"><table class="rec-tbl"><thead><tr><th>候选（前 3）</th>${sel.map(d=>`<th class="r">${RDIMS[d].label}</th>`).join('')}</tr></thead><tbody>${list}</tbody></table></div>
-      <p class="fn">位次 = 在该维度内从优到劣的排名（#1 最好，括号是实测值）；综合 = 所选维度位次相加取最小，完全透明。<a href="reports.html">＋ 测我自己的网关，看和它差多少 →</a></p>`;
+      <div class="rec-pick">Based on your priorities <b>${sel.map(d=>RDIMS[d].label).join(', ')}</b>${cat?` (${esc(cat)})`:''} → recommended <b class="rec-name">${esc(top.g.name)}</b> —— ${why}</div>
+      <div class="tablebox" style="margin-top:10px"><table class="rec-tbl"><thead><tr><th>Candidates (top 3)</th>${sel.map(d=>`<th class="r">${RDIMS[d].label}</th>`).join('')}</tr></thead><tbody>${list}</tbody></table></div>
+      <p class="fn">Rank = position within that dimension from best to worst (#1 is best, the measured value is in parentheses); Overall = the sum of ranks across the chosen dimensions, minimized — fully transparent. <a href="reports.html">+ Test my own gateway and see the gap →</a></p>`;
   };
   document.querySelectorAll('#rec-dims .chip').forEach(c=>
     c.addEventListener('click', ()=>{ c.classList.toggle('on'); recommend(); }));
   $('#rec-cat').addEventListener('change', recommend);
   recommend();
 
-  // ---- 信任与合规 ----
+  // ---- Trust & Compliance ----
   $('#trust-tbl tbody').innerHTML = site.gateways.map(g=>{const t=g.trust;return `<tr>
     <td><div class="gw-name">${esc(g.name)}</div></td>
     <td>${esc(t.channel)}</td>
@@ -575,20 +576,20 @@ function render(site, isDemo){
     <td class="${t.train.cls}">${esc(t.train.text)}</td>
     <td>${esc(t.entity)}</td>
     <td>${esc(t.invoice)}</td>
-    <td class="evidence">${t.evidence&&safeUrl(t.evidence.url)?`<a href="${safeUrl(t.evidence.url)}" target="_blank" rel="noopener">${esc(t.evidence.text)}</a>`:'<span class="warn">待补</span>'}</td>
+    <td class="evidence">${t.evidence&&safeUrl(t.evidence.url)?`<a href="${safeUrl(t.evidence.url)}" target="_blank" rel="noopener">${esc(t.evidence.text)}</a>`:'<span class="warn">to be added</span>'}</td>
   </tr>`;}).join('');
   const disclosures = site.gateways.filter(g=>g.trust.disclosure);
   if(disclosures.length){
     const el = document.createElement('p');
     el.className='fn';
-    el.innerHTML = disclosures.map(g=>`<b>利益披露</b> — ${esc(g.name)}: ${esc(g.trust.disclosure)}`).join('<br>');
+    el.innerHTML = disclosures.map(g=>`<b>Conflict-of-interest disclosure</b> — ${esc(g.name)}: ${esc(g.trust.disclosure)}`).join('<br>');
     $('#trust .tablebox').after(el);
   }
 
-  // ---- 行为体检（fpCell 已在模块级定义，供速选视角与本表共用） ----
+  // ---- Behavior Check (fpCell is defined at module level, shared by the quick-pick lens and this table) ----
   $('#fp-tbl tbody').innerHTML = site.gateways.map(g=>{
     const it=g.integrity, cpt=(g.usageByModel||[]).map(u=>u.charsPerToken).filter(v=>v!=null);
-    const cptCell = cpt.length ? `<td class="num muted">${(cpt.reduce((a,b)=>a+b,0)/cpt.length).toFixed(2)} 字/tok</td>` : '<td class="muted">—</td>';
+    const cptCell = cpt.length ? `<td class="num muted">${(cpt.reduce((a,b)=>a+b,0)/cpt.length).toFixed(2)} chars/tok</td>` : '<td class="muted">—</td>';
     return `<tr>
       <td><div class="gw-name">${esc(g.name)}</div><div class="gw-sub">${esc(g.host)}</div></td>
       ${fpCell(it?.modelEcho)}
@@ -601,13 +602,13 @@ function render(site, isDemo){
     </tr>`;
   }).join('');
 
-  // ---- 价格矩阵（只列出现在价格快照里的网关） ----
+  // ---- Price matrix (only lists gateways present in the price snapshot) ----
   const priceGwIds = [...new Set(site.priceModels.flatMap(m=>Object.keys(m.cells??{})))];
   const priceGws = site.gateways.filter(g=>priceGwIds.includes(g.id));
   if(!site.priceModels.length){
-    $('#price-tbl tbody').innerHTML = '<tr><td class="muted" style="padding:18px">暂无价格快照（node probe/prices.mjs 生成 data/prices.json）</td></tr>';
+    $('#price-tbl tbody').innerHTML = '<tr><td class="muted" style="padding:18px">No price snapshot yet (run node probe/prices.mjs to generate data/prices.json)</td></tr>';
   } else {
-    $('#price-tbl thead').innerHTML = '<tr><th>模型</th><th class="r">官方价</th>'+
+    $('#price-tbl thead').innerHTML = '<tr><th>Model</th><th class="r">Official Price</th>'+
       priceGws.map(g=>`<th class="r">${esc(g.name)}</th>`).join('')+'</tr>';
     $('#price-tbl tbody').innerHTML = site.priceModels.map(m=>{
       const cells = priceGws.map(g=>{
@@ -622,50 +623,50 @@ function render(site, isDemo){
     }).join('');
   }
 
-  // ---- 稳定性面板 ----
+  // ---- Stability panel ----
   $('#stab-grid').innerHTML = site.gateways.map(g=>{
     if(!g.probes && !g.authExcluded){
       return `<div class="stab">
         <div class="head"><span class="gw-name">${esc(g.name)}</span>
           <span class="pct muted">—</span>
-          <span class="muted" style="font-size:12px">尚无拨测数据（CI 未配 key 或暂未运行）</span></div>
-        <div class="row"><span class="lbl">逐日状态</span>${strip(g.daysArr)}</div>
+          <span class="muted" style="font-size:12px">No probe data yet (CI has no key configured or hasn't run)</span></div>
+        <div class="row"><span class="lbl">Daily status</span>${strip(g.daysArr)}</div>
       </div>`;
     }
     const errEntries = Object.entries(g.errors).filter(([k,n])=>ERR_META[k]&&n>0);
     const total = errEntries.reduce((a,[,n])=>a+n,0);
     const segs = errEntries.map(([k,n])=>`<i style="width:${n/Math.max(total,1)*100}%;background:${ERR_META[k].c}" title="${ERR_META[k].label} ×${n}"></i>`).join('');
-    const legend = errEntries.map(([k,n])=>`<span style="color:${ERR_META[k].c}">■</span> ${ERR_META[k].label} ×${n}`).join(' · ')||'无失败';
-    const authNote = g.authExcluded?`<div class="row"><span class="lbl"></span><span class="legend muted">鉴权排除 ×${g.authExcluded}（探针 key 无该模型权限，按方法论不计入失败）</span></div>`:'';
+    const legend = errEntries.map(([k,n])=>`<span style="color:${ERR_META[k].c}">■</span> ${ERR_META[k].label} ×${n}`).join(' · ')||'no failures';
+    const authNote = g.authExcluded?`<div class="row"><span class="lbl"></span><span class="legend muted">auth-excluded ×${g.authExcluded} (probe key lacks access to that model; per the methodology, not counted as a failure)</span></div>`:'';
     const regionKeys = g.byRegion ? Object.keys(g.byRegion) : [];
-    const regionTag = g.probeRegion ? ` · <span title="本卡所有成功率/延迟均来自该网络观测点；不同地域不可混算">探测点 ${esc(g.probeRegion)}</span>` : '';
-    // 多地域时，各观测点的成功率/TTFT 分列对比（国内 vs 海外体感）
-    const regionBreakdown = regionKeys.length>1 ? `<div class="row"><span class="lbl">分地域</span><span class="legend">${
+    const regionTag = g.probeRegion ? ` · <span title="All success rates / latencies on this card come from this network observation point; different regions can't be mixed">probe point ${esc(g.probeRegion)}</span>` : '';
+    // For multiple regions, per-observation-point success rate / TTFT side by side (domestic vs overseas experience)
+    const regionBreakdown = regionKeys.length>1 ? `<div class="row"><span class="lbl">By region</span><span class="legend">${
       regionKeys.map(rk=>{const r=g.byRegion[rk];return `<span class="${uptimeCls(r.uptimePct)}">${esc(rk)}</span> ${r.uptimePct==null?'—':fmt(r.uptimePct,1)+'%'}${r.ttftP50!=null?` / ${fmt(r.ttftP50)}ms`:''}`;}).join(' · ')
     }</span></div>` : '';
     return `<div class="stab">
       <div class="head"><span class="gw-name">${esc(g.name)}</span>
         <span class="pct ${uptimeCls(g.uptime)}">${g.uptime==null?'—':fmt(g.uptime,2)+'%'}</span>
-        <span class="muted" style="font-size:12px">${site.windowDays} 天成功率${g.uptime7!=null?` · 近 7 天 ${fmt(g.uptime7,2)}%`:''} · ${g.probes} 次采样${regionTag}</span></div>
+        <span class="muted" style="font-size:12px">${site.windowDays}-day success rate${g.uptime7!=null?` · last 7 days ${fmt(g.uptime7,2)}%`:''} · ${g.probes} samples${regionTag}</span></div>
       ${regionBreakdown}
-      <div class="row"><span class="lbl">逐日状态</span>${strip(g.daysArr)}</div>
-      <div class="row"><span class="lbl">错误画像</span><span class="errbar">${segs||''}</span></div>
+      <div class="row"><span class="lbl">Daily status</span>${strip(g.daysArr)}</div>
+      <div class="row"><span class="lbl">Error profile</span><span class="errbar">${segs||''}</span></div>
       <div class="row"><span class="lbl"></span><span class="legend">${legend}</span></div>
       ${authNote}
-      <div class="row"><span class="lbl">TTFT 趋势</span>${trendChart(g.trend)}</div>
-      <div class="row"><span class="lbl">时段画像</span>${hourlyChart(g.hourly)}</div>
-      ${g.peakDrift && g.peakDrift.ratio>=1.5 ? `<div class="row"><span class="lbl"></span><span class="legend"><span class="${g.peakDrift.ratio>=2?'bad':'warn'}">⚠ 高峰漂移 ${g.peakDrift.ratio}×</span>：${String(g.peakDrift.slowHour).padStart(2,'0')}:00 UTC 最慢 ${g.peakDrift.slowTtft}ms vs ${String(g.peakDrift.fastHour).padStart(2,'0')}:00 ${g.peakDrift.fastTtft}ms${g.peakDrift.worstOkRate!=null&&g.peakDrift.worstOkRate<99?`；成功率最低 ${String(g.peakDrift.worstOkRateHour).padStart(2,'0')}:00 = ${g.peakDrift.worstOkRate}%`:''}</span></div>` : g.peakDrift ? `<div class="row"><span class="lbl"></span><span class="legend good">各时段延迟平稳（漂移 ${g.peakDrift.ratio}×）</span></div>` : ''}
+      <div class="row"><span class="lbl">TTFT trend</span>${trendChart(g.trend)}</div>
+      <div class="row"><span class="lbl">Hourly profile</span>${hourlyChart(g.hourly)}</div>
+      ${g.peakDrift && g.peakDrift.ratio>=1.5 ? `<div class="row"><span class="lbl"></span><span class="legend"><span class="${g.peakDrift.ratio>=2?'bad':'warn'}">⚠ Peak drift ${g.peakDrift.ratio}×</span>: ${String(g.peakDrift.slowHour).padStart(2,'0')}:00 UTC slowest ${g.peakDrift.slowTtft}ms vs ${String(g.peakDrift.fastHour).padStart(2,'0')}:00 ${g.peakDrift.fastTtft}ms${g.peakDrift.worstOkRate!=null&&g.peakDrift.worstOkRate<99?`; lowest success rate ${String(g.peakDrift.worstOkRateHour).padStart(2,'0')}:00 = ${g.peakDrift.worstOkRate}%`:''}</span></div>` : g.peakDrift ? `<div class="row"><span class="lbl"></span><span class="legend good">Latency steady across all hours (drift ${g.peakDrift.ratio}×)</span></div>` : ''}
     </div>`;
   }).join('');
 
-  // ---- 网关清单 ----
+  // ---- Gateway catalog ----
   $('#cat-tbl tbody').innerHTML = site.gateways.map(g=>`<tr>
     <td><div class="gw-name"><a href="${safeUrl(g.website)??'#'}" target="_blank" rel="noopener">${esc(g.name)}</a></div>
         <div class="gw-sub">${esc(g.host)}</div></td>
     <td>${esc(g.protocols)}</td>
     <td class="r num">${fmt(g.models)}</td>
     <td><code>${esc((g.probeModels??[]).join(' · '))||'—'}</code></td>
-    <td>${safeUrl(g.pricing)?`<a href="${safeUrl(g.pricing)}" target="_blank" rel="noopener">价格页</a>`:esc(g.pricing??'—')}</td>
+    <td>${safeUrl(g.pricing)?`<a href="${safeUrl(g.pricing)}" target="_blank" rel="noopener">price page</a>`:esc(g.pricing??'—')}</td>
     <td class="r num">${g.connMs==null?'—':fmt(g.connMs)+' ms'}</td>
   </tr>`).join('');
 }
@@ -680,19 +681,19 @@ function render(site, isDemo){
   }
 })();
 
-// 文章列表（独立加载，失败不影响主榜）
+// Article list (loaded independently; failure doesn't affect the main board)
 (async function articles(){
   const box = $('#article-list'); if(!box) return;
   try {
     const list = await fetch('articles.json', {cache:'no-store'}).then(r=>r.ok?r.json():[]);
-    if(!list.length){ box.innerHTML = '<div class="pain"><p class="muted">文章即将上线。</p></div>'; return; }
+    if(!list.length){ box.innerHTML = '<div class="pain"><p class="muted">Articles coming soon.</p></div>'; return; }
     box.innerHTML = list.map(a=>`<div class="pain">
       <h3><a href="article.html?slug=${encodeURIComponent(a.slug)}">${esc(a.title)}</a></h3>
       <p>${esc(a.summary||'')}</p>
       <p>${(a.tags||[]).map(t=>`<span class="muted" style="font-size:11.5px">#${esc(t)}</span>`).join(' ')}</p>
     </div>`).join('');
   } catch {
-    box.innerHTML = '<div class="pain"><p class="muted">文章列表需起本地服务（npm run serve）后查看。</p></div>';
+    box.innerHTML = '<div class="pain"><p class="muted">The article list requires a local server (npm run serve) to view.</p></div>';
   }
 })();
 </script>

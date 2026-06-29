@@ -61,14 +61,14 @@ test('renderReportHtml: renders a longcontext heatmap, no secret leak', () => {
   const report = buildLongContextReport({
     model: 'gemini-2.5-flash', region: 'local-cn', lengths: [4000, 64000], depths: [10, 90],
     version: '0.2.0', generatedAt: '2026-06-23T00:00:00Z',
-    targets: [buildLongContextTarget({ name: '我的网关', host: 'my.io', cells: [
+    targets: [buildLongContextTarget({ name: 'My Gateway', host: 'my.io', cells: [
       { lengthTokens: 4000, depthPct: 10, ok: true }, { lengthTokens: 4000, depthPct: 90, ok: true },
       { lengthTokens: 64000, depthPct: 10, ok: true }, { lengthTokens: 64000, depthPct: 90, ok: false }] })],
   });
   const html = renderReportHtml(report);
-  assert.ok(html.includes('长文本上下文留存报告'), 'longcontext title');
+  assert.ok(html.includes('Long-context retention report'), 'longcontext title');
   assert.ok(html.includes('64K'), 'length formatted as K');
-  assert.ok(html.includes('可靠上限'), 'reliable-cap label');
-  assert.ok(html.includes('我的网关'));
+  assert.ok(html.includes('Reliable up to'), 'reliable-cap label');
+  assert.ok(html.includes('My Gateway'));
   assert.ok(!/sk-|Bearer/.test(html));
 });

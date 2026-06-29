@@ -1,6 +1,6 @@
 #!/bin/zsh
-# 安装/重装 macOS launchd 定时器：每 600 秒运行一次 scripts/record.sh。
-# 卸载：launchctl unload ~/Library/LaunchAgents/io.llm-gateway-bench.record.plist && rm 该文件
+# Install/reinstall the macOS launchd timer: runs scripts/record.sh once every 600 seconds.
+# Uninstall: launchctl unload ~/Library/LaunchAgents/io.llm-gateway-bench.record.plist && rm that file
 set -euo pipefail
 
 REPO="$(cd "$(dirname "$0")/.." && pwd)"

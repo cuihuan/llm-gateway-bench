@@ -6,7 +6,7 @@ test('classifyError: maps error strings to classes', () => {
   assert.equal(classifyError('HTTP 403 {"error":"model_not_allowed"}'), 'auth');
   assert.equal(classifyError('HTTP 401 unauthorized'), 'auth');
   assert.equal(classifyError('HTTP 429 too many requests'), '429');
-  assert.equal(classifyError('HTTP 400 bad request'), 'user');     // 其余 4xx = 用户/配置侧
+  assert.equal(classifyError('HTTP 400 bad request'), 'user');     // other 4xx = user/config side
   assert.equal(classifyError('HTTP 404 model not found'), 'user');
   assert.equal(classifyError('HTTP 422 unprocessable'), 'user');
   assert.equal(classifyError('HTTP 502 bad gateway'), '5xx');
@@ -17,17 +17,17 @@ test('classifyError: maps error strings to classes', () => {
 });
 
 test('rollupGateway: non-auth 4xx (model absent / bad request) excluded from uptime like auth', () => {
-  // 404「该网关没有这个模型」是配置问题,不是宕机——对齐 OpenRouter 口径,排除出分母
+  // A 404 "this gateway doesn't have this model" is a config issue, not an outage — aligned with OpenRouter's convention, excluded from the denominator
   const r = rollupGateway([
     run('2026-06-10T06:00:00.000Z', [
       { model: 'a', samples: 3, success: 3, ttftMs: { p50: 600 }, tokensPerSec: { avg: 70 }, errors: [] },
       { model: 'b', samples: 3, success: 0, ttftMs: {}, tokensPerSec: {}, errors: ['HTTP 404 model not found'] },
     ]),
   ], '2026-06-10');
-  assert.equal(r.uptimePct, 100);          // model b 全部排除,不算宕机
-  assert.equal(r.authExcluded, 3);         // 3 个样本计入"排除出可用率"
+  assert.equal(r.uptimePct, 100);          // model b fully excluded, not counted as downtime
+  assert.equal(r.authExcluded, 3);         // 3 samples counted as "excluded from availability"
   assert.equal(r.probes, 3);
-  assert.deepEqual(r.errors, { '429': 0, '5xx': 0, timeout: 0, other: 0 }); // user 不进 errors
+  assert.deepEqual(r.errors, { '429': 0, '5xx': 0, timeout: 0, other: 0 }); // user-side errors don't enter errors
 });
 
 test('rollupGateway: 4xx-user mixed with real 5xx — only the 5xx counts against uptime', () => {
@@ -36,9 +36,9 @@ test('rollupGateway: 4xx-user mixed with real 5xx — only the 5xx counts agains
       { model: 'a', samples: 3, success: 0, ttftMs: {}, tokensPerSec: {}, errors: ['HTTP 400 bad', 'HTTP 502 down', 'HTTP 404 absent'] },
     ]),
   ], '2026-06-10');
-  assert.equal(r.authExcluded, 2);   // 400 + 404 排除
-  assert.equal(r.probes, 1);         // 只剩 1 个真实样本
-  assert.equal(r.uptimePct, 0);      // 那个样本是真实 5xx 故障
+  assert.equal(r.authExcluded, 2);   // 400 + 404 excluded
+  assert.equal(r.probes, 1);         // only 1 real sample left
+  assert.equal(r.uptimePct, 0);      // that sample is a real 5xx failure
   assert.equal(r.errors['5xx'], 1);
 });
 
@@ -48,7 +48,7 @@ test('rollupGateway: 429 stays counted as a real availability signal (not exclud
       { model: 'a', samples: 4, success: 2, ttftMs: { p50: 600 }, tokensPerSec: { avg: 70 }, errors: ['HTTP 429 rate limited', 'HTTP 429 rate limited'] },
     ]),
   ], '2026-06-10');
-  assert.equal(r.authExcluded, 0);   // 429 不排除
+  assert.equal(r.authExcluded, 0);   // 429 not excluded
   assert.equal(r.probes, 4);
   assert.equal(r.uptimePct, 50);     // 2/4
   assert.equal(r.errors['429'], 2);
@@ -205,7 +205,7 @@ test('rollupGateway: stream-burst snapshot counts suspect models from latest run
     run('2026-06-10T06:00:00.000Z', [
       { model: 'a', samples: 1, success: 1, ttftMs: { p50: 600 }, tokensPerSec: { avg: 70 }, errors: [], burstStreamRate: 1 },
       { model: 'b', samples: 1, success: 1, ttftMs: { p50: 650 }, tokensPerSec: { avg: 65 }, errors: [], burstStreamRate: 0 },
-      { model: 'c', samples: 1, success: 1, ttftMs: { p50: 650 }, tokensPerSec: { avg: 65 }, errors: [] }, // 不可判定
+      { model: 'c', samples: 1, success: 1, ttftMs: { p50: 650 }, tokensPerSec: { avg: 65 }, errors: [] }, // not judgeable
     ]),
   ], '2026-06-10');
   assert.deepEqual(r.streamBurst, { suspect: 1, total: 2 });
@@ -285,9 +285,9 @@ test('rollupGateway: empty input yields nulls, not NaN', () => {
 test('pickPrimaryRegion: region of the most recent entry; null/unknown handled', () => {
   assert.equal(pickPrimaryRegion([
     { region: 'gh-us', startedAt: '2026-06-10T06:00:00Z' },
-    { region: 'local-cn', startedAt: '2026-06-11T06:00:00Z' },  // 最近 → 主地域
+    { region: 'local-cn', startedAt: '2026-06-11T06:00:00Z' },  // most recent → primary region
   ]), 'local-cn');
-  assert.equal(pickPrimaryRegion([{ startedAt: '2026-06-11T06:00:00Z' }]), 'unknown'); // 无 region 标注
+  assert.equal(pickPrimaryRegion([{ startedAt: '2026-06-11T06:00:00Z' }]), 'unknown'); // no region tag
   assert.equal(pickPrimaryRegion([]), null);
 });
 

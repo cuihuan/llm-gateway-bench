@@ -1,60 +1,60 @@
-# 产品重构规格（PRODUCT SPEC）· llm-gateway-bench
+# Product refactor spec (PRODUCT SPEC) · llm-gateway-bench
 
-> 本文是重构的总规格。定位、架构、数据契约、盈利、路线图都以本文为准；
-> 实现与 PR 必须对齐本文，偏离要先改本文再改代码（spec 原则）。
-> 草拟于 2026-06-23。它**不推翻**现有拨测引擎与单测，而是在其上加产品层。
+> This document is the master spec for the refactor. Positioning, architecture, data contracts, monetization, and roadmap all defer to it;
+> implementations and PRs must align with it, and any deviation means changing this document first, then the code (the spec principle).
+> Drafted 2026-06-23. It **does not overturn** the existing probe engine and unit tests; it adds a product layer on top.
 
-## 0. 一句话
+## 0. One sentence
 
-把项目从"维护者替你测好的**榜单**"翻转为"任何人都能自测的**工具** + 可分享的**报告平台**"，
-公共榜单退居为**权威参照基线**，并以付费托管拨测 / 报告托管 / 封装各厂商 SDK 变现，
-长期通过报告 footer 引流到主项目。
+Flip the project from "a **leaderboard** the maintainer pre-measures for you" to "a **tool** anyone can self-test with + a shareable **report platform**",
+with the public leaderboard relegated to an **authoritative reference baseline**, monetized via hosted probing / report hosting / a wrapper over each vendor's SDK,
+and over the long term driving traffic to the main project via the report footer.
 
-## 1. 要解决的痛点（按用户原话）
+## 1. Pain-points to solve (in the user's own words)
 
-1. **接入网关没法测**：要接一个新网关 / 中转，没有顺手的工具横向比一比（vs OpenRouter vs 别家）。
-   → 交付**自助对比工具**：指定多个目标 + 自己的 key，一把跑全套黑盒，出并排对比。
-2. **缺好的评测报告**：价格、长文本等维度缺一份可信、可复现、能分享的报告。
-   → 交付**便携报告**：自包含 HTML + 结构化 JSON，本地生成、可公开到广场。
-3. **报告可分享**：用户愿意分享就能 share 到平台，别的用户能查看。
-   → 交付**报告广场**：分享报告即一份文件（数据即仓库），静态页渲染；后期加上传端点。
+1. **No way to test when onboarding a gateway**: about to plug in a new gateway/relay, with no handy tool to compare it side by side (vs OpenRouter vs others).
+   → Deliver a **self-serve comparison tool**: specify multiple targets + your own key, run the full black-box suite in one shot, get a side-by-side comparison.
+2. **No good evaluation reports**: dimensions like price and long context lack a trustworthy, reproducible, shareable report.
+   → Deliver a **portable report**: self-contained HTML + structured JSON, generated locally, publishable to the gallery.
+3. **Reports are shareable**: a user willing to share can share to the platform, and other users can view it.
+   → Deliver a **report gallery**: a shared report is just a file (data-as-repo), rendered by static pages; add an upload endpoint later.
 
-## 2. 两根产品柱子
+## 2. The two product pillars
 
-### 柱子 A · 工具（self-serve tool）
-- 命令：`gwbench compare`（实现为 `probe/compare.mjs`，npm script `compare`）。
-- 输入：一份 compare spec —— 多个目标 `{name, baseUrl, authEnv, model}` + 逻辑模型标签。
-- 行为：对每个目标跑**现有全套黑盒探针**（连通性、流式 TTFT/吞吐多采样、工具调用、
-  假流式、模型回显、CJK 完整性、长文本 needle），复用 `probe.mjs` 抽出的 `probeGateway()`。
-- 产出：
-  - `report.json` —— 结构化对比结果（schema 见 §4），可被广场/平台 ingest；
-  - `report.html` —— **自包含**单文件（内嵌数据 + 样式），file:// 直接打开，可发给别人。
-- 红线：**key 只存环境变量、绝不入报告、绝不出本机**（隐私是对国内用户的核心卖点）。
+### Pillar A · Tool (self-serve tool)
+- Command: `gwbench compare` (implemented as `probe/compare.mjs`, npm script `compare`).
+- Input: a compare spec — multiple targets `{name, baseUrl, authEnv, model}` + a logical model label.
+- Behavior: run the **existing full black-box probe suite** against each target (connectivity, streaming TTFT/throughput multi-sample, tool calls,
+  fake streaming, model echo, CJK integrity, long-context needle), reusing `probeGateway()` extracted from `probe.mjs`.
+- Output:
+  - `report.json` — a structured comparison result (schema in §4), ingestible by the gallery/platform;
+  - `report.html` — a **self-contained** single file (embedded data + styles), opens directly via file://, sendable to others.
+- Red line: **keys live only in environment variables, never enter the report, never leave the machine** (privacy is a core selling point for CN users).
 
-### 柱子 B · 报告（report platform）
-- **公共基线报告**：维护者 6h cron 拨测产出的榜单（现状）继续，作为自测的对照基线。
-- **用户分享报告**：用户本地生成 → 选择公开 → 落为 `web/reports/<id>.json` 文件
-  （Phase 2 走 PR；Phase 4 走上传端点），静态广场页 `web/reports.html` 列表 + 详情渲染。
-- **报告分类**（顶层导航与广场筛选维度）：
-  价格 · 长文本 · 稳定性 · 合规与安全 · 行为指纹（偷换/假流式/截断）。
+### Pillar B · Report (report platform)
+- **Public baseline reports**: the leaderboard produced by the maintainer's 6h cron probing (the status quo) continues, serving as the self-test comparison baseline.
+- **User-shared reports**: a user generates locally → opts to make it public → it lands as a `web/reports/<id>.json` file
+  (Phase 2 via PR; Phase 4 via an upload endpoint), with the static gallery page `web/reports.html` rendering the list + detail.
+- **Report categories** (the top-level navigation and gallery filter dimensions):
+  price · long context · stability · compliance & security · behavioral fingerprints (substitution/fake streaming/truncation).
 
-## 3. 架构（保持"无服务器、数据即仓库"，按需加薄后端）
+## 3. Architecture (keep "serverless, data-as-repo", add a thin backend on demand)
 
 ```
-本地（用户的机器，自己的 key）
-  gwbench compare  ──►  report.json + report.html        ← 柱子 A，纯本地，零后端
-        │  （用户选择分享）
+Local (the user's machine, the user's own key)
+  gwbench compare  ──►  report.json + report.html        ← Pillar A, purely local, zero backend
+        │  (the user opts to share)
         ▼
-web/reports/<id>.json  ──►  web/reports.html 广场静态渲染  ← 柱子 B，数据即仓库
+web/reports/<id>.json  ──►  web/reports.html gallery static render  ← Pillar B, data-as-repo
         ▲
-        │  Phase 4：薄上传端点（Cloudflare Worker / Vercel + KV）+ 支付
-维护者 cron（现状）──► data/results/ ──► aggregate ──► web/data.json ──► 榜单（权威基线）
+        │  Phase 4: a thin upload endpoint (Cloudflare Worker / Vercel + KV) + payment
+Maintainer cron (status quo) ──► data/results/ ──► aggregate ──► web/data.json ──► leaderboard (authoritative baseline)
 ```
 
-- Phase 1–3 **完全无服务器**，可立即上线；
-- Phase 4 才引入薄后端（仅为"上传分享 + 支付"），不破坏前三阶段的纯静态形态。
+- Phases 1–3 are **fully serverless** and can ship immediately;
+- Phase 4 is when a thin backend is introduced (only for "upload-share + payment"), without breaking the purely static form of the first three phases.
 
-## 4. 报告数据契约（report.json schema v1）
+## 4. Report data contract (report.json schema v1)
 
 ```jsonc
 {
@@ -62,10 +62,10 @@ web/reports/<id>.json  ──►  web/reports.html 广场静态渲染  ← 柱�
   "kind": "compare",                 // compare | longcontext | stability | ...
   "generatedAt": "2026-06-23T..Z",
   "tool": { "name": "gwbench", "version": "0.2.0" },
-  "model": "gpt-4o-mini",            // 被对比的逻辑模型
-  "region": "local-cn",              // 探测视角标签（PROBE_REGION）
+  "model": "gpt-4o-mini",            // the logical model being compared
+  "region": "local-cn",              // probe-viewpoint label (PROBE_REGION)
   "samplesPerTarget": 3,
-  "targets": [                       // 每个被测目标一项
+  "targets": [                       // one item per measured target
     {
       "name": "OpenRouter", "host": "openrouter.ai",
       "ttftMs": { "p50": 510, "p95": 880 }, "tokensPerSec": 47.2,
@@ -75,7 +75,7 @@ web/reports/<id>.json  ──►  web/reports.html 广场静态渲染  ← 柱�
       "error": null
     }
   ],
-  "comparison": {                    // 由 buildComparison() 纯函数算出
+  "comparison": {                    // computed by the buildComparison() pure function
     "fastestTtft": "OpenRouter",
     "highestThroughput": "...",
     "flags": [ { "target": "...", "flag": "burstStream", "severity": "warn" } ]
@@ -83,47 +83,47 @@ web/reports/<id>.json  ──►  web/reports.html 广场静态渲染  ← 柱�
 }
 ```
 
-- key、Authorization、baseUrl 的私有部分**不得**进入报告（只留 host）。
-- `comparison` 不做黑箱加权总分；只给"谁最快/最值/谁触发了哪些红旗"的客观派生。
+- The private parts of key, Authorization, and baseUrl **must not** enter the report (only the host is kept).
+- `comparison` does no black-box weighted score; it only gives the objective derivation of "who's fastest/best-value/who triggered which red flags".
 
-## 5. 盈利模式（与产品柱子对齐）
+## 5. Monetization model (aligned with the product pillars)
 
-| 层 | 免费 | 付费 |
+| Layer | Free | Paid |
 |---|---|---|
-| 工具 | 本地跑、用自己的 key、无限次 | —— |
-| 托管拨测 | —— | **我们用自己的 infra/key 跑贵活**（128K 长文本 needle、K2 式与官方对拍、模型身份指纹），用户不烧自己 token、不用配环境 |
-| 报告托管 | 公开分享到广场 | **Pro 报告**：私有/带品牌、定时复测、变更告警 |
-| 统一客户端 | —— | **封装各厂商 SDK** 的统一 benchmark 客户端（国内用户一套接口横评多家），按 license / 调用量计费 |
-| 引流 | 每份报告 footer + CTA → 主项目 | —— |
+| Tool | Run locally, with your own key, unlimited | — |
+| Hosted probing | — | **We run the expensive jobs on our own infra/key** (128K long-context needle, K2-style diff against the official, model-identity fingerprint), so users don't burn their own tokens or configure an environment |
+| Report hosting | Public sharing to the gallery | **Pro reports**: private/branded, scheduled re-tests, change alerts |
+| Unified client | — | A unified benchmark client that **wraps each vendor's SDK** (one interface for CN users to compare many vendors), billed by license / call volume |
+| Traffic | Every report's footer + CTA → the main project | — |
 
-## 6. 路线图（每阶段可独立上线、可测、可提交）
+## 6. Roadmap (each phase ships, tests, and commits independently)
 
-- **Phase 0 · 规格**：本文。✅
-- **Phase 1 · 工具 MVP**：抽 `probeGateway()`；`compare.mjs` 对比运行器；
-  `report.mjs` 纯函数（`buildComparison` + `renderReportHtml`）+ 单测；`npm run compare`。✅
-- **Phase 2 · 报告广场**：`web/reports.html` 静态渲染 `web/reports/*.json`（iframe srcdoc 复用
-  `renderReportHtml`，与 CLI 像素一致）；`scripts/publish-report.mjs` 归档+清单；导航接入；范例报告。✅
-- **Phase 3 · 长文本报告**：`longcontext.mjs` 多长度×多深度 needle 热图，kind=longcontext
-  复用报告广场；`npm run longcontext`；范例报告。✅
-- **Phase 3b · 经典模型 × 网关横评（旗舰报告，用户重中之重）**：
-  - **价格横评** kind=pricematrix：`aggregate` 由 data/prices.json（公开定价，**无需 key**）pivot 成真实
-    "模型×网关价格对比"（`web/reports/price-matrix.json`），标每模型最便宜网关，随价格刷新。✅ 真实数据已上线。
-  - **速度/稳定/指纹横评** `npm run matrix`（`probe/matrix.mjs`）：每经典模型在所有有 key 的网关跑全套黑盒，
-    ≥2 网关才生成，接入 6h CI。✅ 引擎就绪；**需在 CI 配多家网关 key + tracked-models 补 alias 才出真实数据**。
-- **Phase 4 · 网站与变现脚手架**：`pricing.html` 四层定价（自助免费/托管拨测/Pro 托管/封装 SDK）；
-  首页自助对比 CTA。✅
-  - **Phase 4b · 分享与支付（无服务器变现）**：决策＝保持无服务器；报告内置'下载 JSON / 分享到广场'入口
-    （`renderReportHtml`，纯前端）；支付走收款链接（拿到链接换 `pricing.html` 候补 CTA 的 href 即可，无需后端）。✅
-- **Phase 5 · 引流**：决策＝先指向 GitHub 仓库；`pricing.html`'关于这个平台'区 + 报告 footer CTA 已接入
-  （注释标明主项目 URL 替换点）。✅（占位）。剩余：分享卡片 OG 图、拿到主项目 URL 后替换。
+- **Phase 0 · Spec**: this document. ✅
+- **Phase 1 · Tool MVP**: extract `probeGateway()`; the `compare.mjs` comparison runner;
+  `report.mjs` pure functions (`buildComparison` + `renderReportHtml`) + unit tests; `npm run compare`. ✅
+- **Phase 2 · Report gallery**: `web/reports.html` statically renders `web/reports/*.json` (iframe srcdoc reuses
+  `renderReportHtml`, pixel-identical to the CLI); `scripts/publish-report.mjs` archive+manifest; navigation hookup; sample reports. ✅
+- **Phase 3 · Long-context report**: `longcontext.mjs` multi-length × multi-depth needle heatmap, kind=longcontext
+  reusing the report gallery; `npm run longcontext`; sample report. ✅
+- **Phase 3b · Classic-model × gateway matrix (flagship report, the user's top priority)**:
+  - **Price matrix** kind=pricematrix: `aggregate` pivots data/prices.json (public pricing, **no key needed**) into a real
+    "model × gateway price comparison" (`web/reports/price-matrix.json`), marking each model's cheapest gateway, refreshing with prices. ✅ Real data live.
+  - **Speed/stability/fingerprint matrix** `npm run matrix` (`probe/matrix.mjs`): each classic model runs the full black-box suite across all gateways with a key,
+    generated only with ≥2 gateways, wired into the 6h CI. ✅ Engine ready; **needs multi-gateway keys configured in CI + aliases added in tracked-models to produce real data**.
+- **Phase 4 · Site and monetization scaffolding**: `pricing.html` four-tier pricing (self-serve free/hosted probing/Pro hosting/wrapped SDK);
+  homepage self-serve comparison CTA. ✅
+  - **Phase 4b · Sharing and payment (serverless monetization)**: decision = stay serverless; the report has a built-in 'download JSON / share to gallery' entry
+    (`renderReportHtml`, pure front-end); payment goes through a payment link (once you have the link, just swap the href of the `pricing.html` placeholder CTA, no backend needed). ✅
+- **Phase 5 · Traffic**: decision = point to the GitHub repo first; `pricing.html`'s 'about this platform' section + report footer CTA are wired in
+  (comments mark the main-project-URL replacement point). ✅ (placeholder). Remaining: a share-card OG image, replace once the main-project URL is in hand.
 
-> 后续（用户给信息后即可推进）：① 正式收款链接替换候补 CTA；② 主项目 URL 替换引流占位；
-> ③ 托管拨测真正落地（Phase 1/3 探针已就绪，缺的是我们侧的 key + 调度）；④ 封装各厂商 SDK 的统一客户端。
+> Next (can proceed once the user provides info): ① replace the placeholder CTA with a real payment link; ② replace the main-project-URL traffic placeholder;
+> ③ actually land hosted probing (the Phase 1/3 probes are ready; what's missing is keys + scheduling on our side); ④ a unified client wrapping each vendor's SDK.
 
-## 7. 不变量（工程红线，沿用现状并扩展）
+## 7. Invariants (engineering red lines, carried over from the status quo and extended)
 
-- 纯函数 + 单测：所有判定/聚合/报告构建逻辑放纯函数，必须有单测（沿用 `probe/*.test.mjs`）。
-- 单一来源：上线算法 == 被测算法（如 `web/calc.mjs` 被浏览器与单测共用）。
-- key 零入库 / 零入报告：只认环境变量，报告只留 host。
-- 不做黑箱总分：各维度独立成列；唯一派生量是价格指数与"谁最快/最值"。
-- 可复现：探针 prompt、阈值、原始数据公开，随机化防缓存。
+- Pure functions + unit tests: all decision/aggregation/report-building logic goes in pure functions and must have unit tests (carrying over `probe/*.test.mjs`).
+- Single source: the deployed algorithm == the tested algorithm (e.g. `web/calc.mjs` is shared by the browser and the unit tests).
+- Zero keys in repo / zero keys in report: only environment variables are recognized; the report keeps only the host.
+- No black-box score: each dimension is its own column; the only derived quantities are the price index and "who's fastest/best-value".
+- Reproducible: probe prompts, thresholds, and raw data are public, with randomization to defeat caching.

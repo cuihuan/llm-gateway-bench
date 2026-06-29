@@ -2,20 +2,20 @@
   "id": "moonshot-direct",
   "annotatedAt": "2026-06-13",
   "channel": {
-    "claim": "官方",
+    "claim": "official",
     "verify": "baseline"
   },
   "promptRetention": {
     "status": "warn",
-    "text": "§5.2 仅在「实现服务目的所必需的时间内」保留，未给具体期限；§5.1 数据存储于中国境内",
+    "text": "§5.2 retained only \"for as long as necessary to fulfill the service purpose\", with no specific period given; §5.1 data stored within mainland China",
     "evidence": "https://platform.kimi.com/docs/agreement/userprivacy"
   },
   "training": {
     "status": "warn",
-    "text": "§2.3 对话信息用于「优化模型」，未明确区分默认/单独授权、无专门训练 opt-out（§7.1 仅概括性撤回授权权）",
+    "text": "§2.3 conversation data used to \"optimize models\", with no clear distinction between default and separate authorization and no dedicated training opt-out (§7.1 only a general right to withdraw authorization)",
     "evidence": "https://platform.kimi.com/docs/agreement/userprivacy"
   },
-  "entity": "北京月之暗面科技有限公司",
-  "invoice": "待标注",
+  "entity": "Beijing Moonshot AI Technology Co., Ltd.",
+  "invoice": "TBD",
   "disclosure": null
 }

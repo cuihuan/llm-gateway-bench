@@ -1,33 +1,35 @@
 #!/usr/bin/env node
-// gwbench compare —— 自助对比工具。把同一个逻辑模型在「你自己的网关」+ OpenRouter +
-// 其它已登记网关上一把跑完整套黑盒拨测，产出便携对比报告（report.json + report.html）。
+// gwbench compare — a self-serve comparison tool. Runs the full black-box probe suite for one logical
+// model across "your own gateway" + OpenRouter + other registered gateways in a single pass, and
+// produces a portable comparison report (report.json + report.html).
 //
-// 痛点：要接一个新网关，没有顺手的工具横向比一比。这就是那个工具。
-// key 只从环境变量读，绝不入报告、绝不出本机（隐私红线，见 docs/PRODUCT-SPEC.md §2A）。
+// The pain point: when wiring up a new gateway, there's no handy tool to compare side by side. This is
+// that tool. Keys are read only from environment variables, never enter the report, never leave your
+// machine (privacy red line, see docs/PRODUCT-SPEC.md §2A).
 //
-// 用法：
-//   node probe/compare.mjs --model <trackedId> [选项]
+// Usage:
+//   node probe/compare.mjs --model <trackedId> [options]
 //
-// 选项：
-//   --model <id>        逻辑模型（data/tracked-models.json 里的 id），报告以它为标签
-//   --url <baseUrl>     把「你自己的网关」加进对比（OpenAI 兼容端点）
-//   --alias <model>     配合 --url：该模型在你网关上的名字（默认取 --model）
-//   --name <name>       配合 --url：报告里显示的名字（默认取 host）
-//   --auth-env <NAME>   配合 --url：存 key 的环境变量名（默认 PROBE_KEY）
-//   --with <id,id>      要对比的已登记网关（默认：所有有该模型别名且环境里有 key 的）
-//   --price-in <usd>    配合 --url：你网关该模型的输入价（USD/1M），让自建网关进入价格对比
-//   --price-out <usd>   配合 --url：你网关该模型的输出价（USD/1M）
-//   --samples <n>       每个目标的采样次数（默认 3）
-//   --no-baseline       不在报告里附'公共基线参照'（默认会附，让你没别家 key 也能对个大概）
-//   --region <label>    探测视角标签写进报告（默认取 PROBE_REGION 或 'local'）
-//   --out <path>        报告输出前缀（默认 reports/<model>-<时间戳>），产出 .json 与 .html
-//   -h, --help          显示本帮助
+// Options:
+//   --model <id>        Logical model (an id in data/tracked-models.json); the report is labeled with it
+//   --url <baseUrl>     Add "your own gateway" to the comparison (OpenAI-compatible endpoint)
+//   --alias <model>     With --url: the model's name on your gateway (defaults to --model)
+//   --name <name>       With --url: the name shown in the report (defaults to host)
+//   --auth-env <NAME>   With --url: name of the env var holding the key (default PROBE_KEY)
+//   --with <id,id>      Registered gateways to compare (default: all that have an alias for this model and a key in env)
+//   --price-in <usd>    With --url: input price for this model on your gateway (USD/1M), to include a self-built gateway in the price comparison
+//   --price-out <usd>   With --url: output price for this model on your gateway (USD/1M)
+//   --samples <n>       Sample count per target (default 3)
+//   --no-baseline       Don't attach the 'public baseline reference' (attached by default, so you can get a rough read without others' keys)
+//   --region <label>    Probe-perspective label written into the report (defaults to PROBE_REGION or 'local')
+//   --out <path>        Report output prefix (default reports/<model>-<timestamp>), produces .json and .html
+//   -h, --help          Show this help
 //
-// 示例：
-//   # 我的网关 vs OpenRouter vs AiHubMix，比 gemini-2.5-flash
+// Example:
+//   # My gateway vs OpenRouter vs AiHubMix, comparing gemini-2.5-flash
 //   PROBE_KEY=sk-mine OPENROUTER_API_KEY=sk-or AIHUBMIX_API_KEY=sk-ah \
 //   node probe/compare.mjs --model gemini-2.5-flash \
-//     --url https://my-gateway.com --name "我的网关" --with openrouter,aihubmix
+//     --url https://my-gateway.com --name "My Gateway" --with openrouter,aihubmix
 
 import { readFile, mkdir, writeFile } from 'node:fs/promises';
 import { probeGateway } from './probe.mjs';
@@ -44,20 +46,21 @@ export function usage() {
   return readFileHeaderComment();
 }
 function readFileHeaderComment() {
-  return `gwbench compare —— 同一模型横评多个网关，产出便携对比报告。
+  return `gwbench compare — benchmark one model across multiple gateways and produce a portable comparison report.
 
-用法:
-  node probe/compare.mjs --model <trackedId> [--url <你的网关> --name <名> --auth-env <ENV>] [--with id,id] [--samples 3] [--out <前缀>]
+Usage:
+  node probe/compare.mjs --model <trackedId> [--url <your gateway> --name <name> --auth-env <ENV>] [--with id,id] [--samples 3] [--out <prefix>]
 
-key 只从环境变量读，不入报告、不出本机。完整选项见文件头注释。`;
+Keys are read only from environment variables; they never enter the report or leave your machine. See the file header comment for all options.`;
 }
 
 /**
- * 解析对比目标列表（纯函数，便于单测）。返回 [{ id, name, baseUrl, authEnv, alias, source }]。
- * - ad-hoc：有 --url 时加入一个「你自己的网关」目标；
- * - registry：--with 指定的网关 id（默认所有在 tracked 里有该模型别名的网关），
- *   别名取 tracked-models.json[model].aliases[gatewayId]，无别名则跳过（带 note）。
- * notes 收集被跳过目标的原因，供 CLI 打印。
+ * Resolve the list of comparison targets (pure function, easy to unit-test). Returns
+ * [{ id, name, baseUrl, authEnv, alias, source }].
+ * - ad-hoc: when --url is present, add a "your own gateway" target;
+ * - registry: gateway ids given via --with (default: all gateways with an alias for this model in tracked),
+ *   alias taken from tracked-models.json[model].aliases[gatewayId]; skipped (with a note) if no alias.
+ * notes collects the reasons skipped targets were dropped, for the CLI to print.
  */
 export function resolveTargets({ model, adhoc, withIds, gateways, tracked }) {
   const targets = [];
@@ -75,12 +78,12 @@ export function resolveTargets({ model, adhoc, withIds, gateways, tracked }) {
   const aliases = trackedEntry?.aliases ?? {};
   const candidateIds = withIds && withIds.length
     ? withIds
-    : Object.keys(aliases); // 默认：所有在 tracked 里给了别名的网关
+    : Object.keys(aliases); // default: all gateways given an alias in tracked
   for (const id of candidateIds) {
     const gw = (gateways ?? []).find((g) => g.id === id);
-    if (!gw) { notes.push(`未知网关 '${id}'（不在 data/gateways.json）`); continue; }
+    if (!gw) { notes.push(`unknown gateway '${id}' (not in data/gateways.json)`); continue; }
     const alias = aliases[id];
-    if (!alias) { notes.push(`'${id}' 没有 '${model}' 的别名（data/tracked-models.json）`); continue; }
+    if (!alias) { notes.push(`'${id}' has no alias for '${model}' (data/tracked-models.json)`); continue; }
     targets.push({
       id, source: 'registry', name: gw.name,
       baseUrl: gw.baseUrl.replace(/\/+$/, ''), authEnv: gw.authEnv, alias,
@@ -96,13 +99,13 @@ function tsStamp(iso) {
 async function main() {
   if (args.includes('--help') || args.includes('-h')) { console.log(usage()); return; }
   const model = flag('model');
-  if (!model) { console.error('[compare] 需要 --model <trackedId>。看 --help。'); process.exit(1); }
+  if (!model) { console.error('[compare] --model <trackedId> is required. See --help.'); process.exit(1); }
 
   const root = new URL('..', import.meta.url);
   const gateways = JSON.parse(await readFile(new URL('data/gateways.json', root), 'utf8'));
   const tracked = JSON.parse(await readFile(new URL('data/tracked-models.json', root), 'utf8'));
   const version = JSON.parse(await readFile(new URL('package.json', root), 'utf8')).version;
-  // 价格快照（可选）：给对比报告补上'价格 + 倍率'列。缺文件不影响其它维度。
+  // Price snapshot (optional): adds 'price + multiplier' columns to the comparison report. A missing file doesn't affect other dimensions.
   let prices = null;
   try { prices = JSON.parse(await readFile(new URL('data/prices.json', root), 'utf8')); } catch {}
   const priceRow = prices?.models?.find((p) => p.model === model) ?? null;
@@ -110,14 +113,14 @@ async function main() {
   const adhocPriceIn = flag('price-in') != null ? Number(flag('price-in')) : null;
   const adhocPriceOut = flag('price-out') != null ? Number(flag('price-out')) : null;
   const adhocPrice = Number.isFinite(adhocPriceIn) && Number.isFinite(adhocPriceOut) ? [adhocPriceIn, adhocPriceOut] : null;
-  // 解析某目标的网关价 [入,出]：registry 取 prices.json 对应网关列；ad-hoc 取 --price-in/out。
+  // Resolve a target's gateway price [in, out]: registry takes the matching gateway column from prices.json; ad-hoc takes --price-in/out.
   const priceFor = (t) => (t.source === 'adhoc' ? adhocPrice : (Array.isArray(priceRow?.cells?.[t.id]) ? priceRow.cells[t.id] : null));
 
   const adhoc = flag('url') ? { url: flag('url'), alias: flag('alias'), name: flag('name'), authEnv: flag('auth-env') } : null;
   const withIds = flag('with') ? String(flag('with')).split(',').map((s) => s.trim()).filter(Boolean) : null;
   const { targets, notes } = resolveTargets({ model, adhoc, withIds, gateways, tracked });
   for (const n of notes) console.error(`[skip] ${n}`);
-  if (!targets.length) { console.error('[compare] 没有可对比的目标。检查 --model / --with / --url。'); process.exit(1); }
+  if (!targets.length) { console.error('[compare] no targets to compare. Check --model / --with / --url.'); process.exit(1); }
 
   const samples = Number(flag('samples', 3));
   const region = flag('region') || process.env.PROBE_REGION || 'local';
@@ -125,20 +128,20 @@ async function main() {
   const probed = [];
   for (const t of targets) {
     const key = process.env[t.authEnv];
-    if (!key) { console.error(`[skip] ${t.name}: 环境变量 ${t.authEnv} 未设置`); continue; }
+    if (!key) { console.error(`[skip] ${t.name}: env var ${t.authEnv} not set`); continue; }
     const gw = { id: t.id, name: t.name, baseUrl: t.baseUrl, authEnv: t.authEnv, probeModels: [t.alias], tags: [] };
     const { connectivity, models } = await probeGateway(gw, key, { samples });
     probed.push(buildTarget({ name: t.name, host: host(t.baseUrl), connectivity, models, price: priceFor(t), official }));
   }
-  if (!probed.length) { console.error('[compare] 所有目标都因缺 key 被跳过——没产出报告。'); process.exit(1); }
+  if (!probed.length) { console.error('[compare] all targets were skipped for missing keys — no report produced.'); process.exit(1); }
 
-  // 公共基线参照（默认带上，--no-baseline 关闭）：没有别家 key 也能对个大概。
+  // Public baseline reference (attached by default, disabled with --no-baseline): get a rough read even without others' keys.
   let baseline = null;
   if (!args.includes('--no-baseline')) {
     try { baseline = buildBaselineRef(JSON.parse(await readFile(new URL('web/data.json', root), 'utf8'))); } catch {}
   }
 
-  // "你的网关"＝ad-hoc(--url) 目标；差距体检以它为主角对标最好的网关。
+  // "Your gateway" = the ad-hoc (--url) target; the gap check uses it as the protagonist against the best gateway.
   const mine = adhoc ? (probed.find((p) => p.host === host(adhoc.url))?.name ?? null) : null;
   const report = buildReport({
     model, region, samplesPerTarget: samples, version, baseline, mine,
@@ -151,8 +154,8 @@ async function main() {
   await writeFile(new URL(`${out}.json`, root), JSON.stringify(report, null, 2));
   await writeFile(new URL(`${out}.html`, root), renderReportHtml(report));
   const cmp = report.comparison;
-  if (report.gap) console.error(`[gap] ${report.gap.mine} vs 最好：${report.gap.summary}`);
-  console.error(`[compare] ${probed.length} 个目标 · 最快 ${cmp.fastestTtft ?? '—'} · 吞吐最高 ${cmp.highestThroughput ?? '—'} · 最便宜 ${cmp.cheapest ?? '—'} · 红旗 ${cmp.flags.length}`);
+  if (report.gap) console.error(`[gap] ${report.gap.mine} vs best: ${report.gap.summary}`);
+  console.error(`[compare] ${probed.length} targets · fastest ${cmp.fastestTtft ?? '—'} · highest throughput ${cmp.highestThroughput ?? '—'} · cheapest ${cmp.cheapest ?? '—'} · flags ${cmp.flags.length}`);
   console.log(`${out}.html`);
   console.log(`${out}.json`);
 }

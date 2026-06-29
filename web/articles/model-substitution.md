@@ -1,58 +1,58 @@
-你在中转站充了钱，请求里写的是 `claude-sonnet`，菜单上挂的也是 `claude-sonnet`。但你拿不到上游账单，看不到真实路由，唯一能验证的只有那段返回文本。**模型对不对、有没有被偷偷换成廉价货、是不是跑在量化权重上——全靠黑盒推断。**
+You topped up at a relay, your request says `claude-sonnet`, and the menu lists `claude-sonnet` too. But you can't see the upstream bill, you can't see the real routing, and the only thing you can verify is that returned text. **Whether the model is right, whether it was quietly swapped for a cheaper one, whether it's running on quantized weights — it all comes down to black-box inference.**
 
-这不是被害妄想。CISPA 的审计《Real Money, Fake Models》拨测了大量公开端点，结论触目惊心：
+This isn't paranoia. CISPA's audit *Real Money, Fake Models* probed a large number of public endpoints, and the conclusion is striking:
 
-> **45.83% 的中转端点过不了模型身份指纹验证**，性能偏差最高达 47.21%；按官方价付 $14.84，实际只拿回约 38% 的有效 token。
+> **45.83% of relay endpoints fail model-identity fingerprint verification**, with performance deviation up to 47.21%; pay $14.84 at official prices and you get back only about 38% of the effective tokens.
 
-## 偷换、降级、量化：三种手法
+## Substitution, downgrade, quantization: three techniques
 
-它们的目标一致——拿你付的 A 模型钱，给你 B 模型的成本，但表现不同：
+Their goal is the same — take the money you paid for model A and serve you at model B's cost — but they show up differently:
 
-- **直接偷换**：请求 `gpt-5`，后端转给某开源平替。最粗暴，也最好抓。
-- **概率性降级**：大部分请求老实路由，**只在高峰或随机抽一部分**甩给廉价模型。单次测不出来，得靠持续多次拨测看分布。
-- **静默量化**：还是那个模型，但跑在 Int4/FP4 量化权重上省显存。名字没变、回显没变，**只在能力边缘露馅**——典型 tell 就是中文（CJK）输出退化为乱码、`\u` 字面量转义或替换符 `�`。
+- **Outright substitution**: you request `gpt-5`, the backend hands it to some open-source substitute. The crudest, and the easiest to catch.
+- **Probabilistic downgrade**: most requests route honestly, but **only at peak or a random fraction** get tossed to a cheap model. A single test won't catch it; you need sustained, repeated probing to see the distribution.
+- **Silent quantization**: still that model, but running on Int4/FP4 quantized weights to save VRAM. The name doesn't change, the echo doesn't change — **it only slips at the edge of capability**, the classic tell being Chinese (CJK) output degrading into garbage, `\u` literal escapes, or the replacement character `�`.
 
-这也是为什么本平台**不做单次快照打分**，而是每 6 小时持续拨测、沉淀时间序列：间歇性的偷换只有在曲线上才看得见。
+This is exactly why the platform **does no single-snapshot scoring** but probes continuously every 6 hours, settling a time series: intermittent substitution is only visible on the curve.
 
-## 平台怎么测：四类黑盒指纹
+## How the platform measures: four kinds of black-box fingerprint
 
-我们不信声明，只看行为。识别偷换/降智，靠下面几个零成本（搭车现有探针）的硬信号组合，而不是任何单一指标。
+We don't trust claims, we watch behavior. To identify substitution/degradation, we rely on a combination of zero-cost (piggybacking on existing probes) hard signals, not any single metric.
 
-**1. 模型回显校验** —— 最便宜的硬证据。把响应里的 `model` 字段和你请求的比对。请求 `deepseek-v4-flash` 却回显成别的家族，就是直接证据。实现做了归一化（去大小写、分隔符、供应商前缀，容忍 `-0528` 这类版本后缀），互为子串才算一致；回显缺失则记为"无法判定"，**不算证据、不做有罪推定**。榜面给出 `modelEchoRate`，小于 1 表示有样本回显与请求不符。
+**1. Model echo check** — the cheapest hard evidence. Compare the `model` field in the response against what you requested. Requesting `deepseek-v4-flash` but getting a different family echoed back is direct evidence. The implementation normalizes (lowercase, strip separators and vendor prefixes, tolerate version suffixes like `-0528`) and requires one to be a substring of the other to count as a match; a missing echo is recorded as "indeterminate" — **not evidence, and no presumption of guilt**. The leaderboard reports `modelEchoRate`, and below 1 means some samples echoed a model that didn't match the request.
 
-**2. CJK 输出完整性** —— 量化降智的 tell。探针要求模型输出中文，然后检查：
+**2. CJK output integrity** — the tell of quantization degradation. The probe asks the model to output Chinese, then checks:
 
-- 出现替换符 `�` → 编码损坏，判不通过；
-- 含 ≥3 处字面量 `\uXXXX` 转义 → 未正确解码；
-- 几乎没有中文字符 → 答非所问。
+- the replacement character `�` appears → encoding corruption, fail;
+- ≥3 literal `\uXXXX` escapes → not decoded correctly;
+- almost no Chinese characters → answered off-topic.
 
-Int4/FP4 量化在 CJK 上常退化为上述形态，名字骗得了你，字形骗不了正则。
+Int4/FP4 quantization often degrades exactly this way on CJK — the name can fool you, but the glyphs can't fool a regex.
 
-**3. 工具调用转发检查**（思路源自 [K2 Vendor Verifier](https://github.com/MoonshotAI/K2-Vendor-Verifier)）—— 带一个公开 `tool` 定义发请求，看模型是否返回该 tool 的**合法 JSON 调用**。逆向/转售渠道常见直接把 `tools` 字段剥掉，是渠道质量的硬信号。
+**3. Tool-call forwarding check** (approach from [K2 Vendor Verifier](https://github.com/MoonshotAI/K2-Vendor-Verifier)) — send a request with a public `tool` definition and see whether the model returns a **valid JSON call** for that tool. Reverse/resale channels commonly strip the `tools` field outright, a hard signal of channel quality.
 
-**4. 假流式与延迟特征** —— 偷换链路往往伴随憋完整段再一次性 dump 的"假流式"。逐 chunk 计时即可识别（详见 [假流式检测](billing-traps)）。
+**4. Fake streaming and latency signature** — a substituted path often comes with "fake streaming" that buffers the whole reply then dumps it at once. Per-chunk timing identifies it (see [Fake-streaming detection](billing-traps)).
 
-> 渠道来源**无法直接证明**。本平台的立场是**行为指纹组合**：回显、CJK、工具调用、延迟特征——多个黑盒信号共同给网关画像，而不依赖网关的自我声明，也不做黑箱加权总分。
+> Channel origin **can't be directly proven**. The platform's stance is a **combination of behavioral fingerprints**: echo, CJK, tool calls, latency signature — multiple black-box signals jointly profile a gateway, without relying on the gateway's self-declaration and without a black-box weighted score.
 
-更进一步的对官方对拍（LLMmap 式 8 问身份指纹、与官方 API 的 finish_reason / JSON schema 对拍）在 roadmap 上，思路同样是"以官方为金标准比分布"，不靠拍脑袋。
+Further official-API diffing (LLMmap-style 8-question identity fingerprinting, diffing finish_reason / JSON schema against the official API) is on the roadmap; the idea is likewise "compare the distribution against the official gold standard", not guesswork.
 
-## 怎么读"行为体检"面板
+## How to read the "behavioral check" panel
 
-这几个信号在榜面是**独立成列**的，不要找一个总分：
+These signals are **separate columns** on the leaderboard — don't go looking for a single total score:
 
-- **模型回显**：理想是 1。低于 1，或出现 `回显 X ≠ 请求 Y`，直接拉黑该 (网关, 模型)。
-- **CJK 完整性**：失败说明疑似量化或非原生权重。
-- **工具调用**：失败说明 tools 被剥离，做 Agent 的别选。
-- 这些列都要**对着时间序列看**：偶发一次可能是网络抖动，**持续多次稳定异常**才是定性证据。我们看的是持续表现，不是某一刻的运气。
+- **Model echo**: ideal is 1. Below 1, or showing `echo X ≠ request Y`, blacklist that (gateway, model) outright.
+- **CJK integrity**: a failure suggests suspected quantization or non-native weights.
+- **Tool calls**: a failure means tools got stripped — don't pick it for Agent work.
+- All these columns must be **read against the time series**: a one-off may be network jitter, but **sustained, repeatedly stable anomalies** are categorical evidence. We look at sustained behavior, not a moment's luck.
 
-## 给读者的自检建议
+## Self-check tips for readers
 
-拿你自己的 key，五分钟就能做一轮：
+With your own key, you can do a round in five minutes:
 
-1. **比对 `model` 字段**：发一个请求，看返回 JSON 里的 `model` 是不是你点的那个。
-2. **逼它说中文**：要一段中文长输出，肉眼扫有没有 `�`、`\uXXXX`、莫名其妙的乱码。
-3. **试工具调用**：带一个 `tools` 定义,看模型是否回合法的 `tool_calls`，还是装没看见。
-4. **多打几次、错峰打**：白天高峰和深夜各来几轮——概率降级只在样本量上来后才现形。
-5. **别只信菜单名**：能力对得上才是真模型，名字一文不值。
+1. **Compare the `model` field**: send a request and see whether the `model` in the returned JSON is the one you ordered.
+2. **Force it to speak Chinese**: ask for a long Chinese output and eyeball it for `�`, `\uXXXX`, or inexplicable garbage.
+3. **Try a tool call**: include a `tools` definition and see whether the model returns valid `tool_calls`, or pretends not to notice.
+4. **Hit it several times, off-peak too**: a few rounds at midday peak and a few late at night — probabilistic downgrade only shows up once the sample count rises.
+5. **Don't trust the menu name alone**: a model is real only if its capability matches; the name is worthless.
 
-如果这几项里有一项持续不过关，价格再便宜也别用——你省下的钱，正以"实得 38% token"的形式还回去了。延伸阅读：[usage 重算：揪虚报 token](billing-traps)、[信任评级怎么打](methodology-trust)。
+If any one of these consistently fails, don't use it no matter how cheap — the money you save comes back as "38% tokens actually received". Further reading: [usage recomputation: catching inflated tokens](billing-traps), [how the trust rating is assigned](methodology-trust).

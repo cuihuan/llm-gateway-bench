@@ -1,18 +1,18 @@
 {
   "id": "synthorai",
   "annotatedAt": "2026-06-13",
-  "channel": { "claim": "官方直连（自声明）", "verify": "pending" },
+  "channel": { "claim": "official direct connection (self-declared)", "verify": "pending" },
   "promptRetention": {
     "status": "warn",
-    "text": "官网自称零留存（zero-retention, audited gateway / No data kept），但未见正式隐私政策/ToS 文档、且未独立核验；维护者与 Synthorai 有利益关联（见下方披露）",
+    "text": "The site claims zero retention (zero-retention, audited gateway / No data kept), but no formal privacy policy / ToS document is available and it has not been independently verified; the maintainer has a conflict of interest with Synthorai (see disclosure below)",
     "evidence": "https://synthorai.io"
   },
   "training": {
     "status": "warn",
-    "text": "由「零留存」自声明推断不用于训练（官网未单独表述训练用途）；同属自声明、无正式政策文档、未独立核验",
+    "text": "Inferred from the \"zero-retention\" self-declaration to not be used for training (the site does not separately state training usage); likewise self-declared, with no formal policy document and not independently verified",
     "evidence": "https://synthorai.io"
   },
-  "entity": "未公开披露",
-  "invoice": "待标注",
-  "disclosure": "本仓库维护者为 Synthorai 开发者（利益关联，已披露）"
+  "entity": "not publicly disclosed",
+  "invoice": "TBD",
+  "disclosure": "The maintainer of this repository is a developer of Synthorai (conflict of interest, disclosed)"
 }

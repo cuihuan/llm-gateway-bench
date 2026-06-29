@@ -1,10 +1,10 @@
 {
   "id": "aihubmix",
   "annotatedAt": "2026-06-13",
-  "channel": { "claim": "自声明官转", "verify": "pending" },
-  "promptRetention": { "status": "warn", "text": "仅概括性「按必要期限保留个人信息」，未专门承诺 API 正文留存期限；服务器在美国 Azure", "evidence": "https://docs.aihubmix.com/en/terms-and-privacy/Privacy" },
-  "training": { "status": "good", "text": "官方隐私政策：We do not use the content you send via the API to train models", "evidence": "https://docs.aihubmix.com/en/terms-and-privacy/Privacy" },
-  "entity": "美国 Delaware 注册公司（法人名未披露）",
-  "invoice": "待标注",
+  "channel": { "claim": "self-declared official passthrough", "verify": "pending" },
+  "promptRetention": { "status": "warn", "text": "Only a general statement to \"retain personal information for as long as necessary\"; no specific commitment on the retention period for API request bodies; servers on Azure in the US", "evidence": "https://docs.aihubmix.com/en/terms-and-privacy/Privacy" },
+  "training": { "status": "good", "text": "Official privacy policy: We do not use the content you send via the API to train models", "evidence": "https://docs.aihubmix.com/en/terms-and-privacy/Privacy" },
+  "entity": "US Delaware-registered company (legal entity name not disclosed)",
+  "invoice": "TBD",
   "disclosure": null
 }

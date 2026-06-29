@@ -1,15 +1,17 @@
 #!/usr/bin/env node
-// gwbench longcontext —— 长文本上下文留存基准。在多个上下文长度 × 多个埋点深度
-// 上做 needle-in-haystack：埋一个唯一标记，要求原样回读。网关若为省上游成本悄悄
-// 截断长上下文，标记会在某个长度以上确定性丢失——这张'长度×深度'通过/失败热图
-// 就把截断边界显出来。产出 kind=longcontext 的 gwbench-report/1，复用报告广场。
+// gwbench longcontext — a long-context retention benchmark. Runs needle-in-haystack across multiple
+// context lengths × multiple embed depths: embed a unique marker and require it read back verbatim.
+// If a gateway silently truncates long context to save upstream cost, the marker is deterministically
+// lost above some length — this 'length × depth' pass/fail heatmap surfaces the truncation boundary.
+// Produces a kind=longcontext gwbench-report/1, reusing the report gallery.
 //
-// 用法：
-//   node probe/longcontext.mjs --model <trackedId> [--url <你的网关> ...] [--with id,id]
-//        [--lengths 4000,16000,64000] [--depths 10,50,90] [--out <前缀>]
+// Usage:
+//   node probe/longcontext.mjs --model <trackedId> [--url <your gateway> ...] [--with id,id]
+//        [--lengths 4000,16000,64000] [--depths 10,50,90] [--out <prefix>]
 //
-// key 只从环境变量读，绝不入报告（隐私红线，同 compare）。长上下文请求较贵——
-// 默认每格 1 发，长度档建议自控（128K 单模型可达 $0.4–1.2/次）。
+// Keys are read only from environment variables, never enter the report (privacy red line, same as
+// compare). Long-context requests are pricey — defaults to 1 shot per cell; tune the length tiers
+// yourself (a single model at 128K can run $0.4–1.2/run).
 
 import { readFile, mkdir, writeFile } from 'node:fs/promises';
 import { resolveTargets } from './compare.mjs';
@@ -21,8 +23,8 @@ const flag = (name, fallback = null) => { const i = args.indexOf(`--${name}`); r
 const host = (url) => String(url).replace(/^https?:\/\//, '').replace(/\/+$/, '');
 const TIMEOUT_MS = 120_000;
 
-/** 构造 needle haystack（纯函数）：约 approxTokens 的填充，needle 埋在 depthFraction
- *  处。每行约 11 token。返回 { content, lines, markerAt }。 */
+/** Build a needle haystack (pure function): roughly approxTokens of filler, with the needle embedded
+ *  at depthFraction. About 11 tokens per line. Returns { content, lines, markerAt }. */
 export function buildHaystack(approxTokens, depthFraction, needle) {
   const TOK_PER_LINE = 11;
   const lines = Math.max(8, Math.round(approxTokens / TOK_PER_LINE));
@@ -33,8 +35,8 @@ export function buildHaystack(approxTokens, depthFraction, needle) {
   return { content, lines, markerAt: at };
 }
 
-/** 从一个目标的格子结果汇总（纯函数）：测过的长度档（升序）+ 可靠长度上限
- *  （所有深度都通过的最大长度）。 */
+/** Summarize one target's cell results (pure function): the length tiers tested (ascending) + the
+ *  reliable length cap (the largest length where all depths pass). */
 export function summarizeGrid(cells) {
   const byLen = new Map();
   for (const c of cells ?? []) {
@@ -45,17 +47,17 @@ export function summarizeGrid(cells) {
   let maxReliableLen = null;
   for (const len of lengthsTested) {
     if (byLen.get(len).length && byLen.get(len).every(Boolean)) maxReliableLen = len;
-    else break; // 一旦某长度档有失败，更长的不再算"可靠"
+    else break; // once a length tier has a failure, longer ones no longer count as "reliable"
   }
   return { lengthsTested, maxReliableLen };
 }
 
-/** 由一个目标的原始格子构造报告 target（纯函数，无密钥）。 */
+/** Build a report target from one target's raw cells (pure function, no secrets). */
 export function buildLongContextTarget({ name, host: h, cells, error = null }) {
   return { name: name ?? '?', host: h ?? null, grid: cells ?? [], ...summarizeGrid(cells), error };
 }
 
-/** 跨目标对比（纯函数）：上下文最可靠者 + 出现过截断的目标名单。 */
+/** Cross-target comparison (pure function): the most reliable context + the list of targets that truncated. */
 export function buildLongContextComparison(targets) {
   const list = Array.isArray(targets) ? targets : [];
   const withLen = list.filter((t) => typeof t.maxReliableLen === 'number');
@@ -65,7 +67,7 @@ export function buildLongContextComparison(targets) {
   return { bestContext, truncators };
 }
 
-/** 组装完整 longcontext 报告（纯函数）。generatedAt/version 注入以便单测。 */
+/** Assemble the full longcontext report (pure function). generatedAt/version injected for unit testing. */
 export function buildLongContextReport({ model, region = null, lengths, depths, targets, generatedAt, version = '0.0.0' }) {
   const t = Array.isArray(targets) ? targets : [];
   return {
@@ -98,11 +100,11 @@ const rnd = () => `NDL-${Math.random().toString(36).slice(2, 10).toUpperCase()}-
 
 async function main() {
   if (args.includes('--help') || args.includes('-h')) {
-    console.log('gwbench longcontext —— 多长度×多深度 needle 截断基准。见文件头注释。');
+    console.log('gwbench longcontext — multi-length × multi-depth needle truncation benchmark. See the file header comment.');
     return;
   }
   const model = flag('model');
-  if (!model) { console.error('[longcontext] 需要 --model <trackedId>'); process.exit(1); }
+  if (!model) { console.error('[longcontext] --model <trackedId> is required'); process.exit(1); }
   const lengths = String(flag('lengths', '4000,16000,64000')).split(',').map(Number).filter((n) => n > 0);
   const depths = String(flag('depths', '10,50,90')).split(',').map(Number).filter((n) => n >= 0 && n <= 100);
 
@@ -115,14 +117,14 @@ async function main() {
   const withIds = flag('with') ? String(flag('with')).split(',').map((s) => s.trim()).filter(Boolean) : null;
   const { targets, notes } = resolveTargets({ model, adhoc, withIds, gateways, tracked });
   for (const n of notes) console.error(`[skip] ${n}`);
-  if (!targets.length) { console.error('[longcontext] 没有可测目标'); process.exit(1); }
+  if (!targets.length) { console.error('[longcontext] no targets to test'); process.exit(1); }
 
   const region = flag('region') || process.env.PROBE_REGION || 'local';
   const startedAt = new Date().toISOString();
   const built = [];
   for (const t of targets) {
     const key = process.env[t.authEnv];
-    if (!key) { console.error(`[skip] ${t.name}: 环境变量 ${t.authEnv} 未设置`); continue; }
+    if (!key) { console.error(`[skip] ${t.name}: env var ${t.authEnv} not set`); continue; }
     const cells = [];
     for (const lengthTokens of lengths) {
       for (const depthPct of depths) {
@@ -136,7 +138,7 @@ async function main() {
     }
     built.push(buildLongContextTarget({ name: t.name, host: host(t.baseUrl), cells }));
   }
-  if (!built.length) { console.error('[longcontext] 所有目标缺 key，未产出报告'); process.exit(1); }
+  if (!built.length) { console.error('[longcontext] all targets missing keys, no report produced'); process.exit(1); }
 
   const report = buildLongContextReport({ model, region, lengths, depths, version, generatedAt: new Date().toISOString(), targets: built });
   const out = flag('out') || `reports/longcontext-${model}-${tsStamp(startedAt)}`;
@@ -145,7 +147,7 @@ async function main() {
   const { renderReportHtml } = await import('./report.mjs');
   await writeFile(new URL(`${out}.json`, root), JSON.stringify(report, null, 2));
   await writeFile(new URL(`${out}.html`, root), renderReportHtml(report));
-  console.error(`[longcontext] 上下文最可靠 ${report.comparison.bestContext ?? '—'} · 出现截断 ${report.comparison.truncators.join('/') || '无'}`);
+  console.error(`[longcontext] most reliable context ${report.comparison.bestContext ?? '—'} · truncation seen ${report.comparison.truncators.join('/') || 'none'}`);
   console.log(`${out}.html`);
   console.log(`${out}.json`);
 }

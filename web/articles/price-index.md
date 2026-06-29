@@ -1,57 +1,57 @@
-挑网关时，价格页是最容易被对比、也最容易被误读的一栏。有的站只标"Claude Sonnet 4.5 输入 $1.5"，比官方便宜一半，你以为捡到了；有的站把输入打到三折、输出反而加价，单看一个数字根本判断不出整体贵贱。更别说同一个名字下藏着缓存价、阶梯倍率、隐藏折扣。
+When picking a gateway, the pricing page is the column easiest to compare — and easiest to misread. One site lists only "Claude Sonnet 4.5 input $1.5", half the official price, and you think you scored; another cuts input to 30% but raises output, and a single number tells you nothing about overall cheap-vs-pricey. Never mind that the same name can hide a cache price, tiered multipliers, and hidden discounts.
 
-我们想要一个**单一可比的数字**：把这家网关和官方价的整体偏离压成一个倍率，跨模型、跨网关都能横着比。这就是价格指数。
+We want a **single comparable number**: compress this gateway's overall deviation from official prices into one multiplier you can compare across models and across gateways. That's the price index.
 
-## 怎么算
+## How it's computed
 
-分三步，全部在 `probe/aggregate.mjs` 的 `priceIndex()` 里，可复现：
+Three steps, all inside `priceIndex()` in `probe/aggregate.mjs`, reproducible:
 
-**第一步，定锚。** 官方价取 [litellm](https://github.com/BerriAI/litellm) 的开放价格库（`model_prices_and_context_window.json`），单位统一成 `USD / 1M tokens`，分输入、输出两个数。litellm 是社区维护、第三方中立的基准，我们不用任何网关自报的"官方价"当分母。
+**Step 1: anchor.** Official prices come from [litellm](https://github.com/BerriAI/litellm)'s open price library (`model_prices_and_context_window.json`), unified to `USD / 1M tokens`, split into input and output numbers. litellm is community-maintained and third-party neutral; we never use any gateway's self-reported "official price" as the denominator.
 
-**第二步，单模型倍率 = 输入比值和输出比值的算术平均。**
+**Step 2: per-model multiplier = the arithmetic mean of the input ratio and the output ratio.**
 
-> 单模型倍率 = (网关输入价 ÷ 官方输入价 + 网关输出价 ÷ 官方输出价) ÷ 2
+> per-model multiplier = (gateway input price ÷ official input price + gateway output price ÷ official output price) ÷ 2
 
-为什么用算术平均而不是把输入输出加总再比？因为很多渠道刻意做**不对称定价**：输入打骨折、输出偷偷加价。算术平均能把两边分别归一后再合并，避免某一边的绝对金额（输出通常贵几倍）主导整个比值。
+Why an arithmetic mean rather than summing input and output and then comparing? Because many channels deliberately use **asymmetric pricing**: slash input, quietly raise output. The arithmetic mean normalizes each side first and then combines, so one side's absolute amount (output is usually several times pricier) doesn't dominate the whole ratio.
 
-**第三步，跨模型取几何平均。** 一家网关同时挂多个模型，每个模型算出一个倍率，再做几何平均得到这家的价格指数：
+**Step 3: geometric mean across models.** A gateway carries several models at once; each model yields a multiplier, and the geometric mean of them gives this gateway's price index:
 
-> 价格指数 = exp( Σ ln(单模型倍率) / 模型数 )
+> price index = exp( Σ ln(per-model multiplier) / model count )
 
-用几何平均而非算术平均，是因为倍率是**比值**：一个模型 0.5×（半价）、另一个 2.0×（两倍），算术平均会给出 1.25× 的虚高，几何平均给出 `sqrt(0.5 × 2.0) = 1.0`，正确反映"整体打平"。便宜和贵在对数空间对称，不会被某个离群模型拉偏。
+We use the geometric rather than arithmetic mean because the multipliers are **ratios**: one model at 0.5× (half price) and another at 2.0× (double) would give an inflated 1.25× by arithmetic mean, while the geometric mean gives `sqrt(0.5 × 2.0) = 1.0`, correctly reflecting "even overall". Cheap and pricey are symmetric in log space, so no single outlier model skews it.
 
-只有同时拿得到官方价（litellm 有这个模型）和网关价的模型才进入计算；缺一边就跳过，不会拿不可比的模型凑数。
+Only models for which we have both the official price (litellm has this model) and the gateway price enter the calculation; if one side is missing the model is skipped, never padding it with incomparable models.
 
-## 怎么看这个数
+## How to read the number
 
-- **= 1**：和官方价持平。
-- **< 1**：整体比官方便宜（0.8 就是约八折）。
-- **> 1**：整体比官方贵——做合规、要发票、要 SLA 的企业渠道贵一点是合理的。
+- **= 1**: on par with official prices.
+- **< 1**: cheaper than official overall (0.8 is about 20% off).
+- **> 1**: pricier than official overall — an enterprise channel doing compliance, invoices, and SLAs being a bit pricier is reasonable.
 
-价格指数解决的是"贵不贵"，**不解决"值不值"**。这是它最容易被滥用的地方。
+The price index answers "is it cheap", **not "is it worth it"**. That's where it's most easily abused.
 
-## 便宜得反常，要警惕
+## Suspiciously cheap, be wary
 
-低于 **0.5×**（不到官方半价）就该亮红灯。官方上游的成本摆在那，能稳定做到长期半价以下的，要么在烧钱补贴，要么用的不是官转：账号池、逆向接口、多层转售、薅免费额度。这类渠道往往伴随偷换模型、剥离 tools、量化降智、虚报 token。
+Below **0.5×** (under half the official price) should set off a red light. The official upstream's cost is what it is; anything that can sustainably do under half price long-term is either burning money on subsidies or isn't running on official routing: account pools, reverse interfaces, multi-layer resale, free-tier farming. Such channels often come with model substitution, stripped tools, quantization degradation, and inflated tokens.
 
-> CISPA 的审计《Real Money Fake Models》给了量化注脚：抽测端点中 **45.83% 模型指纹验证失败**，付费实得 token 约只有声称的 **38%**。标价再低，实得三成八，单位有效 token 的真实价格反而更贵。
+> CISPA's audit *Real Money, Fake Models* gives the quantitative footnote: among sampled endpoints, **45.83% fail model-fingerprint verification**, and paid usage actually delivers only about **38%** of the claimed tokens. However low the list price, getting 38% of the tokens means the real price per effective token is actually higher.
 
-所以价格指数**必须和行为体检一起看**，绝不能单看一个数字下单。把它和这几列对照：
+So the price index **must be read alongside the behavioral check** — never place an order on a single number. Cross-reference it with these columns:
 
-- 模型回显、CJK 完整性、上下文截断——见 [behavior-fingerprint](model-substitution)，确认你买的是不是真模型；
-- usage 重算指纹（`charsPerToken` 异常偏低 = 疑似虚报 token）——见 [usage-fingerprint](billing-traps)，确认便宜不是靠少算 token 凑出来的；
-- 30/7 天滚动成功率与错误画像——见 [stability](stability-and-exit-risk)，确认便宜的代价不是天天 429。
+- model echo, CJK integrity, context truncation — see [behavior-fingerprint](model-substitution), to confirm whether you're buying the real model;
+- usage-recomputation fingerprint (`charsPerToken` unusually low = suspected inflated tokens) — see [usage-fingerprint](billing-traps), to confirm the cheapness isn't from under-counting tokens;
+- 30/7-day rolling success rate and error breakdown — see [stability](stability-and-exit-risk), to confirm the price of cheapness isn't daily 429s.
 
-一个 0.45× 但行为体检全绿、成功率长期稳的，可能是真补贴；一个 0.45× 同时模型回显对不上、token 数偏低的，便宜是假象。
+A 0.45× with an all-green behavioral check and a long-term stable success rate may be a genuine subsidy; a 0.45× with mismatched model echo and low token counts is a fake bargain.
 
-## 还有两个数字会骗人
+## Two more numbers that can deceive you
 
-- **缓存价**：很多网关把价格页最显眼的数字标成命中缓存后的价格，未命中时按全价甚至更高计费。litellm 的官方价是标准价，所以缓存折扣会让网关一栏显得异常低。价格指数取的是网关公开的标准价，但你仍要去价格页确认那个低价是不是缓存价。
-- **隐藏倍率**：少数渠道账面价低，结算时按系数放大，或对长上下文、特定模型另设倍率。这种黑箱无法从价格 API 读到，属于"计费透明度"的人工标注范畴。
+- **Cache price**: many gateways set the most prominent number on the pricing page to the post-cache-hit price, billing the full price or even higher on a miss. litellm's official price is the standard price, so a cache discount makes the gateway's column look anomalously low. The price index takes the gateway's published standard price, but you still need to go to the pricing page and confirm whether that low price is the cache price.
+- **Hidden multipliers**: a few channels show a low face price but scale it up by a factor at settlement, or set separate multipliers for long context or specific models. This black box can't be read from a price API and falls under the manual-annotation category of "billing transparency".
 
-## 给你的行动建议
+## Your action plan
 
-1. **先看指数定位区间**：> 1 偏贵、0.5–1 正常、< 0.5 反常。
-2. **反常的，立刻翻行为体检三列**：回显、CJK、token 指纹任何一项不绿，便宜不可信。
-3. **回价格页核对缓存价/倍率**：确认指数用的标准价是不是你实际会付的价。
-4. **别用价格指数排序选网关**：它是一列参考，不是总分。我们不做黑箱加权总分，**最便宜 ≠ 最优**。
+1. **Use the index to locate the band first**: > 1 pricey, 0.5–1 normal, < 0.5 anomalous.
+2. **For anything anomalous, immediately flip to the three behavioral-check columns**: echo, CJK, token fingerprint — if any one isn't green, the cheapness isn't trustworthy.
+3. **Go back to the pricing page to verify the cache price/multiplier**: confirm the standard price the index used is the price you'll actually pay.
+4. **Don't sort by the price index to pick a gateway**: it's one reference column, not a total score. We do no black-box weighted score, and **cheapest ≠ best**.

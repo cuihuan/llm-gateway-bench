@@ -1,124 +1,124 @@
-# 调研：大模型评测网站与开源工具（2026-06）
+# Research: LLM benchmark sites and open-source tools (2026-06)
 
-> 本文是建仓前的调研沉淀，结论直接决定了本仓库的形态。
-> §一~三为建仓调研（2026-06-10）；§四~六为用户痛点与检测技术深调研（2026-06-11）。
+> This document is the research distilled before building the repo; its conclusions directly determine the repo's form.
+> §1–3 are pre-build research (2026-06-10); §4–6 are a deep dive into user pain-points and detection techniques (2026-06-11).
 
-## 一、评测网站盘点
+## 1. Survey of benchmark sites
 
-| 网站 | 测什么 | 方法 | 开放数据 |
+| Site | What it measures | Method | Open data |
 |---|---|---|---|
-| [Artificial Analysis](https://artificialanalysis.ai) | 质量指数、价格($/1M)、TTFT、tok/s——**同一模型按供应商对比** | 持续自动拨测 500+ 真实端点，中位数+分位数，7/30/90 天窗口 | 有 Data API（免费 1k 次/天） |
-| [LMArena](https://arena.ai)（原 LMSYS） | 人类偏好 Elo + 95% CI，分赛道（文本/WebDev/视觉/Agent…） | 众包盲测对战，Bradley-Terry 持续重算 | 周期性放出对战数据集 |
-| [OpenRouter rankings](https://openrouter.ai/rankings) | 真实流量排名；**每个模型按供应商的 TTFT/吞吐/uptime** | 自有生产流量被动统计（滚动 5 分钟窗口） | 部分（模型元数据 API） |
-| [BFCL（伯克利函数调用榜）](https://gorilla.cs.berkeley.edu/leaderboard.html) | 工具调用准确率 + 成本/延迟列 | AST 比对 + 可执行验证，版本钉死可复现 | 全开源（数据+代码+模型回复） |
-| [LiveBench](https://livebench.ai) | 7 大类 21 任务质量分 | 每月换新题防污染，规则判分不用 LLM judge | 全开源 |
-| [K2 Vendor Verifier](https://github.com/MoonshotAI/K2-Vendor-Verifier) | **同一开源模型在 12+ 供应商的工具调用保真度** | 固定 4000 条请求回放，以官方 API 为金标准对拍 | 代码 + 一半数据开源 |
-| [LLMStatus.net](https://llmstatus.net) / [ModelUptime](https://modeluptime.com) / [LLM Overwatch](https://llmoverwatch.com) | 官方 API 可用性/延迟状态页 | 60s~10min 主动探测（部分多地域） | 否 |
-| [GPT for Work tracker](https://gptforwork.com/tools/openai-api-and-other-llm-apis-response-time-tracker) | OpenAI/Anthropic/Gemini 响应时间 | 每 10 分钟、3 个地理位置、随机化 prompt 防缓存 | 否 |
-| HF Open LLM Leaderboard | （已于 2025-03 退役） | 静态基准会饱和而死，**持续刷新的数据才活得下去** | 历史归档 |
+| [Artificial Analysis](https://artificialanalysis.ai) | Quality index, price ($/1M), TTFT, tok/s — **comparing the same model across providers** | Continuous automated probing of 500+ real endpoints, median + percentiles, 7/30/90-day windows | Has a Data API (free 1k calls/day) |
+| [LMArena](https://arena.ai) (formerly LMSYS) | Human-preference Elo + 95% CI, by track (text/WebDev/vision/Agent…) | Crowdsourced blind battles, Bradley-Terry continuously recomputed | Periodically releases battle datasets |
+| [OpenRouter rankings](https://openrouter.ai/rankings) | Real-traffic ranking; **per-model, per-provider TTFT/throughput/uptime** | Passive stats from its own production traffic (rolling 5-minute window) | Partial (model-metadata API) |
+| [BFCL (Berkeley Function-Calling Leaderboard)](https://gorilla.cs.berkeley.edu/leaderboard.html) | Tool-call accuracy + cost/latency columns | AST diffing + executable verification, version-pinned and reproducible | Fully open source (data + code + model responses) |
+| [LiveBench](https://livebench.ai) | Quality scores across 7 categories, 21 tasks | Fresh questions monthly to prevent contamination, rule-based scoring, no LLM judge | Fully open source |
+| [K2 Vendor Verifier](https://github.com/MoonshotAI/K2-Vendor-Verifier) | **Tool-call fidelity of the same open-source model across 12+ providers** | Replays a fixed 4,000 requests, diffing against the official API as the gold standard | Code + half the data open source |
+| [LLMStatus.net](https://llmstatus.net) / [ModelUptime](https://modeluptime.com) / [LLM Overwatch](https://llmoverwatch.com) | Official-API availability/latency status pages | Active probing every 60s–10min (some multi-region) | No |
+| [GPT for Work tracker](https://gptforwork.com/tools/openai-api-and-other-llm-apis-response-time-tracker) | OpenAI/Anthropic/Gemini response times | Every 10 minutes, 3 geographic locations, randomized prompt to defeat caching | No |
+| HF Open LLM Leaderboard | (retired 2025-03) | Static benchmarks saturate and die; **only continuously refreshed data survives** | Historical archive |
 
-**值得抄的 UI 模式**（来自做得最好的几家）：
-1. 可排序排行榜表格：分位数指标（p50/p95）+ 置信区间，而不是单一平均值；
-2. 价格 vs 速度/质量 **散点图**，Pareto 前沿一目了然（Artificial Analysis 招牌）；
-3. 每端点 **over-time 时间序列**——把"一次性快照"变成"长期信任"，这正是数据积累的长线价值；
-4. 每端点 uptime 条带图（OpenRouter 模型页样式）；
-5. 可信度信号：公开探测 prompt 与频率、钉死版本、开放原始数据。
+**UI patterns worth borrowing** (from the best of them):
+1. A sortable leaderboard table: percentile metrics (p50/p95) + confidence intervals, not a lone average;
+2. A price vs speed/quality **scatter plot**, making the Pareto frontier obvious at a glance (Artificial Analysis's signature);
+3. A per-endpoint **over-time time series** — turning a "one-off snapshot" into "long-term trust", which is exactly the long-term value of accumulated data;
+4. A per-endpoint uptime band chart (OpenRouter model-page style);
+5. Trustworthiness signals: public detection prompts and frequency, pinned versions, open raw data.
 
-## 二、开源工具盘点
+## 2. Survey of open-source tools
 
-| 工具 | 状态 | 测什么 | 对本仓库的用法 |
+| Tool | Status | What it measures | Use for this repo |
 |---|---|---|---|
-| [llmperf](https://github.com/ray-project/llmperf)（Ray, 1.1k★） | **已归档** | TTFT/ITL/tok/s/错误率 | 方法论参考：固定 550 in / 150 out token、150 请求取分位数 |
-| [llmperf-leaderboard](https://github.com/ray-project/llmperf-leaderboard) | **已归档** | 定期拨测→静态榜单 | 与本仓库目标完全相同的唯一先例，已死，空位就在这 |
-| [AIPerf](https://github.com/ai-dynamo/aiperf)（NVIDIA, 361★） | 活跃 | TTFT/ITL/tok/s 高并发压测 | 压测形态，不适合低频拨测；指标定义可参考 |
-| [guidellm](https://github.com/vllm-project/guidellm)（vLLM, 1.2k★） | 活跃 | 速率扫描 + SLO 分析 | 同上，面向自部署容量测试 |
-| [promptfoo](https://github.com/promptfoo/promptfoo)（22k★, MIT） | 活跃 | 质量断言、多供应商对比，有官方 GitHub Action | **后期质量列**的首选：CI 原生 + 多供应商 |
-| [llm-gateway-bench](https://github.com/taffy-owo/llm-gateway-bench)（3★, MIT） | 新 | 流式 TTFT/p95/成功率，YAML 多网关对比 | SSE 计时细节可参考 |
-| [litellm](https://github.com/BerriAI/litellm)（50k★） | 活跃 | `model_prices_and_context_window.json` 是事实标准的开放价格库 | **价格列数据源** |
-| uptime-kuma / arguslm / LMeterX / Helicone / Langfuse | 活跃 | 各类拨测/观测 | 都要常驻服务器，不符合"无服务器、静态榜单"形态 |
-| lm-evaluation-harness / openai-evals | 活跃/维护态 | 学术质量基准 | 太重，与拨测无关 |
+| [llmperf](https://github.com/ray-project/llmperf) (Ray, 1.1k★) | **Archived** | TTFT/ITL/tok/s/error rate | Methodology reference: fixed 550 in / 150 out tokens, 150 requests for percentiles |
+| [llmperf-leaderboard](https://github.com/ray-project/llmperf-leaderboard) | **Archived** | Periodic probing → static leaderboard | The only precedent with the exact same goal as this repo; dead, leaving the slot open |
+| [AIPerf](https://github.com/ai-dynamo/aiperf) (NVIDIA, 361★) | Active | TTFT/ITL/tok/s high-concurrency load test | Load-test form, unsuited to low-frequency probing; metric definitions are a reference |
+| [guidellm](https://github.com/vllm-project/guidellm) (vLLM, 1.2k★) | Active | Rate sweep + SLO analysis | Same as above, aimed at self-deployment capacity testing |
+| [promptfoo](https://github.com/promptfoo/promptfoo) (22k★, MIT) | Active | Quality assertions, multi-provider comparison, has an official GitHub Action | The top pick for a **later quality column**: CI-native + multi-provider |
+| [llm-gateway-bench](https://github.com/taffy-owo/llm-gateway-bench) (3★, MIT) | New | Streaming TTFT/p95/success rate, YAML multi-gateway comparison | SSE timing details are a reference |
+| [litellm](https://github.com/BerriAI/litellm) (50k★) | Active | `model_prices_and_context_window.json` is the de-facto-standard open price library | **The price-column data source** |
+| uptime-kuma / arguslm / LMeterX / Helicone / Langfuse | Active | Various probing/observability | All require a persistent server, not matching the "serverless, static leaderboard" form |
+| lm-evaluation-harness / openai-evals | Active/maintenance | Academic quality benchmarks | Too heavy, unrelated to probing |
 
-**工具结论**：
-- 流式 TTFT/吞吐测量是已被解决无数次的 ~200 行问题（SSE 计时 + `stream_options.include_usage`），**自研最轻**；
-- "GitHub Actions 定时拨测 + 时间序列存仓库 + 静态榜单"**目前没有活跃项目在做**；
-- 多地域直连性探测（尤其国内直连）没有任何 LLM 工具在做——这是真正的差异化点（GH Actions 默认只有美国 runner，国内视角需补充自托管 runner 或边缘探针）。
+**Tool conclusions**:
+- Streaming TTFT/throughput measurement is a ~200-line problem solved countless times (SSE timing + `stream_options.include_usage`) — **lightest to build ourselves**;
+- "GitHub Actions scheduled probing + time series stored in the repo + static leaderboard" — **no active project is currently doing this**;
+- Multi-region direct-reachability probing (especially CN direct connection) — no LLM tool does it at all, the real differentiator (GH Actions defaults to US runners only; a CN viewpoint needs a self-hosted runner or edge probe).
 
-## 三、定位结论（本仓库要做什么）
+## 3. Positioning conclusion (what this repo will do)
 
-1. **形态**：无服务器。GitHub Actions 定时拨测 → 结果 JSON 提交回 `data/results/` → 静态页面渲染排行榜（GitHub Pages）。数据本身开源、可复现，随时间积累成壁垒。
-2. **视角**：用户视角五维——直连性、稳定性、速度、价格、模型清单（详见 `methodology.md`）。
-3. **差异化**：
-   - 国内/多地域直连性探测（无人做）；
-   - 中立性（OpenRouter 自卖自夸，Artificial Analysis 不测中转网关）;
-   - 远期加"保真度"维度：K2 Vendor Verifier 式与官方 API 对拍，检测偷换模型/量化/截断上下文。
-4. **工程红线**（来自调研的避坑）：cron 有 15min+ 抖动→记录真实时间戳；共享 runner 有邻居噪声→单次多采样取中位数、并发≤4；探测 prompt 公开 + 随机化防缓存。
+1. **Form**: serverless. GitHub Actions scheduled probing → result JSON committed back to `data/results/` → static pages render the leaderboard (GitHub Pages). The data itself is open and reproducible, accumulating into a moat over time.
+2. **Viewpoint**: a user-perspective five dimensions — reachability, stability, speed, price, catalog (see `methodology.md`).
+3. **Differentiation**:
+   - CN/multi-region direct-reachability probing (nobody does it);
+   - Neutrality (OpenRouter markets itself; Artificial Analysis doesn't test relays);
+   - A future "fidelity" dimension: K2 Vendor Verifier-style diffing against the official API to detect model substitution/quantization/context truncation.
+4. **Engineering red lines** (pitfalls learned from the research): cron has 15min+ jitter → record real timestamps; shared runners have noisy neighbors → multi-sample per run for the median, concurrency ≤4; public detection prompts + randomization to defeat caching.
 
 ---
 
-## 四、深度调研：用户痛点 × 黑盒检测武器库（2026-06 补充）
+## 4. Deep dive: user pain-points × black-box detection toolbox (2026-06 supplement)
 
-> 渠道来源**无法直接"证明"**，本仓库的立场是 **行为指纹组合**：多个黑盒可测信号
-> 共同给网关画像，不依赖网关自我声明。下面是从 linux.do / V2EX / 知乎 / 36kr /
-> arXiv / GitHub 社区检测工具里提炼的痛点与对应的可落地检测方法。
+> Channel origin **can't be directly "proven"**; this repo's stance is a **combination of behavioral fingerprints**: multiple black-box-measurable signals
+> jointly profile a gateway, without relying on the gateway's self-declaration. Below are pain-points distilled from linux.do / V2EX / Zhihu / 36kr /
+> arXiv / GitHub community detection tools, with the corresponding actionable detection methods.
 
-### 4.1 用户痛点榜（按"影响选网关的程度"排序）
+### 4.1 User pain-point board (ranked by "impact on gateway choice")
 
-| # | 痛点 | 实锤数据 | 黑盒怎么测 | 本仓库状态 |
+| # | Pain-point | Hard data | How to test it black-box | This repo's status |
 |---|---|---|---|---|
-| 1 | **偷换模型/降智** | CISPA 审计：45.83% 端点指纹验证失败，性能偏差达 47.21%；ACM IMC：40%+ 端点指纹不符。手法：概率性降级、版本静默切换 | 周期性模型身份指纹（LLMmap 8 问 95%+ 准）+ 能力回归分，画成时间序列抓间歇性偷换 | 缺失（P1） |
-| 2 | **偷 token/虚报 usage** | CISPA：付 $14.84 实得 $5.70-7.77（~38%）；IMC：某站实收超预期 62.8%；缓存读按全价计 | 本地 tokenizer 重算，比对网关报的 prompt_tokens/completion_tokens，偏差 >5% 报警 | 部分（已测 usage 上报率，未做重算比对，P0） |
-| 3 | **跑路/无发票合规缺失** | V2EX「中转站的底裤」记录低价引流→涨价→服务恶化→域名消失；92+ 中转产品多数无企业注册/ICP | 存活时长/uptime 历史、死站墓地、主体/ICP/发票元数据列 | 部分（有 uptime 历史+人工标注，无墓地/存活时长） |
-| 4 | **量化降智**（尤其聚合器路由到 FP4/INT4） | qwen-code PR#348 避开量化供应商；Roo-Code#11325 记录 CJK 输出在 Int4/FP4 退化为乱码 | CJK 输出完整性探针 + 编码质量探针 + 比对披露的量化等级 | 缺失（P2，需质量列） |
-| 5 | **假流式** | 中转站把非流式响应缓存后伪装 SSE 回放，藏排队延迟 | 逐 chunk 计时：TTFT≈总延迟 + 内容在极小窗口内 dump | **已实现** ✓ |
-| 6 | **上下文截断** | 中转站裁长上下文省上游成本；api-checker 用 canary+二分定位截断边界 | 多深度 needle-in-haystack（8K/32K/128K），与官方 API 对照 | 缺失（P1，单次成本 $0.4-1.2，周跑） |
-| 7 | **高峰限速/动态倍率** | linux.do 实测「高峰期经常卡死」；某站 Claude Code 倍率 1.3→1.5 不通知 | **拨测的核心价值**：按时段画 TTFT/吞吐/成功率曲线，对比高峰 vs 低谷 | 部分（有时序，未按时段切片） |
-| 8 | **封号波及** | Anthropic 封号潮清空账号池，~70% 因脏数据中心 IP；逆向 Sub2API 栈被批量风控 | 可用性/成功率事件时间线捕捉封号潮断流 + 标注渠道类型 | 部分（成功率时序在，无事件标注） |
+| 1 | **Model substitution/degradation** | CISPA audit: 45.83% of endpoints fail fingerprint verification, performance deviation up to 47.21%; ACM IMC: 40%+ of endpoints fingerprint-mismatched. Techniques: probabilistic downgrade, silent version switching | Periodic model-identity fingerprint (LLMmap 8-question, 95%+ accurate) + capability-regression scores, drawn as a time series to catch intermittent substitution | Missing (P1) |
+| 2 | **Token theft/inflated usage** | CISPA: pay $14.84, get $5.70-7.77 (~38%); IMC: one site over-charged by 62.8%; cache reads billed at full price | Local tokenizer recomputation, comparing against the gateway-reported prompt_tokens/completion_tokens, alert on deviation >5% | Partial (already measures usage report rate; recomputation diff not yet done, P0) |
+| 3 | **Exit scam/no invoice/compliance gaps** | V2EX "the relay's underwear" documents cheap acquisition → price hike → service degradation → domain vanishing; 92+ relay products mostly without company registration/ICP | Survival duration/uptime history, a graveyard of dead sites, entity/ICP/invoice metadata columns | Partial (has uptime history + manual annotation, no graveyard/survival duration) |
+| 4 | **Quantization degradation** (especially aggregators routing to FP4/INT4) | qwen-code PR#348 avoids quantizing providers; Roo-Code#11325 documents CJK output degrading to garbage on Int4/FP4 | A CJK output integrity probe + an encoding-quality probe + comparison against disclosed quantization level | Missing (P2, needs a quality column) |
+| 5 | **Fake streaming** | Relays cache a non-streaming response then replay it disguised as SSE, hiding queue latency | Per-chunk timing: TTFT≈total latency + content dumped within a tiny window | **Implemented** ✓ |
+| 6 | **Context truncation** | Relays trim long context to save upstream cost; api-checker uses canary+binary-search to locate the truncation boundary | Multi-depth needle-in-haystack (8K/32K/128K), compared against the official API | Missing (P1, $0.4-1.2 per run, weekly) |
+| 7 | **Peak throttling/dynamic multipliers** | linux.do measured "frequently freezes at peak"; one site bumped Claude Code's multiplier 1.3→1.5 without notice | **The core value of probing**: draw TTFT/throughput/success-rate curves by time-of-day, comparing peak vs trough | Partial (has time series, not yet sliced by time-of-day) |
+| 8 | **Ban-wave fallout** | An Anthropic ban wave emptied account pools, ~70% due to dirty data-center IPs; reverse Sub2API stacks risk-flagged in bulk | Availability/success-rate event timeline catching ban-wave outages + annotating channel type | Partial (success-rate time series exists, no event annotation) |
 
-### 4.2 黑盒检测武器库（按实现成本/优先级）
+### 4.2 Black-box detection toolbox (by implementation cost/priority)
 
-| 方法 | 协议 | 单次成本 | 来源 |
+| Method | Protocol | Per-run cost | Source |
 |---|---|---|---|
-| **假流式检测** | 逐 chunk 计时，看 TTFT/E2E 比与 chunk 间隔分布 | $0（埋点即可） | LiteLLM#19909 |
-| **usage 重算比对** | 固定 prompt 本地预算 token，比对网关上报，偏差>5% 报警；顺带查隐藏 system prompt 注入 | $0（搭车现有探针） | 36kr/知乎 |
-| **K2 式工具调用对拍** | 200 请求子集对比 finish_reason F1 + JSON schema 合法率（官方 API 为金标准） | ~$1-3/模型 | K2-Vendor-Verifier |
-| **LLMmap 身份指纹** | 8 条精心构造的 query，分类器识别模型版本，95%+ 准 | <$0.01/模型 | LLMmap, USENIX'25 |
-| **MMD 模型相等性检验** | 每 prompt 采样 ~10 条补全，string-kernel MMD + 置换检验 vs 参考模型 | $0.1-0.5/探针 | Model Equality Testing, ICLR'25 |
-| **logprob 漂移追踪** | 固定 prompt 取 1 token 的 logprob，追踪均值漂移检测微调/量化 | <1 分钱（仅 5/13 家开放 logprobs） | arXiv 2512.03816 |
-| **能量距离行为指纹** | 每几小时采样固定 prompt 集（800 短请求），嵌入后比分布，e-value 聚合判变更 | 中（专为周期拨测设计） | arXiv 2603.19022 |
-| **needle 上下文截断** | 多深度埋 UUID needle，硬截断表现为切点前确定性失败 | $0.4-1.2/模型（128K） | LLMTest_NeedleInAHaystack |
+| **Fake-streaming detection** | Per-chunk timing, looking at the TTFT/E2E ratio and inter-chunk interval distribution | $0 (just instrumentation) | LiteLLM#19909 |
+| **Usage-recomputation diff** | Locally budget tokens for a fixed prompt, compare against gateway-reported, alert on deviation >5%; incidentally check for hidden system-prompt injection | $0 (piggyback on existing probe) | 36kr/Zhihu |
+| **K2-style tool-call diff** | A 200-request subset comparing finish_reason F1 + JSON schema validity rate (official API as gold standard) | ~$1-3/model | K2-Vendor-Verifier |
+| **LLMmap identity fingerprint** | 8 carefully crafted queries, a classifier identifies the model version, 95%+ accurate | <$0.01/model | LLMmap, USENIX'25 |
+| **MMD model-equality test** | ~10 completions sampled per prompt, string-kernel MMD + permutation test vs a reference model | $0.1-0.5/probe | Model Equality Testing, ICLR'25 |
+| **logprob drift tracking** | Take the logprob of 1 token for a fixed prompt, track mean drift to detect fine-tuning/quantization | <1 cent (only 5/13 providers expose logprobs) | arXiv 2512.03816 |
+| **Energy-distance behavioral fingerprint** | Sample a fixed prompt set (800 short requests) every few hours, embed and compare distributions, e-value aggregation to judge change | Medium (designed for periodic probing) | arXiv 2603.19022 |
+| **needle context truncation** | Bury a UUID needle at multiple depths; a hard cut shows up as deterministic failure before the cut point | $0.4-1.2/model (128K) | LLMTest_NeedleInAHaystack |
 
-### 4.3 业内基线协议（拨测口径对齐）
+### 4.3 Industry baseline protocols (probe-convention alignment)
 
-- **Artificial Analysis**（金标准）：流式拨测，1k/10k/100k input + vision 四档负载，1k/10k/vision 每天 8 次（~每 3h），10 并发每天 1 次，100k 每周；指标取**trailing 72h 中位数**；token 统一归一化到 tiktoken o200k_base 保证跨供应商 $/token 与 tok/s 可比；固定 GCP us-central1 单 VM 出口。
-- **OpenRouter**：被动统计真实流量，滚动 5 分钟窗口 p50/p75/p90/p99；uptime = 成功/总数**剔除用户错误(4xx)**——这个口径值得抄；按模型×供应商而非按 host 粒度。
-- **thefastest.ai**：每天多地域(三 Fly.io 区)，warmup 连接去掉 TCP/TLS 建连延迟，1k in/20 out，best-of-3 丢排队离群。
-- **llmperf**：550 in/150 out，Shakespeare 十四行诗拼接 prompt 强制长输出 + 数字转换正确性探针；单一 tokenizer 保证 tok/s 可比。
-- **vLLM bench serve / AIPerf**：指标命名 `ttft/tpot/itl/e2el` + p50/p90/p99，Poisson 到达模拟真实负载——schema 命名直接抄。
+- **Artificial Analysis** (gold standard): streaming probes, four load tiers of 1k/10k/100k input + vision, 1k/10k/vision 8 times a day (~every 3h), 10-concurrency once a day, 100k weekly; metrics take the **trailing 72h median**; tokens uniformly normalized to tiktoken o200k_base to keep $/token and tok/s comparable across providers; fixed GCP us-central1 single-VM egress.
+- **OpenRouter**: passive stats on real traffic, rolling 5-minute window p50/p75/p90/p99; uptime = success/total **excluding user errors (4xx)** — this convention is worth borrowing; at model×provider granularity rather than per-host.
+- **thefastest.ai**: daily multi-region (three Fly.io regions), warmup connection to remove TCP/TLS handshake latency, 1k in/20 out, best-of-3 dropping queuing outliers.
+- **llmperf**: 550 in/150 out, a Shakespeare-sonnet-concatenated prompt forcing long output + a number-conversion correctness probe; a single tokenizer to keep tok/s comparable.
+- **vLLM bench serve / AIPerf**: metric naming `ttft/tpot/itl/e2el` + p50/p90/p99, Poisson arrivals simulating real load — borrow the schema naming directly.
 
-### 4.4 可借鉴的社区中转站检测工具
+### 4.4 Community relay-detection tools worth borrowing
 
-- **api-check**（925★）：`system_fingerprint` 一致性对比检测掺假模型，纯前端 key 不出本地——信任维度协议直接抄。
-- **ChannelMonitor**（活跃）：≥30 分钟探测间隔（成本/防滥用友好下限）、RPS/RPM 限流默认值、(channel,model) 粒度可用性语义。
-- **all-api-hub**（4000★）：中转站类型识别清单可做我们的网关 taxonomy；跨站价格归一化喂价格矩阵。
-- **api-key-tester**：四态 key 分类（valid/invalid/rate-limited/paid）——把 rate-limited 与 dead 分开，避免把网关误判为宕机。
-- **Uptime Kuma**：push heartbeat 集成模式，让拨测结果能喂任意 Kuma 实例。
+- **api-check** (925★): `system_fingerprint` consistency comparison to detect adulterated models, pure front-end with the key never leaving local — borrow the trust-dimension protocol directly.
+- **ChannelMonitor** (active): ≥30-minute probe interval (a cost/anti-abuse-friendly floor), RPS/RPM rate-limit defaults, (channel,model)-granularity availability semantics.
+- **all-api-hub** (4000★): a relay-type identification list can serve as our gateway taxonomy; cross-site price normalization feeds the price matrix.
+- **api-key-tester**: four-state key classification (valid/invalid/rate-limited/paid) — separating rate-limited from dead avoids misjudging a gateway as down.
+- **Uptime Kuma**: a push-heartbeat integration pattern, letting probe results feed any Kuma instance.
 
-### 4.5 落地优先级（结论）
+### 4.5 Implementation priority (conclusion)
 
-- **P0（零成本，搭车现有探针，立即做）**：假流式检测 ✓ 已做；usage 本地重算比对（揪虚报倍率/隐藏注入）。
-- **P1（单次几分到几毛，周跑）**：模型身份指纹（LLMmap 式 8 问）防偷换；needle 上下文截断检测；按时段切片的高峰 vs 低谷曲线。
-- **P2（需引入质量基线）**：量化/降智检测（CJK 完整性+编码质量）；K2 式工具调用对拍（已有单模型工具调用检查，扩成与官方对拍）。
-- **UI**：页首痛点导引把"信得过吗"翻译成上面 8 条具体痛点 + 对应证据列；新增"自测指南"section 教用户用自己的 key 复现；信任评级文案强调"行为指纹组合，不看声明"。
+- **P0 (zero cost, piggyback on existing probe, do immediately)**: fake-streaming detection ✓ done; local usage recomputation diff (catching inflated multipliers/hidden injection).
+- **P1 (cents to a few dollars per run, weekly)**: model-identity fingerprint (LLMmap-style 8-question) against substitution; needle context-truncation detection; peak vs trough curves sliced by time-of-day.
+- **P2 (needs a quality baseline)**: quantization/degradation detection (CJK integrity + encoding quality); K2-style tool-call diffing (already have a single-model tool-call check, extend to a diff against the official).
+- **UI**: a top-of-page pain-point guide translating "can I trust it" into the 8 concrete pain-points above + matching evidence columns; a new "self-test guide" section teaching users to reproduce with their own key; trust-rating copy emphasizing "a combination of behavioral fingerprints, not claims".
 
 ---
 
-## 四、用户痛点榜（按对选网关决策的影响力排序）
+## 4. User pain-point board (ranked by influence on the gateway-choice decision)
 
-来源：linux.do / V2EX / 知乎 / 36kr 社区讨论 + CISPA 学术审计
-[《Real Money, Fake Models》(arXiv 2603.01919)](https://arxiv.org/abs/2603.01919)。
-每个痛点都标注了黑盒可测的取证方法与本仓库当前覆盖状态。
+Sources: linux.do / V2EX / Zhihu / 36kr community discussions + the CISPA academic audit
+[*Real Money, Fake Models* (arXiv 2603.01919)](https://arxiv.org/abs/2603.01919).
+Each pain-point is annotated with a black-box-measurable forensic method and this repo's current coverage status.
 
-| # | 痛点 | 量化证据 | 黑盒取证方法 | 本仓库状态 |
+| # | Pain-point | Quantitative evidence | Black-box forensic method | This repo's status |
 |---|---|---|---|---|
-| 1 | **偷换模型/降智**：挂着 Claude/GPT 的名卖便宜模型，或"概率降级"（部分请求路由到廉价模型）、版本静默切换 | CISPA：**45.83% 的中转端点过不了身份指纹测试**，性能偏差最高 47.21%；17 个影子 API 混进 187 篇学术论文 | 行为指纹组合（工具调用保真/流式真实性/延迟特征）+ 周期性身份指纹探测（[LLMmap](https://arxiv.org/abs/2407.15847)：8 条请求 >95% 准确率）+ 时序展示抓"间歇性偷换" | 部分：行为指纹已上线；身份指纹 P1 |
-| 2 | **偷 token/虚报 usage**：私调计费倍率（1 个汉字记 3-4 token）、暗注系统提示词撑大 prompt_tokens、缓存价照原价收 | CISPA 实测：按官方价付 $14.84 实际只拿到 **$5
+| 1 | **Model substitution/degradation**: selling a cheap model under the Claude/GPT name, or "probabilistic downgrade" (routing a fraction of requests to a cheap model), silent version switching | CISPA: **45.83% of relay endpoints fail the identity-fingerprint test**, performance deviation up to 47.21%; 17 shadow APIs slipped into 187 academic papers | A combination of behavioral fingerprints (tool-call fidelity/streaming authenticity/latency signature) + periodic identity-fingerprint probing ([LLMmap](https://arxiv.org/abs/2407.15847): 8 requests, >95% accuracy) + time-series display to catch "intermittent substitution" | Partial: behavioral fingerprints live; identity fingerprint P1 |
+| 2 | **Token theft/inflated usage**: privately tweaked billing multipliers (counting one Chinese character as 3-4 tokens), secretly injected system prompts bloating prompt_tokens, cache price billed at full price | CISPA measured: pay $14.84 at official prices and actually get only **$5
