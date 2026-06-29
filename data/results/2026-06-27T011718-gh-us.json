@@ -143,7 +143,7 @@
           },
           "cjk": {
             "ok": false,
-            "error": "空响应"
+            "error": "empty response"
           },
           "needle": {
             "ok": true
