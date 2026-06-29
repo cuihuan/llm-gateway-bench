@@ -1,11 +1,11 @@
 {
-  "generatedAt": "2026-06-29T01:24:57.861Z",
+  "generatedAt": "2026-06-29T08:09:12.034Z",
   "demo": false,
   "windowDays": 30,
   "regions": [
     "gh-us"
   ],
-  "runCount": 84,
+  "runCount": 85,
   "gateways": [
     {
       "id": "synthorai",
@@ -26,36 +26,36 @@
         "id": "synthorai",
         "annotatedAt": "2026-06-13",
         "channel": {
-          "claim": "Official Direct (self-claimed)",
+          "claim": "official direct connection (self-declared)",
           "verify": "pending"
         },
         "promptRetention": {
           "status": "warn",
-          "text": "The site self-claims zero retention (zero-retention, audited gateway / No data kept), but no formal privacy policy / ToS document is available and it has not been independently verified; the maintainer has a conflict of interest with Synthorai (see disclosure below)",
+          "text": "The site claims zero retention (zero-retention, audited gateway / No data kept), but no formal privacy policy / ToS document is available and it has not been independently verified; the maintainer has a conflict of interest with Synthorai (see disclosure below)",
           "evidence": "https://synthorai.io"
         },
         "training": {
           "status": "warn",
-          "text": "Inferred not used for training from the \"zero retention\" self-claim (the site does not separately state training use); likewise self-claimed, with no formal policy document and not independently verified",
+          "text": "Inferred from the \"zero-retention\" self-declaration to not be used for training (the site does not separately state training usage); likewise self-declared, with no formal policy document and not independently verified",
           "evidence": "https://synthorai.io"
         },
         "entity": "not publicly disclosed",
-        "invoice": "to be annotated",
-        "disclosure": "The maintainer of this repository is a Synthorai developer (conflict of interest, disclosed)"
+        "invoice": "TBD",
+        "disclosure": "The maintainer of this repository is a developer of Synthorai (conflict of interest, disclosed)"
       },
       "region": "gh-us",
       "byRegion": {
         "gh-us": {
-          "uptimePct": 99.6,
-          "uptime7dPct": 98.67,
-          "probes": 252,
-          "ttftP50": 2561,
-          "connMs": 293
+          "uptimePct": 99.61,
+          "uptime7dPct": 98.72,
+          "probes": 255,
+          "ttftP50": 3345,
+          "connMs": 328
         }
       },
-      "probes": 252,
-      "uptimePct": 99.6,
-      "uptime7dPct": 98.67,
+      "probes": 255,
+      "uptimePct": 99.61,
+      "uptime7dPct": 98.72,
       "daysArr": [
         {
           "date": "2026-05-31",
@@ -175,7 +175,7 @@
         },
         {
           "date": "2026-06-29",
-          "status": "b"
+          "status": "w"
         }
       ],
       "errors": {
@@ -184,11 +184,11 @@
         "timeout": 0,
         "other": 1
       },
-      "authExcluded": 756,
+      "authExcluded": 765,
       "speed": {
-        "ttftP50": 2561,
+        "ttftP50": 3345,
         "ttftP95": null,
-        "tps": 475,
+        "tps": 437,
         "trend": [
           {
             "date": "2026-06-10",
@@ -268,14 +268,14 @@
           },
           {
             "date": "2026-06-29",
-            "ttftP50": 2561
+            "ttftP50": 2953
           }
         ]
       },
       "toolCalls": {
         "ok": 1,
         "total": 4,
-        "nonStreamMs": 12
+        "nonStreamMs": 13
       },
       "streamBurst": {
         "suspect": 0,
@@ -284,8 +284,8 @@
       "usageByModel": [
         {
           "model": "deepseek-v4-flash",
-          "charsPerToken": 1.58,
-          "promptTokens": 32
+          "charsPerToken": 1.12,
+          "promptTokens": 33
         }
       ],
       "integrity": {
@@ -342,9 +342,9 @@
         },
         {
           "hour": 8,
-          "ttftP50": 2700,
+          "ttftP50": 2880,
           "okRate": 100,
-          "n": 21
+          "n": 24
         },
         {
           "hour": 12,
@@ -386,10 +386,10 @@
         "worstOkRateHour": 1,
         "worstOkRate": 98.2
       },
-      "connMs": 293,
+      "connMs": 328,
       "connOk": true,
-      "modelCount": 49,
-      "lastRun": "2026-06-29T01:24:40.739Z"
+      "modelCount": 52,
+      "lastRun": "2026-06-29T08:08:49.273Z"
     },
     {
       "id": "openrouter",
@@ -408,12 +408,12 @@
         "id": "openrouter",
         "annotatedAt": "2026-06-10",
         "channel": {
-          "claim": "Official / public provider routing",
+          "claim": "official / public provider routing",
           "verify": "pending"
         },
         "promptRetention": {
           "status": "warn",
-          "text": "Content not retained by default; opt-in logging available in exchange for a discount",
+          "text": "No retention of request bodies by default; can opt in to logging in exchange for discounts",
           "evidence": "https://openrouter.ai/docs/features/privacy-and-logging"
         },
         "training": {
@@ -594,12 +594,12 @@
         "id": "aihubmix",
         "annotatedAt": "2026-06-13",
         "channel": {
-          "claim": "self-claimed official relay",
+          "claim": "self-declared official passthrough",
           "verify": "pending"
         },
         "promptRetention": {
           "status": "warn",
-          "text": "Only a generic \"retain personal information for as long as necessary\"; no specific commitment on API content retention period; servers on Azure in the US",
+          "text": "Only a general statement to \"retain personal information for as long as necessary\"; no specific commitment on the retention period for API request bodies; servers on Azure in the US",
           "evidence": "https://docs.aihubmix.com/en/terms-and-privacy/Privacy"
         },
         "training": {
@@ -607,8 +607,8 @@
           "text": "Official privacy policy: We do not use the content you send via the API to train models",
           "evidence": "https://docs.aihubmix.com/en/terms-and-privacy/Privacy"
         },
-        "entity": "US company registered in Delaware (legal entity name not disclosed)",
-        "invoice": "to be annotated",
+        "entity": "US Delaware-registered company (legal entity name not disclosed)",
+        "invoice": "TBD",
         "disclosure": null
       },
       "region": null,
@@ -765,11 +765,11 @@
     },
     {
       "id": "openai-direct",
-      "name": "OpenAI (Official Direct Baseline)",
+      "name": "OpenAI (official direct-connect baseline)",
       "host": "api.openai.com",
       "website": "https://platform.openai.com",
       "protocols": "OpenAI",
-      "category": "Official Direct",
+      "category": "Official direct",
       "pricing": "https://platform.openai.com/docs/pricing",
       "probeModels": [
         "gpt-4o-mini"
@@ -784,7 +784,7 @@
         },
         "promptRetention": {
           "status": "good",
-          "text": "API data not used for training by default; abuse-monitoring data retained then deleted",
+          "text": "API data is not used for training by default; abuse-monitoring data is deleted after retention",
           "evidence": "https://openai.com/enterprise-privacy/"
         },
         "training": {
@@ -950,11 +950,11 @@
     },
     {
       "id": "deepseek-direct",
-      "name": "DeepSeek (Official Direct Baseline)",
+      "name": "DeepSeek (official direct-connect baseline)",
       "host": "api.deepseek.com",
       "website": "https://platform.deepseek.com",
       "protocols": "OpenAI",
-      "category": "Official Direct",
+      "category": "Official direct",
       "pricing": "https://api-docs.deepseek.com/quick_start/pricing",
       "probeModels": [
         "deepseek-chat"
@@ -969,16 +969,16 @@
         },
         "promptRetention": {
           "status": "warn",
-          "text": "Retention tied to account lifetime (kept while the account exists), no commitment to short-term deletion; data stored on servers in China",
+          "text": "Retention is tied to account lifetime (kept for as long as the account exists); no commitment to short-term deletion; data stored on servers within mainland China",
           "evidence": "https://cdn.deepseek.com/policies/en-US/deepseek-privacy-policy.html"
         },
         "training": {
           "status": "warn",
-          "text": "Used for training / improving models by default, with an opt-out right (not off by default, the opposite of OpenAI's not-trained-by-default)",
+          "text": "Used by default for training/improving models, with an opt-out right (not off by default — the opposite of OpenAI's default of not training)",
           "evidence": "https://cdn.deepseek.com/policies/en-US/deepseek-privacy-policy.html"
         },
-        "entity": "Hangzhou DeepSeek Artificial Intelligence Fundamental Technology Research Co., Ltd.",
-        "invoice": "to be annotated",
+        "entity": "Hangzhou DeepSeek Artificial Intelligence Basic Technology Research Co., Ltd.",
+        "invoice": "TBD",
         "disclosure": null
       },
       "region": null,
@@ -1135,11 +1135,11 @@
     },
     {
       "id": "moonshot-direct",
-      "name": "Moonshot Kimi (Official Direct Baseline)",
+      "name": "Moonshot Kimi (official direct-connect baseline)",
       "host": "api.moonshot.cn",
       "website": "https://platform.moonshot.cn",
       "protocols": "OpenAI",
-      "category": "Official Direct",
+      "category": "Official direct",
       "pricing": "https://platform.moonshot.cn/docs/pricing/chat",
       "probeModels": [
         "moonshot-v1-8k"
@@ -1154,16 +1154,16 @@
         },
         "promptRetention": {
           "status": "warn",
-          "text": "§5.2 retains data only \"for as long as necessary to fulfill the service purpose,\" with no specific period; §5.1 data stored in China",
+          "text": "§5.2 retained only \"for as long as necessary to fulfill the service purpose\", with no specific period given; §5.1 data stored within mainland China",
           "evidence": "https://platform.kimi.com/docs/agreement/userprivacy"
         },
         "training": {
           "status": "warn",
-          "text": "§2.3 conversation data is used to \"improve the model,\" without clearly distinguishing default vs separate consent and with no dedicated training opt-out (§7.1 only a generic right to withdraw consent)",
+          "text": "§2.3 conversation data used to \"optimize models\", with no clear distinction between default and separate authorization and no dedicated training opt-out (§7.1 only a general right to withdraw authorization)",
           "evidence": "https://platform.kimi.com/docs/agreement/userprivacy"
         },
         "entity": "Beijing Moonshot AI Technology Co., Ltd.",
-        "invoice": "to be annotated",
+        "invoice": "TBD",
         "disclosure": null
       },
       "region": null,
@@ -1334,12 +1334,12 @@
         "id": "siliconflow",
         "annotatedAt": "2026-06-13",
         "channel": {
-          "claim": "First-party inference (first-hand channel for open-weight models)",
+          "claim": "first-party inference (first-party channel for open-weight models)",
           "verify": "pending"
         },
         "promptRetention": {
           "status": "good",
-          "text": "The official comparison table marks interaction data as \"not stored by the platform\"; account-level user information is retained as long as necessary and stored in China",
+          "text": "The official comparison table marks interaction data as \"not stored by the platform\"; account-type user information is retained for as long as necessary and stored within mainland China",
           "evidence": "https://docs.siliconflow.cn/cn/legals/privacy-policy"
         },
         "training": {
@@ -1348,7 +1348,7 @@
           "evidence": "https://docs.siliconflow.cn/cn/legals/privacy-policy"
         },
         "entity": "Beijing SiliconFlow Technology Co., Ltd.",
-        "invoice": "to be annotated",
+        "invoice": "TBD",
         "disclosure": null
       },
       "region": null,
@@ -1519,21 +1519,21 @@
         "id": "groq",
         "annotatedAt": "2026-06-13",
         "channel": {
-          "claim": "First-party LPU inference (first-hand channel for open-weight models)",
+          "claim": "first-party LPU inference (first-party channel for open-weight models)",
           "verify": "pending"
         },
         "promptRetention": {
           "status": "good",
-          "text": "Inference data not retained by default (official: does not retain customer data for inference requests), only troubleshooting logs ≤30 days; ZDR available to everyone",
+          "text": "No retention of inference data by default (official: does not retain customer data for inference requests), only troubleshooting logs ≤30 days; ZDR available to all",
           "evidence": "https://console.groq.com/docs/your-data"
         },
         "training": {
           "status": "good",
-          "text": "Services Agreement §4.2: Inputs/Outputs must not be used to train or fine-tune any model without customer authorization",
+          "text": "Services agreement §4.2: may not use Inputs/Outputs to train or fine-tune any model without customer authorization",
           "evidence": "https://console.groq.com/docs/legal/services-agreement"
         },
         "entity": "Groq, Inc. (US)",
-        "invoice": "to be annotated",
+        "invoice": "TBD",
         "disclosure": null
       },
       "region": null,
@@ -1704,12 +1704,12 @@
         "id": "together",
         "annotatedAt": "2026-06-13",
         "channel": {
-          "claim": "First-party inference (first-hand channel for open-weight models)",
+          "claim": "first-party inference (first-party channel for open-weight models)",
           "verify": "pending"
         },
         "promptRetention": {
           "status": "good",
-          "text": "Inputs/outputs not stored by default (official docs: does not store inputs or outputs by default), only temporary caching for performance",
+          "text": "Does not store inputs/outputs by default (official docs: does not store inputs or outputs by default), only temporary caching for performance",
           "evidence": "https://docs.together.ai/docs/privacy-and-security"
         },
         "training": {
@@ -1718,7 +1718,7 @@
           "evidence": "https://docs.together.ai/docs/privacy-and-security"
         },
         "entity": "Together Computer, Inc. (US)",
-        "invoice": "to be annotated",
+        "invoice": "TBD",
         "disclosure": null
       },
       "region": null,
@@ -1889,21 +1889,21 @@
         "id": "ohmygpt",
         "annotatedAt": "2026-06-13",
         "channel": {
-          "claim": "self-claimed official relay",
+          "claim": "self-declared official passthrough",
           "verify": "pending"
         },
         "promptRetention": {
           "status": "warn",
-          "text": "Officially reserves the right to \"store, review, and investigate\" communication data; deleted within 30 days after account closure, server location not disclosed; upstream providers (e.g. OpenAI) may log separately, which the platform says it is usually unable to prevent",
+          "text": "The provider reserves the right to \"store, review, and investigate\" communications data; deleted within 30 days after account closure; server location not disclosed; upstream providers (e.g. OpenAI) may log separately, which the platform says it is usually unable to prevent",
           "evidence": "https://www.ohmygpt.com/privacy"
         },
         "training": {
           "status": "unknown",
-          "text": "The policy only promises not to sell interaction content and does not mention whether it is used for training — no position stated",
+          "text": "The policy only commits to not sell interaction content; whether it is used for training is not addressed — no position stated",
           "evidence": "https://www.ohmygpt.com/privacy"
         },
-        "entity": "to be annotated",
-        "invoice": "to be annotated",
+        "entity": "TBD",
+        "invoice": "TBD",
         "disclosure": null
       },
       "region": null,
@@ -2074,21 +2074,21 @@
         "id": "closeai",
         "annotatedAt": "2026-06-13",
         "channel": {
-          "claim": "self-claimed official relay",
+          "claim": "self-declared official passthrough",
           "verify": "pending"
         },
         "promptRetention": {
           "status": "warn",
-          "text": "May temporarily log \"part or all of\" request and response content, usually retained 30 days (billing / troubleshooting / security audit) then cleared or anonymized; when calling third-party models, data is forwarded upstream and handled per their policies (the platform makes no guarantee)",
+          "text": "May temporarily log \"part or all of\" request and response content, typically retained for 30 days (billing / troubleshooting / security audit) then purged or anonymized; when calling third-party models, data is forwarded upstream and handled per their policies (the platform makes no guarantee)",
           "evidence": "https://doc.closeai-asia.com/legal/privacy-policy.html"
         },
         "training": {
           "status": "good",
-          "text": "Officially states: does not use user business data for model training / fine-tuning / distillation, and does not sell API business data",
+          "text": "Official statement: does not use customer business data for model training/fine-tuning/distillation, nor sell API business data",
           "evidence": "https://doc.closeai-asia.com/legal/privacy-policy.html"
         },
         "entity": "Overseas company (specific entity not disclosed)",
-        "invoice": "to be annotated",
+        "invoice": "TBD",
         "disclosure": null
       },
       "region": null,
@@ -2245,7 +2245,7 @@
     }
   ],
   "prices": {
-    "fetchedAt": "2026-06-29T01:24:57.793Z",
+    "fetchedAt": "2026-06-29T08:09:11.966Z",
     "unit": "USD per 1M tokens [input, output]",
     "sources": {
       "official": "litellm",

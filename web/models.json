@@ -1,32 +1,32 @@
 {
   "unit": "USD per 1M tokens",
-  "note": "Official list prices, adjusted by vendors; maintained in this file. Local / self-hosted open-source models count as 0 (you pay for the compute). bench values are public evaluation scores, each with a source; missing values are recorded as null, not invented — PRs with sources are welcome. In 2026-06 a source-value consistency audit was run on all bench entries (checking each value is actually within its cited source): two wrong values were corrected, GPT-4o MMLU-Pro 81.7→72.6 and Qwen3-235B 84.8→84.4; the rest verified consistent.",
+  "note": "Official list prices, subject to vendor changes; maintained in this file. Local / self-hosted open-weight models count as 0 (you pay for your own compute). bench values are public benchmark scores, each citing a source; missing values are recorded as null rather than fabricated, and sourced PR contributions are welcome. As of 2026-06 a source-value consistency audit was run on all bench values (checking each figure actually appears in its cited source): corrected two wrong values, GPT-4o MMLU-Pro 81.7→72.6 and Qwen3-235B 84.8→84.4; the rest checked out.",
   "asOf": "2026-06-12",
   "benchCols": [
     {
       "key": "mmluPro",
       "label": "MMLU-Pro",
-      "hint": "General knowledge & reasoning %"
+      "hint": "general knowledge & reasoning %"
     },
     {
       "key": "gpqa",
       "label": "GPQA",
-      "hint": "Graduate-level science problems %"
+      "hint": "graduate-level science problems %"
     },
     {
       "key": "swe",
       "label": "SWE-bench Verified",
-      "hint": "Real engineering fixes %"
+      "hint": "real-world engineering fixes %"
     },
     {
       "key": "aime",
       "label": "AIME",
-      "hint": "Competition math %"
+      "hint": "competition math %"
     }
   ],
   "benchHubs": [
     {
-      "label": "Artificial Analysis (intelligence index / price / speed)",
+      "label": "Artificial Analysis (composite intelligence index / price / speed)",
       "url": "https://artificialanalysis.ai/models"
     },
     {
@@ -34,7 +34,7 @@
       "url": "https://lmcouncil.ai/benchmarks"
     },
     {
-      "label": "OpenCompass / SuperCLUE (Chinese-focused)",
+      "label": "OpenCompass / SuperCLUE (Chinese-oriented)",
       "url": "https://opencompass.org.cn/"
     }
   ],
@@ -45,7 +45,7 @@
       "vendor": "Anthropic",
       "input": 10,
       "output": 50,
-      "kind": "Closed",
+      "kind": "closed-source",
       "source": "platform.claude.com",
       "bench": null
     },
@@ -55,7 +55,7 @@
       "vendor": "Anthropic",
       "input": 5,
       "output": 25,
-      "kind": "Closed",
+      "kind": "closed-source",
       "source": "platform.claude.com",
       "bench": null
     },
@@ -65,7 +65,7 @@
       "vendor": "Anthropic",
       "input": 15,
       "output": 75,
-      "kind": "Closed",
+      "kind": "closed-source",
       "source": "user-provided",
       "bench": {
         "swe": 76.7,
@@ -80,7 +80,7 @@
       "vendor": "Anthropic",
       "input": 3,
       "output": 15,
-      "kind": "Closed",
+      "kind": "closed-source",
       "source": "platform.claude.com",
       "bench": null
     },
@@ -90,7 +90,7 @@
       "vendor": "Anthropic",
       "input": 1,
       "output": 5,
-      "kind": "Closed",
+      "kind": "closed-source",
       "source": "platform.claude.com",
       "bench": null
     },
@@ -100,7 +100,7 @@
       "vendor": "OpenAI",
       "input": 5,
       "output": 15,
-      "kind": "Closed",
+      "kind": "closed-source",
       "source": "user-provided",
       "bench": {
         "mmluPro": 72.6,
@@ -115,7 +115,7 @@
       "vendor": "Google",
       "input": 2.5,
       "output": 10,
-      "kind": "Closed",
+      "kind": "closed-source",
       "source": "user-provided",
       "bench": {
         "gpqa": 86.4,
@@ -132,7 +132,7 @@
       "vendor": "DeepSeek",
       "input": 0.27,
       "output": 1.1,
-      "kind": "Open weights",
+      "kind": "open-weight",
       "source": "user-provided",
       "bench": {
         "mmluPro": 75.9,
@@ -150,7 +150,7 @@
       "vendor": "Alibaba",
       "input": 1.5,
       "output": 4.5,
-      "kind": "Open weights",
+      "kind": "open-weight",
       "source": "user-provided",
       "bench": {
         "mmluPro": 84.4,
@@ -167,7 +167,7 @@
       "vendor": "Zhipu",
       "input": 1,
       "output": 3,
-      "kind": "Open weights",
+      "kind": "open-weight",
       "source": "user-provided",
       "bench": null
     },
@@ -177,18 +177,18 @@
       "vendor": "Xiaomi",
       "input": 8,
       "output": 24,
-      "kind": "Closed",
+      "kind": "closed-source",
       "source": "user-provided",
       "bench": null
     },
     {
       "id": "gemma-4-local",
-      "name": "Gemma 4 (self-hosted locally)",
+      "name": "Gemma 4 (local self-host)",
       "vendor": "Google",
       "input": 0,
       "output": 0,
-      "kind": "Local / free",
-      "source": "self-paid compute",
+      "kind": "local/free",
+      "source": "self-funded compute",
       "bench": null
     }
   ]
