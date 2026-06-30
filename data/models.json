@@ -16,7 +16,7 @@
   "models": [
     { "id": "claude-fable-5",   "name": "Claude Fable 5",   "vendor": "Anthropic", "input": 10,   "output": 50,   "kind": "closed-source", "source": "platform.claude.com", "bench": null },
     { "id": "claude-opus-4-8",  "name": "Claude Opus 4.8",  "vendor": "Anthropic", "input": 5,    "output": 25,   "kind": "closed-source", "source": "platform.claude.com", "bench": null },
-    { "id": "claude-opus-4-5",  "name": "Claude Opus 4.5",  "vendor": "Anthropic", "input": 15,   "output": 75,   "kind": "closed-source", "source": "user-provided",
+    { "id": "claude-opus-4-5",  "name": "Claude Opus 4.5",  "vendor": "Anthropic", "input": 5,    "output": 25,   "kind": "closed-source", "source": "platform.claude.com",
       "bench": { "swe": 76.7, "src": "LM Council Benchmarks (Opus 4.5 no-thinking variant)", "srcUrl": "https://lmcouncil.ai/benchmarks", "asOf": "2026-06" } },
     { "id": "claude-sonnet-4-6","name": "Claude Sonnet 4.6","vendor": "Anthropic", "input": 3,    "output": 15,   "kind": "closed-source", "source": "platform.claude.com", "bench": null },
     { "id": "claude-haiku-4-5", "name": "Claude Haiku 4.5", "vendor": "Anthropic", "input": 1,    "output": 5,    "kind": "closed-source", "source": "platform.claude.com", "bench": null },
