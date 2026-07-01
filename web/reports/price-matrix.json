@@ -1,18 +1,19 @@
 {
   "schema": "gwbench-report/1",
   "kind": "pricematrix",
-  "generatedAt": "2026-06-30T18:57:15.296Z",
+  "generatedAt": "2026-07-01T01:25:05.080Z",
   "tool": {
     "name": "gwbench",
     "version": "0.2.0"
   },
   "model": null,
   "region": "Public pricing API",
-  "fetchedAt": "2026-06-30T18:57:15.215Z",
+  "fetchedAt": "2026-07-01T01:25:05.001Z",
   "sources": {
     "official": "litellm",
     "synthorai": "https://synthorai.io/api/pricing",
-    "openrouter": "https://openrouter.ai/api/v1/models"
+    "openrouter": "https://openrouter.ai/api/v1/models",
+    "modelsdev": "https://models.dev/api.json"
   },
   "gateways": [
     {
@@ -22,6 +23,10 @@
     {
       "id": "openrouter",
       "name": "OpenRouter"
+    },
+    {
+      "id": "modelsdev",
+      "name": "modelsdev"
     }
   ],
   "rows": [
@@ -40,6 +45,13 @@
           "idx": 1
         },
         "openrouter": {
+          "price": [
+            3,
+            15
+          ],
+          "idx": 1
+        },
+        "modelsdev": {
           "price": [
             3,
             15
@@ -69,6 +81,13 @@
             5
           ],
           "idx": 1
+        },
+        "modelsdev": {
+          "price": [
+            1,
+            5
+          ],
+          "idx": 1
         }
       },
       "cheapest": "synthorai"
@@ -88,6 +107,13 @@
           "idx": 1
         },
         "openrouter": {
+          "price": [
+            0.3,
+            2.5
+          ],
+          "idx": 1
+        },
+        "modelsdev": {
           "price": [
             0.3,
             2.5
@@ -117,6 +143,13 @@
             0.196
           ],
           "idx": 0.7
+        },
+        "modelsdev": {
+          "price": [
+            0.14,
+            0.28
+          ],
+          "idx": 1
         }
       },
       "cheapest": "openrouter"

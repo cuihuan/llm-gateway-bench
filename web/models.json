@@ -63,10 +63,10 @@
       "id": "claude-opus-4-5",
       "name": "Claude Opus 4.5",
       "vendor": "Anthropic",
-      "input": 15,
-      "output": 75,
+      "input": 5,
+      "output": 25,
       "kind": "closed-source",
-      "source": "user-provided",
+      "source": "platform.claude.com",
       "bench": {
         "swe": 76.7,
         "src": "LM Council Benchmarks (Opus 4.5 no-thinking variant)",
