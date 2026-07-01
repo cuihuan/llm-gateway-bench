@@ -1,10 +1,11 @@
 {
-  "fetchedAt": "2026-06-30T18:57:15.215Z",
+  "fetchedAt": "2026-07-01T01:24:14.339Z",
   "unit": "USD per 1M tokens [input, output]",
   "sources": {
     "official": "litellm",
     "synthorai": "https://synthorai.io/api/pricing",
-    "openrouter": "https://openrouter.ai/api/v1/models"
+    "openrouter": "https://openrouter.ai/api/v1/models",
+    "modelsdev": "https://models.dev/api.json"
   },
   "models": [
     {
@@ -19,6 +20,10 @@
           15
         ],
         "openrouter": [
+          3,
+          15
+        ],
+        "modelsdev": [
           3,
           15
         ]
@@ -38,6 +43,10 @@
         "openrouter": [
           1,
           5
+        ],
+        "modelsdev": [
+          1,
+          5
         ]
       }
     },
@@ -53,6 +62,10 @@
           2.5
         ],
         "openrouter": [
+          0.3,
+          2.5
+        ],
+        "modelsdev": [
           0.3,
           2.5
         ]
@@ -72,6 +85,10 @@
         "openrouter": [
           0.098,
           0.196
+        ],
+        "modelsdev": [
+          0.14,
+          0.28
         ]
       }
     }

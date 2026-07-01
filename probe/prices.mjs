@@ -6,6 +6,9 @@
 //   - official baseline: litellm model_prices_and_context_window.json
 //   - synthorai:         GET https://synthorai.io/api/pricing
 //   - openrouter:        GET https://openrouter.ai/api/v1/models
+//   - models.dev:        GET https://models.dev/api.json  (curated-from-official,
+//                        a third consensus vote alongside litellm — not a live
+//                        market signal like openrouter)
 //
 // On a source failure that source's column falls back to the previous
 // committed snapshot (a partial outage never clobbers good data); a source
@@ -15,6 +18,7 @@
 import { readFile, writeFile } from 'node:fs/promises';
 
 const LITELLM_URL = 'https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json';
+const MODELSDEV_URL = 'https://models.dev/api.json';
 
 const round3 = (x) => (typeof x === 'number' && isFinite(x) ? Math.round(x * 1000) / 1000 : null);
 
@@ -41,6 +45,16 @@ export function cheapestSynthorai(rows, alias) {
   if (!hits.length) return null;
   const best = hits.reduce((a, b) => (a.input_per_m + a.output_per_m <= b.input_per_m + b.output_per_m ? a : b));
   return [round3(best.input_per_m), round3(best.output_per_m)];
+}
+
+/** models.dev api.json (cost already USD per 1M) → [inPerM, outPerM]; ref = "provider/id" */
+export function fromModelsDev(api, ref) {
+  if (!api || typeof ref !== 'string') return null;
+  const slash = ref.indexOf('/');
+  if (slash < 0) return null;
+  const cost = api?.[ref.slice(0, slash)]?.models?.[ref.slice(slash + 1)]?.cost;
+  if (!cost || typeof cost.input !== 'number' || typeof cost.output !== 'number') return null;
+  return [round3(cost.input), round3(cost.output)];
 }
 
 /** openrouter model entry (per-token USD strings) → [inPerM, outPerM] */
@@ -74,7 +88,7 @@ async function tryFetch(label, fn) {
  * previous snapshot's value for that source's column; a non-null source wins
  * even when the model is missing from it (delisted ⇒ cell goes null).
  */
-export function buildModels(tracked, { litellm, synthorai, openrouter }, prevModels) {
+export function buildModels(tracked, { litellm, synthorai, openrouter, modelsdev }, prevModels) {
   const prevById = new Map((prevModels ?? []).map((m) => [m.model, m]));
   return tracked.map((t) => {
     const prev = prevById.get(t.id);
@@ -84,6 +98,7 @@ export function buildModels(tracked, { litellm, synthorai, openrouter }, prevMod
       cells: {
         synthorai: synthorai ? cheapestSynthorai(synthorai, t.aliases.synthorai) : prev?.cells?.synthorai ?? null,
         openrouter: openrouter ? fromOpenRouter(openrouter, t.aliases.openrouter) : prev?.cells?.openrouter ?? null,
+        modelsdev: modelsdev ? fromModelsDev(modelsdev, t.aliases.modelsdev) : prev?.cells?.modelsdev ?? null,
       },
     };
   });
@@ -94,17 +109,23 @@ async function main() {
   const litellm = await tryFetch('litellm', () => fetchJson(LITELLM_URL));
   const synthorai = await tryFetch('synthorai', async () => (await fetchJson('https://synthorai.io/api/pricing')).data);
   const openrouter = await tryFetch('openrouter', async () => (await fetchJson('https://openrouter.ai/api/v1/models')).data);
-  if (!litellm && !synthorai && !openrouter) {
+  const modelsdev = await tryFetch('models.dev', () => fetchJson(MODELSDEV_URL));
+  if (!litellm && !synthorai && !openrouter && !modelsdev) {
     console.error('[prices] all sources failed, keeping existing snapshot');
     process.exit(1);
   }
   let prev = null;
   try { prev = JSON.parse(await readFile(new URL('../data/prices.json', import.meta.url), 'utf8')); } catch {}
-  const models = buildModels(tracked, { litellm, synthorai, openrouter }, prev?.models);
+  const models = buildModels(tracked, { litellm, synthorai, openrouter, modelsdev }, prev?.models);
   const out = {
     fetchedAt: new Date().toISOString(),
     unit: 'USD per 1M tokens [input, output]',
-    sources: { official: 'litellm', synthorai: 'https://synthorai.io/api/pricing', openrouter: 'https://openrouter.ai/api/v1/models' },
+    sources: {
+      official: 'litellm',
+      synthorai: 'https://synthorai.io/api/pricing',
+      openrouter: 'https://openrouter.ai/api/v1/models',
+      modelsdev: 'https://models.dev/api.json',
+    },
     models,
   };
   const path = new URL('../data/prices.json', import.meta.url);
