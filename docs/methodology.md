@@ -22,6 +22,8 @@ comparing tool-call validity rate, tokenizer behavior, output distribution, and 
 
 > Ratings have only three tiers: `verified` / `claimed but unverified` / `unverified`. Anything missing an evidence link never gets `verified`.
 
+> **Further reading on fidelity/quantization detection:** beyond K2-Vendor-Verifier's tool-call-F1 approach, see [DiFR — Inference Verification Despite Nondeterminism](https://arxiv.org/abs/2511.20621) (verifying a provider actually runs the claimed model, robust to sampling nondeterminism) and the [rank-based uniformity test](https://arxiv.org/abs/2506.06975) for detecting silent quantization / model substitution behind a black-box API (with the honest caveat that detection is weak for 8-bit variants). These are the statistical backing for the diff-verification stance above.
+
 **Data-retention/training rating** (the `good`/`warn`/`bad`/`unknown` four tiers of the `data retention` sub-item; per-gateway annotations in the `promptRetention`, `training` fields of `data/annotations/*.json`):
 
 | Tier | Criteria | Examples |
@@ -73,6 +75,8 @@ Two iron rules: (1) anything lacking formal policy docs and having only a homepa
 
 The methodology follows the llmperf community convention: a small prompt (with a random request id to defeat gateway-side caching), a capped max_tokens,
 multi-sampling for percentiles in a single probe, concurrency ≤4 to avoid becoming a load test. The detection prompts are public in the script.
+
+> Speed conventions align with [Artificial Analysis's provider-performance methodology](https://artificialanalysis.ai/methodology/intelligence-benchmarking) (TTFT, output tokens/sec and price-per-token measured across live APIs); for audited serving-system benchmarks at the hardware layer see [MLPerf Inference](https://mlcommons.org/benchmarks/inference-datacenter/) (MLCommons).
 
 ## Capability probing: tool calls and billing transparency
 
