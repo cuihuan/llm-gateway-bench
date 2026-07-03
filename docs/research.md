@@ -14,7 +14,7 @@
 | [LiveBench](https://livebench.ai) | Quality scores across 7 categories, 21 tasks | Fresh questions monthly to prevent contamination, rule-based scoring, no LLM judge | Fully open source |
 | [K2 Vendor Verifier](https://github.com/MoonshotAI/K2-Vendor-Verifier) | **Tool-call fidelity of the same open-source model across 12+ providers** | Replays a fixed 4,000 requests, diffing against the official API as the gold standard | Code + half the data open source |
 | [LLMStatus.net](https://llmstatus.net) / [ModelUptime](https://modeluptime.com) / [LLM Overwatch](https://llmoverwatch.com) | Official-API availability/latency status pages | Active probing every 60s–10min (some multi-region) | No |
-| [GPT for Work tracker](https://gptforwork.com/tools/openai-api-and-other-llm-apis-response-time-tracker) | OpenAI/Anthropic/Gemini response times | Every 10 minutes, 3 geographic locations, randomized prompt to defeat caching | No |
+| GPT for Work tracker *(retired 2026 — page now 410 Gone)* | OpenAI/Anthropic/Gemini response times | Was: every 10 minutes, 3 geographic locations, randomized prompt to defeat caching | No |
 | HF Open LLM Leaderboard | (retired 2025-03) | Static benchmarks saturate and die; **only continuously refreshed data survives** | Historical archive |
 
 **UI patterns worth borrowing** (from the best of them):
