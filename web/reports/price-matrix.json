@@ -1,14 +1,14 @@
 {
   "schema": "gwbench-report/1",
   "kind": "pricematrix",
-  "generatedAt": "2026-07-05T19:42:26.596Z",
+  "generatedAt": "2026-07-06T04:39:41.768Z",
   "tool": {
     "name": "gwbench",
     "version": "0.2.0"
   },
   "model": null,
   "region": "Public pricing API",
-  "fetchedAt": "2026-07-05T19:42:26.504Z",
+  "fetchedAt": "2026-07-06T04:39:41.681Z",
   "sources": {
     "official": "litellm",
     "synthorai": "https://synthorai.io/api/pricing",
