@@ -5,42 +5,42 @@
     {
       "name": "litellm",
       "version": "1.91.0",
-      "measuredAt": "2026-07-07T14:01:28.627Z",
+      "measuredAt": "2026-07-07T14:04:21.095Z",
       "env": {
-        "runner": "local",
-        "node": "v26.0.0",
-        "platform": "darwin"
+        "runner": "github-actions",
+        "node": "v22.23.1",
+        "platform": "linux"
       },
       "config": {
-        "rounds": 5,
-        "perRound": 20,
-        "warmup": 10
+        "rounds": 7,
+        "perRound": 25,
+        "warmup": 15
       },
       "verdict": {
-        "rounds": 5,
-        "direct_ms": 0.19,
-        "gateway_ms": 3.34,
-        "overhead_ms": 3.15,
+        "rounds": 7,
+        "direct_ms": 1.79,
+        "gateway_ms": 8.26,
+        "overhead_ms": 6.47,
         "overhead_iqr_ms": [
-          3.12,
-          3.2
+          6.38,
+          6.62
         ]
       },
       "directSummary": {
-        "n": 100,
-        "p50": 0.21,
-        "p90": 0.51,
-        "p99": 1.24,
-        "min": 0.14,
-        "max": 1.89
+        "n": 175,
+        "p50": 1.82,
+        "p90": 2.03,
+        "p99": 2.81,
+        "min": 0.63,
+        "max": 3.16
       },
       "gatewaySummary": {
-        "n": 100,
-        "p50": 3.36,
-        "p90": 4.24,
-        "p99": 6.76,
-        "min": 2.45,
-        "max": 8.87
+        "n": 175,
+        "p50": 8.26,
+        "p90": 9.22,
+        "p99": 10.63,
+        "min": 6.31,
+        "max": 14.46
       }
     }
   ]
