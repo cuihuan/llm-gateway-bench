@@ -1,0 +1,47 @@
+{
+  "_comment": "Gateway per-request overhead vs a local mock OpenAI upstream. Sequential, localhost, interleaved rounds; median-of-round-medians. NOT a throughput/load test. See docs/methodology.md.",
+  "unit": "ms",
+  "results": [
+    {
+      "name": "litellm",
+      "version": "1.91.0",
+      "measuredAt": "2026-07-07T14:01:28.627Z",
+      "env": {
+        "runner": "local",
+        "node": "v26.0.0",
+        "platform": "darwin"
+      },
+      "config": {
+        "rounds": 5,
+        "perRound": 20,
+        "warmup": 10
+      },
+      "verdict": {
+        "rounds": 5,
+        "direct_ms": 0.19,
+        "gateway_ms": 3.34,
+        "overhead_ms": 3.15,
+        "overhead_iqr_ms": [
+          3.12,
+          3.2
+        ]
+      },
+      "directSummary": {
+        "n": 100,
+        "p50": 0.21,
+        "p90": 0.51,
+        "p99": 1.24,
+        "min": 0.14,
+        "max": 1.89
+      },
+      "gatewaySummary": {
+        "n": 100,
+        "p50": 3.36,
+        "p90": 4.24,
+        "p99": 6.76,
+        "min": 2.45,
+        "max": 8.87
+      }
+    }
+  ]
+}

@@ -99,6 +99,20 @@ multi-sampling for percentiles in a single probe, concurrency ≤4 to avoid beco
 
 Data from different regions each carry a region label and coexist in `data/results/`, shown distinctly during aggregation.
 
+## Supporting dimension: self-hosted gateway overhead — "what does the proxy itself cost me?"
+
+Vendors market conflicting overhead claims (µs-level vs ms-level) with no independent measurement. This benchmark measures it reproducibly, with no API keys and no network egress:
+
+| Aspect | Convention |
+|---|---|
+| Setup | A local **mock OpenAI upstream** (canned `/v1/chat/completions` reply, zero inference) — the gateway under test is configured with the mock as its provider, so the *only* variable is the gateway itself |
+| Measurement | Sequential requests, **interleaved rounds** (direct *n*, gateway *n*, repeated R times) so machine noise hits both arms equally; per-round medians → the reported figure is the **median of round medians**, with the IQR of per-round deltas as spread |
+| Metric | `overhead_ms` = gateway round-median − direct round-median, per request |
+| Environment | Canonical numbers come from the GitHub Actions runner (`data/overhead.json`, env-stamped); anyone can reproduce locally: `node probe/overhead.mjs --help` |
+| Honest scope | This isolates **per-request proxy latency only** — not throughput, not concurrency behavior, not TLS/network overhead, not streaming. CI-runner numbers are indicative (shared hardware), which is why we report medians-of-medians with IQR, not single runs |
+
+Implementation: `probe/overhead.mjs` (pure stats functions unit-tested in `probe/overhead.test.mjs`, incl. a direct-vs-direct self-test that must show ~0 overhead). First target: LiteLLM (the most-deployed OSS gateway); PRs adding more gateways (Bifrost, Portkey OSS, Kong…) are welcome — the harness only needs the gateway to accept a custom OpenAI-compatible `api_base`.
+
 ## Supporting dimension 5: Catalog — "does it have the model I need?"
 
 | Metric | Collection method |

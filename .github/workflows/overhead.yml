@@ -1,0 +1,68 @@
+name: Gateway overhead
+
+# Measures the per-request latency each self-hosted gateway adds on top of a
+# direct call to a local mock OpenAI upstream (no API keys, no egress, ~free).
+# Sequential + interleaved rounds; median-of-round-medians. NOT a load test.
+# Canonical numbers come from this neutral runner; see docs/methodology.md.
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '41 3 3 * *'   # monthly, 3rd day 03:41 UTC
+
+permissions:
+  contents: write
+
+concurrency:
+  group: overhead
+  cancel-in-progress: false
+
+jobs:
+  overhead:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: Unit tests (harness sanity)
+        run: node --test probe/overhead.test.mjs
+
+      - name: Install LiteLLM proxy
+        run: |
+          pip install --quiet 'litellm[proxy]'
+          litellm --version
+
+      - name: Start LiteLLM against the mock upstream
+        run: |
+          # the measurement CLI starts its own mock on 9010; litellm just needs the URL
+          OPENAI_API_KEY=sk-mock nohup litellm --model openai/mock-model \
+            --api_base http://127.0.0.1:9010/v1 --port 4000 > /tmp/litellm.log 2>&1 &
+          for i in $(seq 1 90); do
+            curl -sf -o /dev/null http://127.0.0.1:4000/health/liveliness && break
+            sleep 1
+          done
+          curl -sf -o /dev/null http://127.0.0.1:4000/health/liveliness || { tail -50 /tmp/litellm.log; exit 1; }
+
+      - name: Measure LiteLLM overhead
+        run: |
+          VERSION=$(litellm --version | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)
+          node probe/overhead.mjs --gateway litellm \
+            --gateway-url http://127.0.0.1:4000/v1/chat/completions \
+            --api-key sk-mock --gateway-version "$VERSION" \
+            --rounds 7 --per-round 25 --warmup 15 --out data/overhead.json
+
+      - name: Commit results
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/overhead.json
+          git diff --cached --quiet && echo "no changes" && exit 0
+          git commit -m "data: gateway overhead measurement ($(date -u +%F))"
+          git pull --rebase origin main
+          git push
