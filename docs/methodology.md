@@ -113,6 +113,18 @@ Vendors market conflicting overhead claims (µs-level vs ms-level) with no indep
 
 Implementation: `probe/overhead.mjs` (pure stats functions unit-tested in `probe/overhead.test.mjs`, incl. a direct-vs-direct self-test that must show ~0 overhead). Measured gateways: **LiteLLM** (pip, `--api_base` → mock), **Portkey Gateway OSS** (npx, `x-portkey-custom-host` → mock), **Bifrost** (docker with `--network host` so container networking adds no unfair hop; `network_config.base_url` → mock, `allow_private_network: true`). PRs adding more gateways (Kong, Envoy AI Gateway, Higress…) are welcome — the harness only needs the gateway to accept a custom OpenAI-compatible upstream URL.
 
+## Supporting dimension: protocol-translation fidelity — "will it break my Claude Code?"
+
+The #1 gateway failure in real bug trackers is **corrupted tool-call / streaming / usage translation** ("claude code" appears in 400+ LiteLLM issues; the top-commented issues on Portkey/OpenRouter/Bifrost are all format-translation breakage). Nobody measures it. `probe/fidelity.mjs` does, reproducibly, with no keys:
+
+| Check | What it sends → verifies | Maps to the cited pain |
+|---|---|---|
+| **tool_calls** | request with a `tools` definition → is a valid `tool_calls` (function name + parseable JSON args) relayed back? | tool_use blocks lost/mangled in translation |
+| **streaming** | `stream:true` → do ≥2 SSE chunks arrive and reassemble to the sent content (vs collapsed/buffered)? | "fake streaming", collapsed streams |
+| **stream_usage** | does a streamed chunk carry `usage.total_tokens`? | a gateway that drops usage can't have its billing reconciled |
+
+The mock upstream returns spec-correct OpenAI responses (a tool_call, a genuine multi-chunk SSE stream with usage); the check is what arrives at the client THROUGH each gateway — any drop is the gateway's relay layer. **Honest scope:** this is structural OpenAI-format *passthrough* fidelity; it does NOT yet test cross-format translation (OpenAI-client ↔ Anthropic-upstream `tool_use` id remapping), where the hardest bugs live — flagged as future work. Pure checks unit-tested in `probe/fidelity.test.mjs` (incl. a self-test that must score 3/3 through the bare mock). Canonical results per gateway in `data/fidelity.json` (CI-run monthly, env-stamped).
+
 ## Supporting dimension 5: Catalog — "does it have the model I need?"
 
 | Metric | Collection method |

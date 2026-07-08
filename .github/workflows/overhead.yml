@@ -1,4 +1,4 @@
-name: Gateway overhead
+name: Gateway overhead + fidelity
 
 # Measures the per-request latency each self-hosted gateway adds on top of a
 # direct call to a local mock OpenAI upstream (no API keys, no egress, ~free).
@@ -107,12 +107,36 @@ jobs:
             --gateway-version "docker-${DIGEST:-latest}" \
             --rounds 7 --per-round 25 --warmup 15 --out data/overhead.json
 
+      # ---- protocol-translation fidelity (reuses the same running gateways + mock port) ----
+      - name: Fidelity — LiteLLM
+        if: always()
+        run: |
+          V=$(litellm --version | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)
+          node probe/fidelity.mjs --gateway litellm --gateway-url http://127.0.0.1:4000/v1/chat/completions \
+            --api-key sk-mock --gateway-version "$V" --mock-port 9010 --out data/fidelity.json || true
+
+      - name: Fidelity — Portkey OSS
+        if: always()
+        run: |
+          V=$(npm view @portkey-ai/gateway version)
+          node probe/fidelity.mjs --gateway portkey-oss --gateway-url http://127.0.0.1:8787/v1/chat/completions \
+            --api-key sk-mock --header 'x-portkey-provider: openai' --header 'x-portkey-custom-host: http://127.0.0.1:9010/v1' \
+            --gateway-version "$V" --mock-port 9010 --out data/fidelity.json || true
+
+      - name: Fidelity — Bifrost
+        if: always()
+        run: |
+          DIGEST=$(docker image inspect maximhq/bifrost --format '{{index .RepoDigests 0}}' | grep -oE 'sha256:[a-f0-9]{12}' | head -1)
+          node probe/fidelity.mjs --gateway bifrost --gateway-url http://127.0.0.1:8080/v1/chat/completions \
+            --model openai/mock-model --gateway-version "docker-${DIGEST:-latest}" --mock-port 9010 --out data/fidelity.json || true
+
       - name: Commit results
+        if: always()
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add data/overhead.json
+          git add data/overhead.json data/fidelity.json
           git diff --cached --quiet && echo "no changes" && exit 0
-          git commit -m "data: gateway overhead measurement ($(date -u +%F))"
+          git commit -m "data: gateway overhead + fidelity measurement ($(date -u +%F))"
           git pull --rebase origin main
           git push
