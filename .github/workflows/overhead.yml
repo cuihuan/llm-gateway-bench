@@ -90,6 +90,7 @@ jobs:
             }
           }
           CFG
+          chmod -R 777 /tmp/bifrost-data
           docker run -d --name bifrost --network host -v /tmp/bifrost-data:/app/data maximhq/bifrost
           for i in $(seq 1 60); do
             curl -sf -o /dev/null http://127.0.0.1:8080/metrics && break
