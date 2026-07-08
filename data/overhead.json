@@ -5,7 +5,7 @@
     {
       "name": "litellm",
       "version": "1.91.0",
-      "measuredAt": "2026-07-08T04:17:29.699Z",
+      "measuredAt": "2026-07-08T04:18:59.772Z",
       "env": {
         "runner": "github-actions",
         "node": "v22.23.1",
@@ -18,29 +18,29 @@
       },
       "verdict": {
         "rounds": 7,
-        "direct_ms": 1.81,
-        "gateway_ms": 7.45,
-        "overhead_ms": 5.65,
+        "direct_ms": 1.83,
+        "gateway_ms": 7.63,
+        "overhead_ms": 5.91,
         "overhead_iqr_ms": [
-          5.61,
-          5.69
+          5.69,
+          6.34
         ]
       },
       "directSummary": {
         "n": 175,
-        "p50": 1.81,
-        "p90": 2,
-        "p99": 2.84,
-        "min": 0.6,
-        "max": 2.91
+        "p50": 1.83,
+        "p90": 1.99,
+        "p99": 2.73,
+        "min": 0.62,
+        "max": 2.87
       },
       "gatewaySummary": {
         "n": 175,
-        "p50": 7.44,
-        "p90": 7.94,
-        "p99": 8.45,
-        "min": 6.05,
-        "max": 8.82
+        "p50": 7.88,
+        "p90": 8.87,
+        "p99": 9.72,
+        "min": 6.06,
+        "max": 10.21
       }
     }
   ]
