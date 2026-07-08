@@ -57,6 +57,55 @@ jobs:
             --api-key sk-mock --gateway-version "$VERSION" \
             --rounds 7 --per-round 25 --warmup 15 --out data/overhead.json
 
+      - name: Start Portkey Gateway (OSS)
+        run: |
+          nohup npx -y @portkey-ai/gateway > /tmp/portkey.log 2>&1 &
+          for i in $(seq 1 60); do
+            curl -sf -o /dev/null http://127.0.0.1:8787/ && break
+            sleep 1
+          done
+          curl -sf -o /dev/null http://127.0.0.1:8787/ || { tail -50 /tmp/portkey.log; exit 1; }
+
+      - name: Measure Portkey overhead
+        run: |
+          VERSION=$(npm view @portkey-ai/gateway version)
+          node probe/overhead.mjs --gateway portkey-oss \
+            --gateway-url http://127.0.0.1:8787/v1/chat/completions \
+            --api-key sk-mock \
+            --header 'x-portkey-provider: openai' \
+            --header 'x-portkey-custom-host: http://127.0.0.1:9010/v1' \
+            --gateway-version "$VERSION" \
+            --rounds 7 --per-round 25 --warmup 15 --out data/overhead.json
+
+      - name: Start Bifrost (docker, host network for fairness)
+        run: |
+          mkdir -p /tmp/bifrost-data
+          cat > /tmp/bifrost-data/config.json <<'CFG'
+          {
+            "providers": {
+              "openai": {
+                "keys": [{"name": "mock", "value": "sk-mock", "models": ["mock-model"], "weight": 1.0}],
+                "network_config": {"base_url": "http://127.0.0.1:9010/v1", "allow_private_network": true}
+              }
+            }
+          }
+          CFG
+          docker run -d --name bifrost --network host -v /tmp/bifrost-data:/app/data maximhq/bifrost
+          for i in $(seq 1 60); do
+            curl -sf -o /dev/null http://127.0.0.1:8080/metrics && break
+            sleep 1
+          done
+          curl -sf -o /dev/null http://127.0.0.1:8080/metrics || { docker logs bifrost | tail -50; exit 1; }
+
+      - name: Measure Bifrost overhead
+        run: |
+          DIGEST=$(docker image inspect maximhq/bifrost --format '{{index .RepoDigests 0}}' | grep -oE 'sha256:[a-f0-9]{12}' | head -1)
+          node probe/overhead.mjs --gateway bifrost \
+            --gateway-url http://127.0.0.1:8080/v1/chat/completions \
+            --model openai/mock-model \
+            --gateway-version "docker-${DIGEST:-latest}" \
+            --rounds 7 --per-round 25 --warmup 15 --out data/overhead.json
+
       - name: Commit results
         run: |
           git config user.name "github-actions[bot]"

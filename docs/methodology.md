@@ -111,7 +111,7 @@ Vendors market conflicting overhead claims (µs-level vs ms-level) with no indep
 | Environment | Canonical numbers come from the GitHub Actions runner (`data/overhead.json`, env-stamped); anyone can reproduce locally: `node probe/overhead.mjs --help` |
 | Honest scope | This isolates **per-request proxy latency only** — not throughput, not concurrency behavior, not TLS/network overhead, not streaming. CI-runner numbers are indicative (shared hardware), which is why we report medians-of-medians with IQR, not single runs |
 
-Implementation: `probe/overhead.mjs` (pure stats functions unit-tested in `probe/overhead.test.mjs`, incl. a direct-vs-direct self-test that must show ~0 overhead). First target: LiteLLM (the most-deployed OSS gateway); PRs adding more gateways (Bifrost, Portkey OSS, Kong…) are welcome — the harness only needs the gateway to accept a custom OpenAI-compatible `api_base`.
+Implementation: `probe/overhead.mjs` (pure stats functions unit-tested in `probe/overhead.test.mjs`, incl. a direct-vs-direct self-test that must show ~0 overhead). Measured gateways: **LiteLLM** (pip, `--api_base` → mock), **Portkey Gateway OSS** (npx, `x-portkey-custom-host` → mock), **Bifrost** (docker with `--network host` so container networking adds no unfair hop; `network_config.base_url` → mock, `allow_private_network: true`). PRs adding more gateways (Kong, Envoy AI Gateway, Higress…) are welcome — the harness only needs the gateway to accept a custom OpenAI-compatible upstream URL.
 
 ## Supporting dimension 5: Catalog — "does it have the model I need?"
 

@@ -99,18 +99,18 @@ export function startMockUpstream(port = 0) {
 
 // ---------- measurement runner ----------
 
-const REQ_BODY = JSON.stringify({
-  model: 'mock-model',
+const reqBody = (model) => JSON.stringify({
+  model,
   messages: [{ role: 'user', content: 'ping' }],
   max_tokens: 1,
 });
 
-async function once(url, headers) {
+async function once(url, headers, model = 'mock-model') {
   const t0 = performance.now();
   const res = await fetch(url, {
     method: 'POST',
     headers: { 'content-type': 'application/json', ...headers },
-    body: REQ_BODY,
+    body: reqBody(model),
     signal: AbortSignal.timeout(15_000),
   });
   await res.arrayBuffer();
@@ -119,9 +119,9 @@ async function once(url, headers) {
   return dt;
 }
 
-async function burst(url, headers, n) {
+async function burst(url, headers, n, model) {
   const out = [];
-  for (let i = 0; i < n; i++) out.push(await once(url, headers));
+  for (let i = 0; i < n; i++) out.push(await once(url, headers, model));
   return out;
 }
 
@@ -129,13 +129,13 @@ async function burst(url, headers, n) {
  * Interleaved measurement: R rounds of (direct n, gateway n).
  * Returns { directRounds, gatewayRounds, directAll, gatewayAll }.
  */
-export async function measure({ directUrl, gatewayUrl, headers = {}, rounds = 5, perRound = 20, warmup = 10 }) {
+export async function measure({ directUrl, gatewayUrl, headers = {}, rounds = 5, perRound = 20, warmup = 10, gatewayModel = 'mock-model' }) {
   await burst(directUrl, {}, warmup);
-  await burst(gatewayUrl, headers, warmup);
+  await burst(gatewayUrl, headers, warmup, gatewayModel);
   const directRounds = [], gatewayRounds = [];
   for (let r = 0; r < rounds; r++) {
     directRounds.push(await burst(directUrl, {}, perRound));
-    gatewayRounds.push(await burst(gatewayUrl, headers, perRound));
+    gatewayRounds.push(await burst(gatewayUrl, headers, perRound, gatewayModel));
   }
   return {
     directRounds, gatewayRounds,
@@ -150,10 +150,17 @@ function arg(name, dflt) {
   return i > -1 ? process.argv[i + 1] : dflt;
 }
 
+/** All values of a repeatable --flag. */
+function args(name) {
+  const out = [];
+  process.argv.forEach((a, i) => { if (a === `--${name}`) out.push(process.argv[i + 1]); });
+  return out;
+}
+
 async function main() {
   if (process.argv.includes('--help')) {
     console.log(`Usage: node probe/overhead.mjs --gateway <name> --gateway-url <chat-completions-url> [--api-key sk-x]
-       [--mock-port 9010] [--rounds 5] [--per-round 20] [--warmup 10] [--out data/overhead.json]
+       [--mock-port 9010] [--rounds 5] [--per-round 20] [--warmup 10] [--out data/overhead.json] [--header 'k: v' ...] [--model mock-model]
 Requires the gateway under test to be configured with the mock upstream
 (http://127.0.0.1:<mock-port>/v1) as its openai-compatible provider.
 Special mode: --gateway self-test measures direct-vs-direct (expects ~0 overhead).`);
@@ -169,12 +176,17 @@ Special mode: --gateway self-test measures direct-vs-direct (expects ~0 overhead
   const headers = {};
   const key = arg('api-key');
   if (key) headers.authorization = `Bearer ${key}`;
+  for (const h of args('header')) {
+    const idx = h.indexOf(':');
+    if (idx > 0) headers[h.slice(0, idx).trim().toLowerCase()] = h.slice(idx + 1).trim();
+  }
 
   const opts = {
     directUrl, gatewayUrl, headers,
     rounds: Number(arg('rounds', '5')),
     perRound: Number(arg('per-round', '20')),
     warmup: Number(arg('warmup', '10')),
+    gatewayModel: arg('model', 'mock-model'),
   };
   console.error(`[overhead] measuring ${name}: ${opts.rounds} rounds x ${opts.perRound} (+${opts.warmup} warmup) …`);
   const m = await measure(opts);
