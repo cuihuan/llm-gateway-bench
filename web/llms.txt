@@ -19,7 +19,7 @@ Methodology is the product: probe scripts, prompts, thresholds, raw data and agg
 - [How the price index is computed and read](https://cuihuan.github.io/llm-gateway-bench/article.html?slug=price-index)
 - [How we probe and why it's trustworthy](https://cuihuan.github.io/llm-gateway-bench/article.html?slug=methodology-trust)
 - [Self-hosting the probe in your own environment](https://cuihuan.github.io/llm-gateway-bench/article.html?slug=self-host-probing)
-- [OpenAI-compatible ≠ behavior-identical: protocol-layer pitfalls](https://cuihuan.github.io/llm-gateway-bench/article.html?slug=openai-compat-pitfalls)
+- [OpenAI-compatible ≠ behavior-identical: protocol-layer pitfalls](https://cuihuan.github.io/llm-gateway-bench/article.html?slug=openai-compat-pitfalls) — incl. cross-format translation (Claude Code / Anthropic client → OpenAI upstream): why tool calls break, and how LiteLLM's /v1/messages transport changed across versions (Chat Completions → Responses API).
 
 ## Companion tools (same author)
 - [awesome-ai-gateway](https://github.com/cuihuan/awesome-ai-gateway): curated list of 100+ AI gateways + reproducible cost benchmark + scorecard — to *pick* a gateway.

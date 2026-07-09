@@ -79,12 +79,13 @@
   {
     "slug": "openai-compat-pitfalls",
     "title": "OpenAI-Compatible ≠ Behaviorally Identical: Protocol-Layer Pitfalls",
-    "summary": "Stripped tool_calls, missing usage, fake streaming, model echo — a compatible interface doesn't mean identical behavior.",
+    "summary": "Stripped tool_calls, missing usage, fake streaming, model echo — and the hardest case: cross-format translation when Claude Code routes to an OpenAI model. A compatible interface doesn't mean identical behavior.",
     "tags": [
       "Protocol compatibility",
       "Tool calling",
-      "Behavior fingerprints"
+      "Cross-format translation",
+      "Claude Code"
     ],
-    "date": "2026-06-11"
+    "date": "2026-07-09"
   }
 ]

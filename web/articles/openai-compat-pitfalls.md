@@ -30,6 +30,19 @@ Two quiet pitfalls:
 - **`model` echo doesn't match**: the `model` field in the response JSON should echo the model you requested. A mismatch (request A, echo B) is direct hard evidence of substitution — the platform's **model echo check** catches it at zero cost, piggybacking on the stream.
 - **A context window in name only**: claims 128K but silently truncates to save upstream cost. The platform verifies this with needle detection (bury a unique marker in a long text and ask for it back verbatim); tail truncation makes the marker deterministically disappear.
 
+## Pitfall 5: cross-format translation — the hardest path (Claude Code → an OpenAI model)
+
+Pitfalls 1–4 assume the client and the upstream speak the same wire format and the gateway just relays. The bugs that actually eat a weekend come from **cross-format translation**: the client speaks one format (the Anthropic Messages API — what Claude Code and the Anthropic SDK emit) while the upstream speaks another (OpenAI). The gateway has to translate the request down *and* the response back up — remapping tool-call ids, streaming event shapes, and usage fields between two incompatible schemas. "Point Claude Code at an OpenAI model through gateway X and the tool calls break" is the single most-filed version of this complaint.
+
+The platform measures it the same black-box way (`probe/xformat.mjs`): drive the gateway's **Anthropic** endpoint (`POST /v1/messages`) against a mock OpenAI upstream, then check what comes back as Anthropic events — a `tool_use` block with a **parsed `input` object** (not a raw JSON string), a `content_block_delta` stream that reassembles to the sent text, and a final `message_delta` carrying `usage.output_tokens` so the Anthropic-path bill can be reconciled.
+
+**A concrete finding (measured 2026-07-09).** Which code path a gateway takes for `/v1/messages` can change between releases, and the path decides whether it works at all:
+
+- **LiteLLM ≤ 1.57.x** translated Anthropic → OpenAI **Chat Completions** (it POSTs the upstream `/v1/chat/completions`). In our harness that path scores **2/3** — tool calls and streaming survive, but streaming `usage` is dropped.
+- **LiteLLM ≥ ~1.9x** rewrote the passthrough to route through the OpenAI **Responses API** — it POSTs the upstream `/v1/responses` (`input` / `input_text` / `max_output_tokens`). Against a Responses-capable upstream this is **3/3** (LiteLLM 1.91.1, neutral CI runner: tool_use, streaming, and stream_usage all intact). But point that same version at a **chat-completions-only** upstream — many self-hosted or proxied models are exactly that — and its Responses transformer raises `KeyError('created_at')` on a `chat.completion` body, so the call fails before any translation is even attempted.
+
+Two lessons. First, **pin the gateway version** when you validate cross-format — the transport underneath `/v1/messages` is not stable across releases. Second, a failed *setup* (an upstream that doesn't speak the format the gateway expects) is not the same as a *fidelity* failure (the gateway mangling a valid translation); the platform records the former as **inconclusive**, never as a `0/3`, so a compatibility artifact never gets published as a vendor score.
+
 ## How to use this piece
 
 Next time you onboard a new gateway, don't just verify "does it run" — go through the protocol layer item by item:
@@ -38,6 +51,7 @@ Next time you onboard a new gateway, don't just verify "does it run" — go thro
 2. **usage**: turn on `include_usage`, confirm the streaming tail really has usage, and check it against a local token estimate;
 3. **Streaming timing**: timestamp each chunk and see whether TTFT roughly equals total latency (a fake-streaming signal);
 4. **model echo**: verify the `model` field in the response;
-5. **Context**: bury a random string near the front of a long text and have it read it back.
+5. **Context**: bury a random string near the front of a long text and have it read it back;
+6. **Cross-format** (if you route Claude Code / the Anthropic SDK to a non-Anthropic model): hit the gateway's `/v1/messages` and confirm `tool_use.input` is a parsed object, the stream is real Anthropic events, and the final `message_delta` carries `usage.output_tokens` — pinning the gateway version as you do.
 
-The platform measures all five automatically, mapping to the columns of the **behavioral check** panel — but you can absolutely reproduce them with your own key; see [Open-source tooling and self-hosted probing: bring this into your own environment](self-host-probing). Back to the selection big picture: [The complete analysis framework for choosing an LLM gateway](choosing-a-gateway).
+The platform measures all six automatically, mapping to the columns of the **behavioral check** panel — but you can absolutely reproduce them with your own key; see [Open-source tooling and self-hosted probing: bring this into your own environment](self-host-probing). Back to the selection big picture: [The complete analysis framework for choosing an LLM gateway](choosing-a-gateway).
