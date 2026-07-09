@@ -18,6 +18,16 @@
 // client. Any drop/mangle is the gateway's cross-format translation layer, not
 // the model. No API keys, no egress.
 //
+// Upstream path note (measured 2026-07-09): gateways serve /v1/messages two
+// different ways depending on version. LiteLLM <=1.57.x translated Anthropic ->
+// OpenAI *Chat Completions* (upstream /v1/chat/completions). LiteLLM >=~1.9x
+// rewrote the passthrough to go through the OpenAI *Responses* API — it POSTs the
+// upstream /v1/responses (input/input_text/max_output_tokens) and its Responses
+// transformer raises KeyError('created_at') if the upstream answers with a
+// chat.completion body. So the mock (fidelity.mjs) speaks BOTH endpoints; a
+// gateway pointed at a chat-completions-only upstream through the Responses path
+// yields no clean measurement and is flagged inconclusive, not a 0/3.
+//
 // Three checks, each a documented real-world failure:
 //   1. tool_use     — OpenAI `tool_calls` must become an Anthropic `tool_use`
 //                     content block with name + a PARSED input object (not a

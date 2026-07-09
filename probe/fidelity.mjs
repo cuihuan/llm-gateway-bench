@@ -59,6 +59,72 @@ export function streamChunks() {
   return out;
 }
 
+// ---------- OpenAI Responses API (/v1/responses) ----------
+// Newer gateways (LiteLLM >=~1.9x) implement the Anthropic /v1/messages passthrough
+// by translating to the OpenAI *Responses* API and POSTing upstream /v1/responses
+// (input/input_text/max_output_tokens), NOT /v1/chat/completions. So the mock must
+// also speak Responses, or the gateway's Responses transformer fails before it can
+// translate back to the client (LiteLLM raises KeyError 'created_at' on a
+// chat.completion body). These are spec-correct Responses payloads; the cross-format
+// checks then measure whether the gateway relays them intact as Anthropic events.
+
+/** Non-stream Responses object: a function_call (with tools) or a text message. */
+export function responsesObject(hasTools) {
+  const common = {
+    id: 'resp_mock', object: 'response', created_at: 0, status: 'completed',
+    model: 'mock-model', error: null, incomplete_details: null, instructions: null,
+    max_output_tokens: null, parallel_tool_calls: true, previous_response_id: null,
+    temperature: 1, tool_choice: 'auto', tools: [], top_p: 1, metadata: {},
+  };
+  if (hasTools) {
+    return {
+      ...common,
+      output: [{
+        type: 'function_call', id: 'fc_mock', call_id: 'call_abc123',
+        name: 'get_weather', arguments: '{"location":"San Francisco","unit":"celsius"}', status: 'completed',
+      }],
+      usage: { input_tokens: 20, output_tokens: 12, total_tokens: 32 },
+    };
+  }
+  return {
+    ...common,
+    output: [{
+      type: 'message', id: 'msg_mock', status: 'completed', role: 'assistant',
+      content: [{ type: 'output_text', text: STREAM_FULL, annotations: [] }],
+    }],
+    usage: { input_tokens: 10, output_tokens: 4, total_tokens: 14 },
+  };
+}
+
+/** The Responses-API SSE event sequence for a streamed text message. Each entry is
+ *  {event, data}; the mock emits `event:`+`data:` lines. Deltas reassemble to
+ *  STREAM_FULL; response.completed carries usage.output_tokens (=4) so the check
+ *  measures whether the gateway relays it into the Anthropic message_delta. */
+export function responsesStreamEvents() {
+  const item = { type: 'message', id: 'msg_mock', status: 'in_progress', role: 'assistant', content: [] };
+  const respBase = {
+    id: 'resp_mock', object: 'response', created_at: 0, model: 'mock-model', error: null,
+    incomplete_details: null, instructions: null, max_output_tokens: null, parallel_tool_calls: true,
+    previous_response_id: null, temperature: 1, tool_choice: 'auto', tools: [], top_p: 1, metadata: {},
+  };
+  const evts = [];
+  let seq = 0;
+  const push = (type, extra) => evts.push({ event: type, data: { type, sequence_number: seq++, ...extra } });
+  push('response.created', { response: { ...respBase, status: 'in_progress', output: [], usage: null } });
+  push('response.in_progress', { response: { ...respBase, status: 'in_progress', output: [], usage: null } });
+  push('response.output_item.added', { output_index: 0, item: { ...item } });
+  push('response.content_part.added', { item_id: 'msg_mock', output_index: 0, content_index: 0, part: { type: 'output_text', text: '', annotations: [] } });
+  for (const d of STREAM_DELTAS) {
+    push('response.output_text.delta', { item_id: 'msg_mock', output_index: 0, content_index: 0, delta: d });
+  }
+  push('response.output_text.done', { item_id: 'msg_mock', output_index: 0, content_index: 0, text: STREAM_FULL });
+  push('response.content_part.done', { item_id: 'msg_mock', output_index: 0, content_index: 0, part: { type: 'output_text', text: STREAM_FULL, annotations: [] } });
+  const doneItem = { type: 'message', id: 'msg_mock', status: 'completed', role: 'assistant', content: [{ type: 'output_text', text: STREAM_FULL, annotations: [] }] };
+  push('response.output_item.done', { output_index: 0, item: doneItem });
+  push('response.completed', { response: { ...respBase, status: 'completed', output: [doneItem], usage: { input_tokens: 10, output_tokens: 4, total_tokens: 14 } } });
+  return evts;
+}
+
 // ---------- pure fidelity checks (unit-tested) ----------
 
 /** A relayed non-stream tool response: valid tool_call with a parseable arg JSON? */
@@ -123,6 +189,30 @@ export function startMockUpstream(port = 0) {
       }
       let body = {};
       try { body = JSON.parse(raw || '{}'); } catch { /* */ }
+      // OpenAI Responses API endpoint (the path newer gateways use for Anthropic
+      // /v1/messages passthrough). Detects Responses tools ({type:'function', name})
+      // or the flattened form; streams Responses SSE events when stream:true.
+      if (req.url.includes('/responses')) {
+        const hasTools = Array.isArray(body.tools) && body.tools.length > 0;
+        if (body.stream) {
+          res.writeHead(200, { 'content-type': 'text/event-stream', 'cache-control': 'no-cache', connection: 'keep-alive' });
+          const evts = responsesStreamEvents();
+          let i = 0;
+          const tick = () => {
+            if (i < evts.length) {
+              const e = evts[i++];
+              res.write(`event: ${e.event}\ndata: ${JSON.stringify(e.data)}\n\n`);
+              setTimeout(tick, 5);
+            } else {
+              res.write('data: [DONE]\n\n');
+              res.end();
+            }
+          };
+          return tick();
+        }
+        res.writeHead(200, { 'content-type': 'application/json' });
+        return res.end(JSON.stringify(responsesObject(hasTools)));
+      }
       if (body.stream) {
         res.writeHead(200, { 'content-type': 'text/event-stream', 'cache-control': 'no-cache', connection: 'keep-alive' });
         const chunks = streamChunks();

@@ -123,7 +123,19 @@ The #1 gateway failure in real bug trackers is **corrupted tool-call / streaming
 | **streaming** | `stream:true` → do ≥2 SSE chunks arrive and reassemble to the sent content (vs collapsed/buffered)? | "fake streaming", collapsed streams |
 | **stream_usage** | does a streamed chunk carry `usage.total_tokens`? | a gateway that drops usage can't have its billing reconciled |
 
-The mock upstream returns spec-correct OpenAI responses (a tool_call, a genuine multi-chunk SSE stream with usage); the check is what arrives at the client THROUGH each gateway — any drop is the gateway's relay layer. **Honest scope:** this is structural OpenAI-format *passthrough* fidelity; it does NOT yet test cross-format translation (OpenAI-client ↔ Anthropic-upstream `tool_use` id remapping), where the hardest bugs live — flagged as future work. Pure checks unit-tested in `probe/fidelity.test.mjs` (incl. a self-test that must score 3/3 through the bare mock). Canonical results per gateway in `data/fidelity.json` (CI-run monthly, env-stamped).
+The mock upstream returns spec-correct OpenAI responses (a tool_call, a genuine multi-chunk SSE stream with usage); the check is what arrives at the client THROUGH each gateway — any drop is the gateway's relay layer. This is structural OpenAI-format *passthrough* fidelity. Pure checks unit-tested in `probe/fidelity.test.mjs` (incl. a self-test that must score 3/3 through the bare mock). Canonical results per gateway in `data/fidelity.json` (CI-run monthly, env-stamped).
+
+### Cross-format fidelity — the hardest path (`probe/xformat.mjs`)
+
+Passthrough is the easy case. The bugs users actually hit come from **cross-format translation**: a client speaking one wire format (Anthropic Messages API) routed to an upstream speaking another (OpenAI). This is the "point Claude Code at an OpenAI model through gateway X and tool calls break" complaint. `probe/xformat.mjs` drives each gateway's **Anthropic** endpoint (`POST /v1/messages`) against the same mock OpenAI upstream, then checks what arrives back as Anthropic events:
+
+| Check | Verifies | Classic failure |
+|---|---|---|
+| **tool_use** | OpenAI `tool_calls` → an Anthropic `tool_use` block with a **parsed `input` object** (not a raw JSON string) | tool args left as an unparsed string |
+| **streaming** | the OpenAI SSE → a well-formed Anthropic event stream (`content_block_delta`/`text_delta`) that reassembles to the sent text | collapsed/buffered stream |
+| **stream_usage** | upstream token counts survive into the final Anthropic `message_delta` `usage.output_tokens` | Anthropic-path billing can't be reconciled |
+
+**Upstream-path caveat (measured 2026-07-09):** gateways serve `/v1/messages` two different ways by version. LiteLLM ≤1.57.x translated to OpenAI *Chat Completions*; LiteLLM ≥~1.9x rewrote the passthrough to the OpenAI *Responses* API — it POSTs the upstream `/v1/responses` and its transformer raises `KeyError('created_at')` on a chat-completions body. The mock therefore speaks **both** endpoints. A gateway pointed at a chat-completions-only upstream through the Responses path yields no clean measurement — that entry is marked **`inconclusive`** (a setup/compat artifact), never a `0/3`. Results in `data/xformat.json`; only a fair, conclusive, neutral-runner number is published.
 
 ## Supporting dimension 5: Catalog — "does it have the model I need?"
 
