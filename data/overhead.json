@@ -5,7 +5,7 @@
     {
       "name": "bifrost",
       "version": "docker-sha256:95caedb1c368",
-      "measuredAt": "2026-07-09T03:43:03.147Z",
+      "measuredAt": "2026-07-09T07:23:01.246Z",
       "env": {
         "runner": "github-actions",
         "node": "v22.23.1",
@@ -18,76 +18,35 @@
       },
       "verdict": {
         "rounds": 7,
-        "direct_ms": 1.8,
-        "gateway_ms": 2.32,
-        "overhead_ms": 0.53,
+        "direct_ms": 1.77,
+        "gateway_ms": 2.34,
+        "overhead_ms": 0.57,
         "overhead_iqr_ms": [
-          0.51,
-          0.56
-        ]
-      },
-      "directSummary": {
-        "n": 175,
-        "p50": 1.79,
-        "p90": 1.94,
-        "p99": 2.13,
-        "min": 0.59,
-        "max": 2.83
-      },
-      "gatewaySummary": {
-        "n": 175,
-        "p50": 2.32,
-        "p90": 2.64,
-        "p99": 3.97,
-        "min": 1.22,
-        "max": 4.27
-      }
-    },
-    {
-      "name": "portkey-oss",
-      "version": "1.15.2",
-      "measuredAt": "2026-07-09T03:42:51.365Z",
-      "env": {
-        "runner": "github-actions",
-        "node": "v22.23.1",
-        "platform": "linux"
-      },
-      "config": {
-        "rounds": 7,
-        "perRound": 25,
-        "warmup": 15
-      },
-      "verdict": {
-        "rounds": 7,
-        "direct_ms": 1.78,
-        "gateway_ms": 4.39,
-        "overhead_ms": 2.61,
-        "overhead_iqr_ms": [
-          2.53,
-          2.79
+          0.52,
+          0.58
         ]
       },
       "directSummary": {
         "n": 175,
         "p50": 1.78,
-        "p90": 1.93,
-        "p99": 2.04,
-        "min": 0.64,
-        "max": 2.14
+        "p90": 1.95,
+        "p99": 2.73,
+        "min": 0.74,
+        "max": 3.01
       },
       "gatewaySummary": {
         "n": 175,
-        "p50": 4.48,
-        "p90": 5.03,
-        "p99": 6.51,
-        "min": 3.04,
-        "max": 7.28
+        "p50": 2.33,
+        "p90": 2.59,
+        "p99": 3.86,
+        "min": 1.13,
+        "max": 4.16
       }
     },
     {
-      "name": "litellm",
-      "version": "1.91.1",
-      "measuredAt": "2026-07-09T03:42:44.525Z",
+      "name": "portkey-oss",
+      "version": "1.15.2",
+      "measuredAt": "2026-07-09T07:22:49.562Z",
       "env": {
         "runner": "github-actions",
         "node": "v22.23.1",
@@ -100,29 +59,70 @@
       },
       "verdict": {
         "rounds": 7,
-        "direct_ms": 1.78,
-        "gateway_ms": 7.37,
-        "overhead_ms": 5.52,
+        "direct_ms": 1.77,
+        "gateway_ms": 4.44,
+        "overhead_ms": 2.67,
         "overhead_iqr_ms": [
-          5.5,
-          5.62
+          2.56,
+          2.81
         ]
       },
       "directSummary": {
         "n": 175,
         "p50": 1.79,
-        "p90": 1.94,
-        "p99": 2.8,
-        "min": 0.66,
-        "max": 4.35
+        "p90": 1.97,
+        "p99": 2.92,
+        "min": 0.78,
+        "max": 3.93
       },
       "gatewaySummary": {
         "n": 175,
-        "p50": 7.33,
-        "p90": 7.93,
-        "p99": 9.11,
-        "min": 6.08,
-        "max": 12.81
+        "p50": 4.46,
+        "p90": 5.17,
+        "p99": 6.38,
+        "min": 3.08,
+        "max": 7.18
+      }
+    },
+    {
+      "name": "litellm",
+      "version": "1.91.1",
+      "measuredAt": "2026-07-09T07:22:40.220Z",
+      "env": {
+        "runner": "github-actions",
+        "node": "v22.23.1",
+        "platform": "linux"
+      },
+      "config": {
+        "rounds": 7,
+        "perRound": 25,
+        "warmup": 15
+      },
+      "verdict": {
+        "rounds": 7,
+        "direct_ms": 1.76,
+        "gateway_ms": 7.35,
+        "overhead_ms": 5.5,
+        "overhead_iqr_ms": [
+          5.45,
+          5.61
+        ]
+      },
+      "directSummary": {
+        "n": 175,
+        "p50": 1.79,
+        "p90": 1.97,
+        "p99": 2.78,
+        "min": 0.64,
+        "max": 3.02
+      },
+      "gatewaySummary": {
+        "n": 175,
+        "p50": 7.36,
+        "p90": 7.87,
+        "p99": 8.5,
+        "min": 6.11,
+        "max": 9
       }
     }
   ]

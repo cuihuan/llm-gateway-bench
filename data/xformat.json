@@ -4,38 +4,36 @@
     {
       "name": "litellm",
       "version": "1.91.1",
-      "measuredAt": "2026-07-09T03:43:18.533Z",
+      "measuredAt": "2026-07-09T07:23:16.637Z",
       "env": {
         "runner": "github-actions",
         "node": "v22.23.1",
         "platform": "linux"
       },
-      "inconclusive": true,
-      "inconclusive_reason": "both endpoints returned an error/exception body — no clean measurement (setup/compat, not a fidelity verdict)",
       "verdict": {
-        "score": "0/3",
-        "tool_use": false,
-        "streaming": false,
-        "stream_usage": false
+        "score": "3/3",
+        "tool_use": true,
+        "streaming": true,
+        "stream_usage": true
       },
       "tool": {
-        "pass": false,
-        "note": "no Anthropic content array in relayed response"
+        "pass": true,
+        "note": "tool_use translated intact (name + parsed input)"
       },
       "stream": {
-        "pass": false,
-        "note": "only 0 text_delta event(s) — collapsed/buffered",
-        "deltas": 0
+        "pass": true,
+        "note": "3 text_delta events, content intact",
+        "deltas": 3
       },
       "usage": {
-        "pass": false,
-        "note": "message_delta usage output_tokens=0/absent — Anthropic-path billing cannot be reconciled"
+        "pass": true,
+        "note": "output_tokens=4 in message_delta (matches upstream)"
       },
       "debug": {
         "tool_status": 200,
-        "tool_snippet": "{\"error\":{\"message\":\"litellm.APIError: APIError: OpenAIException - {\\\"id\\\":\\\"chatcmpl-tool\\\",\\\"object\\\":\\\"chat.completion\\\",\\\"created\\\":0,\\\"model\\\":\\\"mock-model\\\",\\\"choices\\\":[{\\\"index\\\":0,\\\"message\\\":{\\\"role\\\":\\\"assista",
+        "tool_snippet": "{\"id\":\"resp_bGl0ZWxsbTpjdXN0b21fbGxtX3Byb3ZpZGVyOm9wZW5haTttb2RlbF9pZDpOb25lO3Jlc3BvbnNlX2lkOnJlc3BfbW9jaw==\",\"type\":\"message\",\"role\":\"assistant\",\"model\":\"mock-model\",\"stop_sequence\":null,\"usage\":{\"input_tokens\":20,\"outp",
         "stream_status": 200,
-        "stream_snippet": "{\"error\":{\"message\":\"litellm.APIError: APIError: OpenAIException - \",\"type\":null,\"param\":null,\"code\":\"200\"}}"
+        "stream_snippet": "event: message_start data: {\"type\": \"message_start\", \"message\": {\"id\": \"msg_c35d5924-65ab-4628-836c-2963961be909\", \"type\": \"message\", \"role\": \"assistant\", \"content\": [], \"model\": \"mock-model\", \"stop_reason\": null, \"stop_"
       }
     }
   ]
