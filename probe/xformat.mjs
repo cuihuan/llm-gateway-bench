@@ -100,6 +100,7 @@ export function xverdict(tool, stream, usage) {
  *  envelope rather than an Anthropic message/event. Returns a reason or null. */
 export function inconclusiveReason(debug) {
   const isErr = (status, snip) => {
+    if (status === 0) return true; // transport failure (unreachable/timeout)
     if (typeof status === 'number' && status >= 400) return true;
     const s = (snip || '').replace(/\s/g, '');
     // an {"error":…} envelope, or a LiteLLM/OpenAI exception string, not an
@@ -124,14 +125,20 @@ const ANTHROPIC_TOOLS = [{
 }];
 
 async function post(url, headers, payload) {
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: { 'content-type': 'application/json', ...headers },
-    body: JSON.stringify(payload),
-    signal: AbortSignal.timeout(20_000),
-  });
-  const text = await res.text();
-  return { status: res.status, text };
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', ...headers },
+      body: JSON.stringify(payload),
+      signal: AbortSignal.timeout(20_000),
+    });
+    const text = await res.text();
+    return { status: res.status, text };
+  } catch (e) {
+    // unreachable gateway / timeout — a transport failure, not a fidelity result.
+    // status 0 + an error snippet flow into inconclusiveReason() as inconclusive.
+    return { status: 0, text: `{"error":{"message":"transport failure: ${String(e.message || e).replace(/"/g, "'")}"}}` };
+  }
 }
 
 /** A short, safe snippet of a response body for diagnosing a 0/3 (config/auth
