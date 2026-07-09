@@ -4,7 +4,7 @@
     {
       "name": "litellm",
       "version": "1.91.1",
-      "measuredAt": "2026-07-09T03:30:00.590Z",
+      "measuredAt": "2026-07-09T03:32:31.260Z",
       "env": {
         "runner": "github-actions",
         "node": "v22.23.1",
@@ -28,6 +28,12 @@
       "usage": {
         "pass": false,
         "note": "message_delta usage output_tokens=0/absent — Anthropic-path billing cannot be reconciled"
+      },
+      "debug": {
+        "tool_status": 200,
+        "tool_snippet": "{\"error\":{\"message\":\"litellm.APIError: APIError: OpenAIException - {\\\"id\\\":\\\"chatcmpl-tool\\\",\\\"object\\\":\\\"chat.completion\\\",\\\"created\\\":0,\\\"model\\\":\\\"mock-model\\\",\\\"choices\\\":[{\\\"index\\\":0,\\\"message\\\":{\\\"role\\\":\\\"assista",
+        "stream_status": 200,
+        "stream_snippet": "{\"error\":{\"message\":\"litellm.APIError: APIError: OpenAIException - \",\"type\":null,\"param\":null,\"code\":\"200\"}}"
       }
     }
   ]
