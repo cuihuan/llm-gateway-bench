@@ -112,6 +112,12 @@ async function post(url, headers, payload) {
   return { status: res.status, text };
 }
 
+/** A short, safe snippet of a response body for diagnosing a 0/3 (config/auth
+ *  error vs a genuine translation failure) without dumping a whole stream. */
+function snippet(text) {
+  return (text ?? '').replace(/\s+/g, ' ').trim().slice(0, 220);
+}
+
 export async function runXformat({ gatewayUrl, headers = {}, model = 'mock-model' }) {
   const base = { model, max_tokens: 64, messages: [{ role: 'user', content: 'weather in SF?' }] };
   // 1. tool_use translation
@@ -123,7 +129,10 @@ export async function runXformat({ gatewayUrl, headers = {}, model = 'mock-model
   const s = await post(gatewayUrl, headers, { ...base, messages: [{ role: 'user', content: 'hi' }], stream: true });
   const stream = checkAnthropicStreaming(s.text);
   const usage = checkAnthropicStreamUsage(s.text);
-  return { verdict: xverdict(tool, stream, usage), tool, stream, usage };
+  // debug is load-bearing: a 0/3 must be diagnosable as a translation bug vs an
+  // endpoint/config error before any vendor-facing claim is published.
+  const debug = { tool_status: t.status, tool_snippet: snippet(t.text), stream_status: s.status, stream_snippet: snippet(s.text) };
+  return { verdict: xverdict(tool, stream, usage), tool, stream, usage, debug };
 }
 
 // ---------- CLI ----------
