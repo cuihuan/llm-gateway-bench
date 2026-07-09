@@ -1,0 +1,34 @@
+{
+  "_comment": "CROSS-FORMAT fidelity: an Anthropic Messages API client routed through the gateway to an OpenAI-format upstream. Does tool_use / streaming / usage survive the gateway translating one wire format to the other and back? Mock OpenAI upstream, no keys. This is the hardest translation path and the #1 real-world complaint (Claude Code through a gateway). See docs/methodology.md.",
+  "results": [
+    {
+      "name": "litellm",
+      "version": "1.91.1",
+      "measuredAt": "2026-07-09T03:30:00.590Z",
+      "env": {
+        "runner": "github-actions",
+        "node": "v22.23.1",
+        "platform": "linux"
+      },
+      "verdict": {
+        "score": "0/3",
+        "tool_use": false,
+        "streaming": false,
+        "stream_usage": false
+      },
+      "tool": {
+        "pass": false,
+        "note": "no Anthropic content array in relayed response"
+      },
+      "stream": {
+        "pass": false,
+        "note": "only 0 text_delta event(s) — collapsed/buffered",
+        "deltas": 0
+      },
+      "usage": {
+        "pass": false,
+        "note": "message_delta usage output_tokens=0/absent — Anthropic-path billing cannot be reconciled"
+      }
+    }
+  ]
+}
