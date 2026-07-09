@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  checkAnthropicToolUse, checkAnthropicStreaming, checkAnthropicStreamUsage, xverdict,
+  checkAnthropicToolUse, checkAnthropicStreaming, checkAnthropicStreamUsage, xverdict, inconclusiveReason,
 } from './xformat.mjs';
 
 // ---------- canonical Anthropic fixtures (what a faithful translation emits) ----------
@@ -109,4 +109,31 @@ test('xverdict: full pass on the canonical fixtures end-to-end', () => {
   const stream = checkAnthropicStreaming(anthropicStream());
   const usage = checkAnthropicStreamUsage(anthropicStream());
   assert.equal(xverdict(tool, stream, usage).score, '3/3');
+});
+
+// ---------- inconclusive detection (never publish a config error as a verdict) ----------
+
+test('inconclusiveReason: clean Anthropic bodies are conclusive (null)', () => {
+  const debug = { tool_status: 200, tool_snippet: '{"type":"message","content":[{"type":"tool_use"}]}', stream_status: 200, stream_snippet: 'event: message_start data:{"type":"message_start"}' };
+  assert.equal(inconclusiveReason(debug), null);
+});
+
+test('inconclusiveReason: an APIError-wrapped body is inconclusive, not a 0/3 fail', () => {
+  // the real LiteLLM 1.91.1 CI artifact: HTTP 200 but body is an error envelope
+  const debug = {
+    tool_status: 200, tool_snippet: '{"error":{"message":"litellm.APIError: APIError: OpenAIException - {...}"}}',
+    stream_status: 200, stream_snippet: '{"error":{"message":"litellm.APIError: OpenAIException - "}}',
+  };
+  const r = inconclusiveReason(debug);
+  assert.ok(r && /both endpoints/.test(r), r);
+});
+
+test('inconclusiveReason: a 4xx status is inconclusive', () => {
+  const debug = { tool_status: 404, tool_snippet: 'Not Found', stream_status: 404, stream_snippet: 'Not Found' };
+  assert.ok(inconclusiveReason(debug));
+});
+
+test('inconclusiveReason: only one side erroring is still inconclusive', () => {
+  const debug = { tool_status: 200, tool_snippet: '{"type":"message"}', stream_status: 500, stream_snippet: '{"error":{"message":"boom"}}' };
+  assert.ok(/streaming endpoint/.test(inconclusiveReason(debug)));
 });

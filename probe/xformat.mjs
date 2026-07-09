@@ -92,6 +92,28 @@ export function xverdict(tool, stream, usage) {
   return { score: `${passed}/3`, tool_use: tool.pass, streaming: stream.pass, stream_usage: usage.pass };
 }
 
+/** Distinguish "the gateway mangled a valid translation" (a real 0-3 fidelity
+ *  result) from "we never got a clean measurement" (an HTTP/config/compat error
+ *  — e.g. the gateway wrapped the upstream in an APIError, or the endpoint 4xx'd).
+ *  The latter must NEVER be published as a fidelity verdict; it's inconclusive.
+ *  A response is an error body if it 4xx/5xx'd or its body is a JSON `{error:…}`
+ *  envelope rather than an Anthropic message/event. Returns a reason or null. */
+export function inconclusiveReason(debug) {
+  const isErr = (status, snip) => {
+    if (typeof status === 'number' && status >= 400) return true;
+    const s = (snip || '').replace(/\s/g, '');
+    // an {"error":…} envelope, or a LiteLLM/OpenAI exception string, not an
+    // Anthropic {"type":"message"…} / event body
+    return /^\{"error"/.test(s) || /APIError|Exception|litellm\./.test(snip || '');
+  };
+  const toolErr = isErr(debug?.tool_status, debug?.tool_snippet);
+  const streamErr = isErr(debug?.stream_status, debug?.stream_snippet);
+  if (toolErr && streamErr) return 'both endpoints returned an error/exception body — no clean measurement (setup/compat, not a fidelity verdict)';
+  if (toolErr) return 'tool-call endpoint returned an error/exception body — no clean measurement';
+  if (streamErr) return 'streaming endpoint returned an error/exception body — no clean measurement';
+  return null;
+}
+
 // ---------- runner ----------
 
 // Anthropic Messages API tool shape (note: input_schema, not OpenAI's parameters).
@@ -161,21 +183,27 @@ Drives the gateway's ANTHROPIC endpoint; the gateway must have the mock upstream
   const r = await runXformat({ messagesUrl, gatewayUrl: messagesUrl, headers, model: arg('model', 'mock-model') });
   server.close();
 
+  const reason = inconclusiveReason(r.debug);
   const entry = {
     name, version: arg('gateway-version', null), measuredAt: new Date().toISOString(),
     env: { runner: process.env.GITHUB_ACTIONS ? 'github-actions' : 'local', node: process.version, platform: process.platform },
+    ...(reason ? { inconclusive: true, inconclusive_reason: reason } : {}),
     ...r,
   };
   const outPath = arg('out', 'data/xformat.json');
   let doc = {
-    _comment: 'CROSS-FORMAT fidelity: an Anthropic Messages API client routed through the gateway to an OpenAI-format upstream. Does tool_use / streaming / usage survive the gateway translating one wire format to the other and back? Mock OpenAI upstream, no keys. This is the hardest translation path and the #1 real-world complaint (Claude Code through a gateway). See docs/methodology.md.',
+    _comment: 'CROSS-FORMAT fidelity: an Anthropic Messages API client routed through the gateway to an OpenAI-format upstream. Does tool_use / streaming / usage survive the gateway translating one wire format to the other and back? Mock OpenAI upstream, no keys. This is the hardest translation path and the #1 real-world complaint (Claude Code through a gateway). NOTE: an entry marked "inconclusive" is a setup/compat artifact (the gateway returned an error/exception body, so no clean measurement) — NOT a fidelity verdict; do not read it as a score. See docs/methodology.md.',
     results: [],
   };
   try { doc = JSON.parse(await readFile(outPath, 'utf8')); } catch {}
   doc.results = (doc.results ?? []).filter((x) => x.name !== name);
   doc.results.push(entry);
   await writeFile(outPath, JSON.stringify(doc, null, 2) + '\n');
-  console.log(`[xformat] ${name}: ${r.verdict.score} — tool_use:${r.verdict.tool_use} streaming:${r.verdict.streaming} stream_usage:${r.verdict.stream_usage}`);
+  if (reason) {
+    console.log(`[xformat] ${name}: INCONCLUSIVE — ${reason}`);
+  } else {
+    console.log(`[xformat] ${name}: ${r.verdict.score} — tool_use:${r.verdict.tool_use} streaming:${r.verdict.streaming} stream_usage:${r.verdict.stream_usage}`);
+  }
 }
 
 if (process.argv[1] && import.meta.url.endsWith(process.argv[1].split('/').pop())) {
