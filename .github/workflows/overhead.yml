@@ -131,15 +131,35 @@ jobs:
             --model openai/mock-model --gateway-version "docker-${DIGEST:-latest}" --mock-port 9010 --out data/fidelity.json || true
 
       # ---- cross-format fidelity (Anthropic client -> OpenAI upstream) ----
-      # The hardest translation path. Scoped to LiteLLM first (it exposes an
-      # Anthropic /v1/messages endpoint that translates to the OpenAI upstream).
-      # Portkey (/v1/messages via x-portkey config) and Bifrost are next targets.
+      # The hardest translation path: an Anthropic-format client (Claude Code / the
+      # Anthropic SDK) routed to an OpenAI upstream. Each gateway is driven through
+      # its own Anthropic endpoint; the mock speaks both OpenAI Chat Completions and
+      # the Responses API (newer gateways translate via /v1/responses).
       - name: Cross-format fidelity — LiteLLM
         if: always()
         run: |
           V=$(litellm --version | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)
           node probe/xformat.mjs --gateway litellm --messages-url http://127.0.0.1:4000/v1/messages \
             --api-key sk-mock --gateway-version "$V" --mock-port 9010 --out data/xformat.json || true
+
+      - name: Cross-format fidelity — Bifrost
+        if: always()
+        run: |
+          DIGEST=$(docker image inspect maximhq/bifrost --format '{{index .RepoDigests 0}}' | grep -oE 'sha256:[a-f0-9]{12}' | head -1)
+          node probe/xformat.mjs --gateway bifrost --messages-url http://127.0.0.1:8080/anthropic/v1/messages \
+            --api-key sk-mock --gateway-version "docker-${DIGEST:-latest}" --mock-port 9010 --out data/xformat.json || true
+
+      # Portkey OSS: its /v1/messages is Anthropic-provider-only — with an OpenAI
+      # provider it rejects the operation ("messages is not supported by openai"),
+      # so this records INCONCLUSIVE with that snippet (it does NOT offer the
+      # Anthropic-client -> OpenAI-upstream path in the header-config OSS mode).
+      - name: Cross-format fidelity — Portkey OSS
+        if: always()
+        run: |
+          V=$(npm view @portkey-ai/gateway version)
+          node probe/xformat.mjs --gateway portkey-oss --messages-url http://127.0.0.1:8787/v1/messages \
+            --api-key sk-mock --header 'x-portkey-provider: openai' --header 'x-portkey-custom-host: http://127.0.0.1:9010/v1' \
+            --gateway-version "$V" --mock-port 9010 --out data/xformat.json || true
 
       - name: Commit results
         if: always()

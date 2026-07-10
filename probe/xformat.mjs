@@ -125,6 +125,28 @@ export function inconclusiveReason(debug) {
   return null;
 }
 
+/** Distinct from inconclusive: the gateway DEFINITIVELY does not offer this
+ *  cross-format path — the endpoint is absent (404/405) or it explicitly rejects
+ *  the operation ("messages is not supported by openai", "no route", …). That's a
+ *  capability fact about the gateway config, not a failed measurement, so it must
+ *  be reported as `unsupported` (never as a 0/3 or a fidelity verdict). Checked
+ *  BEFORE inconclusiveReason so an explicit rejection wins. Returns reason or null. */
+export function unsupportedReason(debug) {
+  const isUnsupported = (status, snip) => {
+    if (status === 404 || status === 405) return true;
+    return /not supported|not found|no route|unknown (path|endpoint|route)|unsupported/i.test(snip || '');
+  };
+  const t = isUnsupported(debug?.tool_status, debug?.tool_snippet);
+  const s = isUnsupported(debug?.stream_status, debug?.stream_snippet);
+  if (t || s) {
+    const snip = (t ? debug?.tool_snippet : debug?.stream_snippet) || '';
+    const m = snip.match(/"message"\s*:\s*"([^"]{0,120})"/);
+    const detail = m ? ` (${m[1]})` : (t && (debug?.tool_status === 404 || debug?.tool_status === 405) ? ` (HTTP ${debug.tool_status})` : '');
+    return `gateway does not offer this cross-format path in this config${detail}`;
+  }
+  return null;
+}
+
 // ---------- runner ----------
 
 // Anthropic Messages API tool shape (note: input_schema, not OpenAI's parameters).
@@ -200,23 +222,27 @@ Drives the gateway's ANTHROPIC endpoint; the gateway must have the mock upstream
   const r = await runXformat({ messagesUrl, gatewayUrl: messagesUrl, headers, model: arg('model', 'mock-model') });
   server.close();
 
-  const reason = inconclusiveReason(r.debug);
+  const unsupported = unsupportedReason(r.debug);
+  const reason = unsupported ? null : inconclusiveReason(r.debug);
   const entry = {
     name, version: arg('gateway-version', null), measuredAt: new Date().toISOString(),
     env: { runner: process.env.GITHUB_ACTIONS ? 'github-actions' : 'local', node: process.version, platform: process.platform },
+    ...(unsupported ? { unsupported: true, unsupported_reason: unsupported } : {}),
     ...(reason ? { inconclusive: true, inconclusive_reason: reason } : {}),
     ...r,
   };
   const outPath = arg('out', 'data/xformat.json');
   let doc = {
-    _comment: 'CROSS-FORMAT fidelity: an Anthropic Messages API client routed through the gateway to an OpenAI-format upstream. Does tool_use / streaming / usage survive the gateway translating one wire format to the other and back? Mock OpenAI upstream, no keys. This is the hardest translation path and the #1 real-world complaint (Claude Code through a gateway). NOTE: an entry marked "inconclusive" is a setup/compat artifact (the gateway returned an error/exception body, so no clean measurement) — NOT a fidelity verdict; do not read it as a score. See docs/methodology.md.',
+    _comment: 'CROSS-FORMAT fidelity: an Anthropic Messages API client routed through the gateway to an OpenAI-format upstream. Does tool_use / streaming / usage survive the gateway translating one wire format to the other and back? Mock OpenAI upstream, no keys. This is the hardest translation path and the #1 real-world complaint (Claude Code through a gateway). NOTE: "unsupported"=the gateway does not offer this cross-format path in this config (endpoint absent / provider rejects it) — a capability fact, NOT a score. "inconclusive"=a setup/compat artifact (error/exception body, no clean measurement) — also NOT a fidelity verdict. See docs/methodology.md.',
     results: [],
   };
   try { doc = JSON.parse(await readFile(outPath, 'utf8')); } catch {}
   doc.results = (doc.results ?? []).filter((x) => x.name !== name);
   doc.results.push(entry);
   await writeFile(outPath, JSON.stringify(doc, null, 2) + '\n');
-  if (reason) {
+  if (unsupported) {
+    console.log(`[xformat] ${name}: UNSUPPORTED — ${unsupported}`);
+  } else if (reason) {
     console.log(`[xformat] ${name}: INCONCLUSIVE — ${reason}`);
   } else {
     console.log(`[xformat] ${name}: ${r.verdict.score} — tool_use:${r.verdict.tool_use} streaming:${r.verdict.streaming} stream_usage:${r.verdict.stream_usage}`);

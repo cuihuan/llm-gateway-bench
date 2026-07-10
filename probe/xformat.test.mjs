@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  checkAnthropicToolUse, checkAnthropicStreaming, checkAnthropicStreamUsage, xverdict, inconclusiveReason,
+  checkAnthropicToolUse, checkAnthropicStreaming, checkAnthropicStreamUsage, xverdict, inconclusiveReason, unsupportedReason,
 } from './xformat.mjs';
 
 // ---------- canonical Anthropic fixtures (what a faithful translation emits) ----------
@@ -136,4 +136,23 @@ test('inconclusiveReason: a 4xx status is inconclusive', () => {
 test('inconclusiveReason: only one side erroring is still inconclusive', () => {
   const debug = { tool_status: 200, tool_snippet: '{"type":"message"}', stream_status: 500, stream_snippet: '{"error":{"message":"boom"}}' };
   assert.ok(/streaming endpoint/.test(inconclusiveReason(debug)));
+});
+
+test('unsupportedReason: Portkey-style "not supported by openai" is unsupported, not a score', () => {
+  // Portkey OSS /v1/messages with an openai provider rejects the operation (HTTP 500).
+  const debug = { tool_status: 500, tool_snippet: '{"status":"failure","message":"messages is not supported by openai"}', stream_status: 500, stream_snippet: '{"status":"failure","message":"messages is not supported by openai"}' };
+  const r = unsupportedReason(debug);
+  assert.ok(r, 'should be unsupported');
+  assert.match(r, /messages is not supported by openai/);
+});
+
+test('unsupportedReason: a 404/405 endpoint is unsupported', () => {
+  assert.ok(unsupportedReason({ tool_status: 405, tool_snippet: 'Method Not Allowed', stream_status: 405, stream_snippet: 'Method Not Allowed' }));
+  assert.ok(unsupportedReason({ tool_status: 404, tool_snippet: 'not found', stream_status: 404, stream_snippet: 'not found' }));
+});
+
+test('unsupportedReason: a clean translation (or a plain compat error) is NOT unsupported', () => {
+  assert.equal(unsupportedReason({ tool_status: 200, tool_snippet: '{"type":"message"}', stream_status: 200, stream_snippet: 'event: message_start' }), null);
+  // an APIError-wrapped body is inconclusive, not "unsupported" (the path exists, it just errored)
+  assert.equal(unsupportedReason({ tool_status: 200, tool_snippet: '{"error":{"message":"litellm.APIError"}}', stream_status: 200, stream_snippet: '{"error":{}}' }), null);
 });
