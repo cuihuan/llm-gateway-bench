@@ -4,7 +4,7 @@
     {
       "name": "litellm",
       "version": "1.91.1",
-      "measuredAt": "2026-07-09T07:23:06.323Z",
+      "measuredAt": "2026-07-10T09:37:29.939Z",
       "env": {
         "runner": "github-actions",
         "node": "v22.23.1",
@@ -33,7 +33,7 @@
     {
       "name": "portkey-oss",
       "version": "1.15.2",
-      "measuredAt": "2026-07-09T07:23:06.788Z",
+      "measuredAt": "2026-07-10T09:37:30.362Z",
       "env": {
         "runner": "github-actions",
         "node": "v22.23.1",
@@ -62,7 +62,7 @@
     {
       "name": "bifrost",
       "version": "docker-sha256:95caedb1c368",
-      "measuredAt": "2026-07-09T07:23:11.017Z",
+      "measuredAt": "2026-07-10T09:37:34.591Z",
       "env": {
         "runner": "github-actions",
         "node": "v22.23.1",

@@ -4,7 +4,7 @@
     {
       "name": "litellm",
       "version": "1.91.1",
-      "measuredAt": "2026-07-09T07:23:16.637Z",
+      "measuredAt": "2026-07-10T09:37:40.594Z",
       "env": {
         "runner": "github-actions",
         "node": "v22.23.1",
@@ -33,7 +33,79 @@
         "tool_status": 200,
         "tool_snippet": "{\"id\":\"resp_bGl0ZWxsbTpjdXN0b21fbGxtX3Byb3ZpZGVyOm9wZW5haTttb2RlbF9pZDpOb25lO3Jlc3BvbnNlX2lkOnJlc3BfbW9jaw==\",\"type\":\"message\",\"role\":\"assistant\",\"model\":\"mock-model\",\"stop_sequence\":null,\"usage\":{\"input_tokens\":20,\"outp",
         "stream_status": 200,
-        "stream_snippet": "event: message_start data: {\"type\": \"message_start\", \"message\": {\"id\": \"msg_c35d5924-65ab-4628-836c-2963961be909\", \"type\": \"message\", \"role\": \"assistant\", \"content\": [], \"model\": \"mock-model\", \"stop_reason\": null, \"stop_"
+        "stream_snippet": "event: message_start data: {\"type\": \"message_start\", \"message\": {\"id\": \"msg_5c6df9a5-75b4-4cbc-a32e-aa57cf755b3b\", \"type\": \"message\", \"role\": \"assistant\", \"content\": [], \"model\": \"mock-model\", \"stop_reason\": null, \"stop_"
+      }
+    },
+    {
+      "name": "bifrost",
+      "version": "docker-sha256:95caedb1c368",
+      "measuredAt": "2026-07-10T09:37:40.979Z",
+      "env": {
+        "runner": "github-actions",
+        "node": "v22.23.1",
+        "platform": "linux"
+      },
+      "verdict": {
+        "score": "3/3",
+        "tool_use": true,
+        "streaming": true,
+        "stream_usage": true
+      },
+      "tool": {
+        "pass": true,
+        "note": "tool_use translated intact (name + parsed input)"
+      },
+      "stream": {
+        "pass": true,
+        "note": "4 text_delta events, content intact",
+        "deltas": 4
+      },
+      "usage": {
+        "pass": true,
+        "note": "output_tokens=4 in message_delta (matches upstream)"
+      },
+      "debug": {
+        "tool_status": 200,
+        "tool_snippet": "{\"id\":\"resp_mock\",\"type\":\"message\",\"role\":\"assistant\",\"content\":[{\"type\":\"tool_use\",\"id\":\"call_abc123\",\"name\":\"get_weather\",\"input\":{\"location\":\"San Francisco\",\"unit\":\"celsius\"}}],\"model\":\"mock-model\",\"stop_reason\":\"tool",
+        "stream_status": 200,
+        "stream_snippet": "event: message_start data: {\"type\":\"message_start\",\"message\":{\"id\":\"resp_mock\",\"type\":\"message\",\"role\":\"assistant\",\"content\":[],\"model\":\"mock-model\",\"usage\":{\"input_tokens\":0,\"cache_creation_input_tokens\":0,\"cache_read_i"
+      }
+    },
+    {
+      "name": "portkey-oss",
+      "version": "1.15.2",
+      "measuredAt": "2026-07-10T09:37:41.405Z",
+      "env": {
+        "runner": "github-actions",
+        "node": "v22.23.1",
+        "platform": "linux"
+      },
+      "unsupported": true,
+      "unsupported_reason": "gateway does not offer this cross-format path in this config (messages is not supported by openai)",
+      "verdict": {
+        "score": "0/3",
+        "tool_use": false,
+        "streaming": false,
+        "stream_usage": false
+      },
+      "tool": {
+        "pass": false,
+        "note": "no Anthropic content array in relayed response"
+      },
+      "stream": {
+        "pass": false,
+        "note": "only 0 text_delta event(s) — collapsed/buffered",
+        "deltas": 0
+      },
+      "usage": {
+        "pass": false,
+        "note": "message_delta usage output_tokens=0/absent — Anthropic-path billing cannot be reconciled"
+      },
+      "debug": {
+        "tool_status": 500,
+        "tool_snippet": "{\"status\":\"failure\",\"message\":\"messages is not supported by openai\"}",
+        "stream_status": 500,
+        "stream_snippet": "{\"status\":\"failure\",\"message\":\"messages is not supported by openai\"}"
       }
     }
   ]
