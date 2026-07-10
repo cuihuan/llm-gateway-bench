@@ -36,12 +36,19 @@ Pitfalls 1–4 assume the client and the upstream speak the same wire format and
 
 The platform measures it the same black-box way (`probe/xformat.mjs`): drive the gateway's **Anthropic** endpoint (`POST /v1/messages`) against a mock OpenAI upstream, then check what comes back as Anthropic events — a `tool_use` block with a **parsed `input` object** (not a raw JSON string), a `content_block_delta` stream that reassembles to the sent text, and a final `message_delta` carrying `usage.output_tokens` so the Anthropic-path bill can be reconciled.
 
-**A concrete finding (measured 2026-07-09).** Which code path a gateway takes for `/v1/messages` can change between releases, and the path decides whether it works at all:
+**Measured across three self-hostable OSS gateways (2026-07-10, neutral CI runner).** Each was driven through its own Anthropic endpoint against the same mock OpenAI upstream:
 
-- **LiteLLM ≤ 1.57.x** translated Anthropic → OpenAI **Chat Completions** (it POSTs the upstream `/v1/chat/completions`). In our harness that path scores **2/3** — tool calls and streaming survive, but streaming `usage` is dropped.
-- **LiteLLM ≥ ~1.9x** rewrote the passthrough to route through the OpenAI **Responses API** — it POSTs the upstream `/v1/responses` (`input` / `input_text` / `max_output_tokens`). Against a Responses-capable upstream this is **3/3** (LiteLLM 1.91.1, neutral CI runner: tool_use, streaming, and stream_usage all intact). But point that same version at a **chat-completions-only** upstream — many self-hosted or proxied models are exactly that — and its Responses transformer raises `KeyError('created_at')` on a `chat.completion` body, so the call fails before any translation is even attempted.
+| Gateway | Cross-format | What happened |
+|---|---|---|
+| **LiteLLM** 1.91.1 | **3/3** | `/v1/messages` → tool_use, streaming and usage all survive the translation |
+| **Bifrost** (latest) | **3/3** | `/anthropic/v1/messages` → all three survive |
+| **Portkey Gateway OSS** 1.15.2 | **not offered** | its `/v1/messages` is Anthropic-provider-only — with an OpenAI provider it rejects the request outright (`messages is not supported by openai`) |
 
-Two lessons. First, **pin the gateway version** when you validate cross-format — the transport underneath `/v1/messages` is not stable across releases. Second, a failed *setup* (an upstream that doesn't speak the format the gateway expects) is not the same as a *fidelity* failure (the gateway mangling a valid translation); the platform records the former as **inconclusive**, never as a `0/3`, so a compatibility artifact never gets published as a vendor score.
+So if you point Claude Code / the Anthropic SDK at an OpenAI-format model, **LiteLLM and Bifrost both do the translation cleanly**; Portkey OSS doesn't expose that path in the header-config self-host mode (you'd route through its OpenAI endpoint instead, giving up native Anthropic-client compatibility — and its hosted product may differ).
+
+**One finding worth pinning your version for:** which code path a gateway takes for `/v1/messages` can change between releases. LiteLLM ≤ 1.57.x translated Anthropic → OpenAI **Chat Completions** (that path scores **2/3** — it silently drops streaming `usage`); LiteLLM ≥ ~1.9x rewrote the passthrough to route through the OpenAI **Responses API** (upstream `/v1/responses`), which is 3/3 against a Responses-capable upstream but raises `KeyError('created_at')` against a **chat-completions-only** one — so the call fails before any translation is attempted. Bifrost likewise goes through the Responses API. Pin the gateway version when you validate cross-format; the transport underneath `/v1/messages` is not stable.
+
+A note on fairness: a gateway that **doesn't offer** the path (Portkey's explicit rejection, or an absent endpoint) is recorded as *unsupported*, and a **setup/compat error** that yields no clean measurement as *inconclusive* — neither is ever published as a `0/3`, which is reserved for a gateway that genuinely mangles a valid translation.
 
 ## How to use this piece
 
