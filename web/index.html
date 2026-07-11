@@ -164,6 +164,16 @@
   <p class="fn">These signals <b>are not a presumption of guilt</b>: a single failure may be network jitter or a limit of the model itself; what matters is <b>consistent, repeated</b> behavior. The <b>Usage Fingerprint</b> column shows "characters per token"; for the same model across gateways, an abnormally low value = suspected token inflation, to be checked against the official baseline (comparison lights up once the baseline is aligned).</p>
 </div></section>
 
+<section id="fidelity"><div class="wrap">
+  <h2>Protocol Fidelity<span class="anchor">Does the gateway relay tool-calls / streaming / usage <b>intact</b> through translation? The #1 real-world gateway failure — measured, not asserted · <a href="article.html?slug=openai-compat-pitfalls">Understand this dimension →</a></span></h2>
+  <p class="sub">A mock upstream returns spec-correct responses (a tool call, a real multi-chunk SSE stream with <code>usage</code>); we check what actually arrives <b>through</b> each gateway — any drop is the gateway's translation layer, not the model. No keys, reproducible in CI. <b>Passthrough</b> = OpenAI-format in and out; <b>cross-format</b> = an Anthropic client (Claude Code / the Anthropic SDK) routed to an OpenAI model — the hardest path, and the single most-filed "tool calls break" complaint.</p>
+  <h3 style="margin:14px 0 6px;font-size:14px">OpenAI-format passthrough</h3>
+  <div class="tablebox"><table id="fid-pass"><thead><tr><th>Gateway</th><th>tool_calls</th><th>streaming</th><th>usage</th><th class="r">Score</th></tr></thead><tbody></tbody></table></div>
+  <h3 style="margin:16px 0 6px;font-size:14px">Cross-format · Claude Code → OpenAI model</h3>
+  <div class="tablebox"><table id="fid-xf"><thead><tr><th>Gateway</th><th>tool_use</th><th>streaming</th><th>usage</th><th class="r">Score</th></tr></thead><tbody></tbody></table></div>
+  <p class="fn"><b>not offered</b> = the gateway doesn't expose an Anthropic-client → OpenAI-upstream path (a capability fact, e.g. Portkey OSS's <code>/v1/messages</code> is Anthropic-provider-only); <b>inconclusive</b> = a setup/compat error yielded no clean measurement — neither is ever shown as a 0/3. <span id="fid-src"></span></p>
+</div></section>
+
 <section id="price"><div class="wrap">
   <h2>Pricing<span class="anchor">USD / 1M tokens (input / output) · multiple = gateway price ÷ official price · official price from litellm · <a href="article.html?slug=price-index">Understand this dimension →</a></span></h2>
   <div class="tablebox"><table id="price-tbl"><thead></thead><tbody></tbody></table></div>
@@ -695,6 +705,26 @@ function render(site, isDemo){
   } catch {
     box.innerHTML = '<div class="pain"><p class="muted">The article list requires a local server (npm run serve) to view.</p></div>';
   }
+})();
+
+// Protocol fidelity (loaded independently; failure just hides the section)
+(async function fidelity(){
+  const sec = $('#fidelity'); if(!sec) return;
+  const load = async u => { try { const r = await fetch(u,{cache:'no-store'}); return r.ok ? await r.json() : null; } catch { return null; } };
+  const [f,x] = await Promise.all([load('fidelity.json'), load('xformat.json')]);
+  if(!f && !x){ sec.hidden = true; return; }
+  const tick = b => b ? '<span class="num good">✅</span>' : '<span class="num bad">❌</span>';
+  const verdict = e => e.unsupported ? '<span class="muted">not offered</span>'
+    : e.inconclusive ? '<span class="muted">inconclusive</span>'
+    : `<b>${esc(e.verdict.score)}</b>`;
+  const row = (e, checks) => `<tr>
+    <td><div class="gw-name">${esc(e.name)}</div><div class="gw-sub">${esc(e.version||'')}</div></td>
+    ${checks.map(c => `<td>${(e.unsupported||e.inconclusive||!e.verdict) ? '—' : tick(e.verdict[c])}</td>`).join('')}
+    <td class="r">${verdict(e)}</td></tr>`;
+  if(f && $('#fid-pass tbody')) $('#fid-pass tbody').innerHTML = (f.results||[]).map(e => row(e, ['tool_calls','streaming','stream_usage'])).join('');
+  if(x && $('#fid-xf tbody')) $('#fid-xf tbody').innerHTML = (x.results||[]).map(e => row(e, ['tool_use','streaming','stream_usage'])).join('');
+  const src = $('#fid-src');
+  if(src) src.innerHTML = 'Source: <a href="https://github.com/cuihuan/llm-gateway-bench/blob/main/data/fidelity.json" target="_blank" rel="noopener">fidelity.json</a> · <a href="https://github.com/cuihuan/llm-gateway-bench/blob/main/data/xformat.json" target="_blank" rel="noopener">xformat.json</a> — CI-updated, env-stamped, no keys.';
 })();
 </script>
 </body>

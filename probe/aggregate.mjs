@@ -329,6 +329,17 @@ async function main() {
     console.log(`web/models.json: ${models.models?.length ?? 0} models`);
   } catch (e) { console.error('[aggregate] models.json skipped:', e.message); }
 
+  // Protocol-fidelity datasets → web/ so the landing page's Protocol Fidelity
+  // section can fetch them (passthrough + cross-format). CI updates the data/
+  // files; mirroring them here keeps the panel same-origin (no cross-site fetch).
+  for (const f of ['fidelity.json', 'xformat.json']) {
+    try {
+      const doc = JSON.parse(await readFile(new URL(`data/${f}`, root), 'utf8'));
+      await writeFile(new URL(`web/${f}`, root), JSON.stringify(doc, null, 2));
+      console.log(`web/${f}: ${doc.results?.length ?? 0} gateways`);
+    } catch (e) { console.error(`[aggregate] ${f} skipped:`, e.message); }
+  }
+
   // Single source of truth for report rendering: mirror the pure-function report.mjs into web/, so the
   // report gallery (reports.html) renders shared reports in the browser with the exact same
   // renderReportHtml as the CLI (Pages deploys web/ directly, so this file must be committed to the
