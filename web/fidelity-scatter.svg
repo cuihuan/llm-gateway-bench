@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 440" width="680" height="440" font-family="-apple-system,Segoe UI,Roboto,sans-serif" role="img" aria-label="Gateways plotted by measured overhead versus protocol fidelity">
+<rect width="680" height="440" fill="#0d1117"/>
+<rect x="76" y="58" width="190.68" height="53" fill="#3fb950" opacity="0.07"/>
+<text x="84" y="103" fill="#3fb950" font-size="11" opacity="0.9">◤ fast &amp; faithful zone</text>
+<text x="76" y="30" fill="#e6edf3" font-size="16" font-weight="700">Fast <tspan fill="#8b949e">AND</tspan> faithful? Gateways by measured overhead × fidelity</text>
+<text x="76" y="47" fill="#8b949e" font-size="11.5">Both axes independently measured on a neutral CI runner — no keys, reproducible. · 2026-07-11</text>
+<line x1="76" y1="58" x2="76" y2="376" stroke="#30363d" stroke-width="1"/>
+<line x1="76" y1="376" x2="530" y2="376" stroke="#30363d" stroke-width="1"/>
+<line x1="76" y1="376" x2="530" y2="376" stroke="#21262d" stroke-width="1"/>
+<text x="66" y="380" fill="#8b949e" font-size="11" text-anchor="end">0/3</text>
+<line x1="76" y1="270" x2="530" y2="270" stroke="#21262d" stroke-width="1"/>
+<text x="66" y="274" fill="#8b949e" font-size="11" text-anchor="end">1/3</text>
+<line x1="76" y1="164" x2="530" y2="164" stroke="#21262d" stroke-width="1"/>
+<text x="66" y="168" fill="#8b949e" font-size="11" text-anchor="end">2/3</text>
+<line x1="76" y1="58" x2="530" y2="58" stroke="#21262d" stroke-width="1"/>
+<text x="66" y="62" fill="#8b949e" font-size="11" text-anchor="end">3/3</text>
+<line x1="76" y1="376" x2="76" y2="381" stroke="#30363d" stroke-width="1"/>
+<text x="76" y="395" fill="#8b949e" font-size="11" text-anchor="middle">0</text>
+<line x1="205.7142857142857" y1="376" x2="205.7142857142857" y2="381" stroke="#30363d" stroke-width="1"/>
+<text x="205.7142857142857" y="395" fill="#8b949e" font-size="11" text-anchor="middle">2</text>
+<line x1="335.4285714285714" y1="376" x2="335.4285714285714" y2="381" stroke="#30363d" stroke-width="1"/>
+<text x="335.4285714285714" y="395" fill="#8b949e" font-size="11" text-anchor="middle">4</text>
+<line x1="465.1428571428571" y1="376" x2="465.1428571428571" y2="381" stroke="#30363d" stroke-width="1"/>
+<text x="465.1428571428571" y="395" fill="#8b949e" font-size="11" text-anchor="middle">6</text>
+<text x="303" y="426" fill="#c9d1d9" font-size="12" text-anchor="middle">Added latency per request (ms) — lower is better →</text>
+<text transform="translate(20 217) rotate(-90)" fill="#c9d1d9" font-size="12" text-anchor="middle">Protocol fidelity (checks passed) — higher is better</text>
+<circle cx="116.2" cy="58.0" r="7" fill="#3fb950" stroke="#0d1117" stroke-width="1.5"/>
+<text x="128.2" y="56.0" fill="#e6edf3" font-size="12.5" font-weight="600" text-anchor="start">bifrost</text>
+<text x="128.2" y="71.0" fill="#8b949e" font-size="10.5" text-anchor="start">0.62 ms · 3/3</text>
+<circle cx="247.9" cy="270.0" r="7" fill="#f85149" stroke="#0d1117" stroke-width="1.5"/>
+<text x="259.9" y="268.0" fill="#e6edf3" font-size="12.5" font-weight="600" text-anchor="start">portkey-oss</text>
+<text x="259.9" y="283.0" fill="#8b949e" font-size="10.5" text-anchor="start">2.65 ms · 1/3</text>
+<circle cx="454.1" cy="58.0" r="7" fill="#3fb950" stroke="#0d1117" stroke-width="1.5"/>
+<text x="442.1" y="56.0" fill="#e6edf3" font-size="12.5" font-weight="600" text-anchor="end">litellm</text>
+<text x="442.1" y="71.0" fill="#8b949e" font-size="10.5" text-anchor="end">5.83 ms · 3/3</text>
+</svg>

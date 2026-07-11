@@ -5,13 +5,28 @@
   "description": "Open, user-perspective benchmark for LLM API gateways: connectivity, latency, stability, price.",
   "license": "MIT",
   "type": "module",
-  "keywords": ["llm", "api-gateway", "benchmark", "evaluation", "openai-compatible", "relay-station", "llm-benchmark"],
+  "keywords": [
+    "llm",
+    "api-gateway",
+    "benchmark",
+    "evaluation",
+    "openai-compatible",
+    "relay-station",
+    "llm-benchmark"
+  ],
   "homepage": "https://github.com/cuihuan/llm-gateway-bench#readme",
-  "repository": { "type": "git", "url": "git+https://github.com/cuihuan/llm-gateway-bench.git" },
-  "bugs": { "url": "https://github.com/cuihuan/llm-gateway-bench/issues" },
-  "engines": { "node": ">=20" },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cuihuan/llm-gateway-bench.git"
+  },
+  "bugs": {
+    "url": "https://github.com/cuihuan/llm-gateway-bench/issues"
+  },
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
-    "test": "node --test probe/metrics.test.mjs probe/aggregate.test.mjs probe/prices.test.mjs probe/probe.test.mjs probe/data.test.mjs probe/report.test.mjs probe/compare.test.mjs probe/publish.test.mjs probe/longcontext.test.mjs probe/matrix.test.mjs probe/overhead.test.mjs probe/fidelity.test.mjs probe/xformat.test.mjs",
+    "test": "node --test probe/metrics.test.mjs probe/aggregate.test.mjs probe/prices.test.mjs probe/probe.test.mjs probe/data.test.mjs probe/report.test.mjs probe/compare.test.mjs probe/publish.test.mjs probe/longcontext.test.mjs probe/matrix.test.mjs probe/overhead.test.mjs probe/fidelity.test.mjs probe/xformat.test.mjs probe/make_scatter.test.mjs",
     "probe": "node probe/probe.mjs",
     "compare": "node probe/compare.mjs",
     "matrix": "node probe/matrix.mjs",

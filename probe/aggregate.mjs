@@ -14,6 +14,7 @@
 import { readFile, readdir, writeFile, mkdir } from 'node:fs/promises';
 import { percentile } from './metrics.mjs';
 import { buildPriceMatrixReport } from './report.mjs';
+import { joinMetrics, buildScatterSvg } from './make_scatter.mjs';
 
 const WINDOW_DAYS = 30;
 
@@ -339,6 +340,18 @@ async function main() {
       console.log(`web/${f}: ${doc.results?.length ?? 0} gateways`);
     } catch (e) { console.error(`[aggregate] ${f} skipped:`, e.message); }
   }
+
+  // "Fast & faithful?" scatter (overhead × fidelity) → web/fidelity-scatter.svg —
+  // the one visual combining the project's two unique gateway measurements.
+  try {
+    const ov = (JSON.parse(await readFile(new URL('data/overhead.json', root), 'utf8')).results) ?? [];
+    const fi = (JSON.parse(await readFile(new URL('data/fidelity.json', root), 'utf8')).results) ?? [];
+    const pts = joinMetrics(ov, fi);
+    if (pts.length) {
+      await writeFile(new URL('web/fidelity-scatter.svg', root), buildScatterSvg(pts, { asOf: new Date().toISOString().slice(0, 10) }));
+      console.log(`web/fidelity-scatter.svg: ${pts.length} gateways`);
+    }
+  } catch (e) { console.error('[aggregate] scatter skipped:', e.message); }
 
   // Single source of truth for report rendering: mirror the pure-function report.mjs into web/, so the
   // report gallery (reports.html) renders shared reports in the browser with the exact same
