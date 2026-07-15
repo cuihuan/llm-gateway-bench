@@ -12,6 +12,7 @@ Methodology is the product: probe scripts, prompts, thresholds, raw data and agg
 - [Source & methodology (README + docs)](https://github.com/cuihuan/llm-gateway-bench): how each metric is measured, the detection toolbox, and how to run it yourself.
 
 ## Knowledge base (articles)
+- [Does your gateway break Claude Code? Measuring tool-call fidelity + overhead](https://cuihuan.github.io/llm-gateway-bench/article.html?slug=does-your-gateway-break-claude-code) — a keyless, reproducible experiment across the popular gateways: passthrough LiteLLM 3/3 · Bifrost 3/3 · Portkey OSS 1/3 (drops streaming); cross-format (Claude Code → OpenAI) LiteLLM 3/3 · Bifrost 3/3 · Portkey OSS not-offered; LiteLLM's /v1/messages transport changed across versions (Chat Completions → Responses API) so pin your version. Fast ≠ faithful — one overhead×fidelity chart.
 - [Choosing a gateway — a complete framework](https://cuihuan.github.io/llm-gateway-bench/article.html?slug=choosing-a-gateway)
 - [Model substitution & silent downgrade: how to detect it black-box](https://cuihuan.github.io/llm-gateway-bench/article.html?slug=model-substitution)
 - [Billing traps: inflated tokens, fake streaming, context truncation](https://cuihuan.github.io/llm-gateway-bench/article.html?slug=billing-traps)

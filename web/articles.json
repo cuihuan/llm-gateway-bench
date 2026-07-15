@@ -1,5 +1,17 @@
 [
   {
+    "slug": "does-your-gateway-break-claude-code",
+    "title": "Does Your Gateway Break Claude Code? Measuring Tool-Call Fidelity and Overhead",
+    "summary": "A keyless, reproducible experiment: do the popular AI gateways corrupt tool calls / streaming / usage, and how much latency do they add? Two surprises, one chart, and the LiteLLM version that quietly breaks Claude Code.",
+    "tags": [
+      "Protocol fidelity",
+      "Cross-format translation",
+      "Claude Code",
+      "Gateway benchmarks"
+    ],
+    "date": "2026-07-15"
+  },
+  {
     "slug": "choosing-a-gateway",
     "title": "A Complete Framework for Choosing an LLM Gateway",
     "summary": "Break gateway selection into verifiable columns with four questions and a decision flow",

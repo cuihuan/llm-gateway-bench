@@ -36,6 +36,12 @@
 const esc = (s)=> String(s).replace(/[&<>]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
 function inline(s){
   return esc(s)
+    // images: ![alt](src) — must run before the link rule. Only same-origin image
+    // files or https URLs are allowed (first-party content, but stay conservative).
+    .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (_,alt,u)=>{
+      const ok = /^https:\/\//.test(u) || /^[\w./-]+\.(svg|png|jpe?g|gif|webp)$/i.test(u);
+      return ok ? `<img src="${u}" alt="${alt}" loading="lazy">` : '';
+    })
     .replace(/`([^`]+)`/g, (_,c)=>`<code>${c}</code>`)
     .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
     .replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_,t,u)=>{
@@ -53,6 +59,16 @@ function renderMd(md){
     if(ln.startsWith('```')){ closeList(); let code=''; i++;
       while(i<lines.length && !lines[i].startsWith('```')){ code+=lines[i]+'\n'; i++; }
       html+=`<pre><code>${esc(code.replace(/\n$/,''))}</code></pre>`; i++; continue; }
+    // GFM table: a `| a | b |` header row followed by a `|---|---|` separator.
+    if(/^\|(.+)\|\s*$/.test(ln) && i+1<lines.length && /^\|[\s:|-]+\|\s*$/.test(lines[i+1])){
+      closeList();
+      const cells = r => r.replace(/^\s*\|/,'').replace(/\|\s*$/,'').split('|').map(c=>c.trim());
+      const head = cells(ln); i+=2;
+      let body='';
+      while(i<lines.length && /^\|(.+)\|\s*$/.test(lines[i])){ body+='<tr>'+cells(lines[i]).map(c=>`<td>${inline(c)}</td>`).join('')+'</tr>'; i++; }
+      html+=`<table class="md-tbl"><thead><tr>${head.map(c=>`<th>${inline(c)}</th>`).join('')}</tr></thead><tbody>${body}</tbody></table>`;
+      continue;
+    }
     if(/^#{1,3}\s/.test(ln)){ closeList(); const lvl=ln.match(/^#+/)[0].length;
       const t=ln.replace(/^#+\s/,''); html+= lvl===1?`<h2>${inline(t)}</h2>`:`<h${lvl}>${inline(t)}</h${lvl}>`; i++; continue; }
     if(/^>\s?/.test(ln)){ closeList(); let q=''; while(i<lines.length && /^>\s?/.test(lines[i])){ q+=lines[i].replace(/^>\s?/,'')+' '; i++; }
