@@ -14,7 +14,7 @@
 import { readFile, readdir, writeFile, mkdir } from 'node:fs/promises';
 import { percentile } from './metrics.mjs';
 import { buildPriceMatrixReport } from './report.mjs';
-import { joinMetrics, buildScatterSvg } from './make_scatter.mjs';
+import { joinMetrics, buildScatterSvg, scatterAsOf } from './make_scatter.mjs';
 
 const WINDOW_DAYS = 30;
 
@@ -348,7 +348,7 @@ async function main() {
     const fi = (JSON.parse(await readFile(new URL('data/fidelity.json', root), 'utf8')).results) ?? [];
     const pts = joinMetrics(ov, fi);
     if (pts.length) {
-      await writeFile(new URL('web/fidelity-scatter.svg', root), buildScatterSvg(pts, { asOf: new Date().toISOString().slice(0, 10) }));
+      await writeFile(new URL('web/fidelity-scatter.svg', root), buildScatterSvg(pts, { asOf: scatterAsOf(pts) }));
       console.log(`web/fidelity-scatter.svg: ${pts.length} gateways`);
     }
   } catch (e) { console.error('[aggregate] scatter skipped:', e.message); }

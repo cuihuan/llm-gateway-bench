@@ -24,10 +24,18 @@ export function joinMetrics(overhead, fidelity) {
     // passed = count of the three passthrough checks that passed (0..3)
     const passed = f?.verdict ? [f.verdict.tool_calls, f.verdict.streaming, f.verdict.stream_usage].filter(Boolean).length : null;
     if (typeof ms === 'number' && typeof passed === 'number') {
-      out.push({ name: o.name, version: o.version ?? f?.version ?? '', overhead_ms: ms, score: passed });
+      out.push({ name: o.name, version: o.version ?? f?.version ?? '', overhead_ms: ms, score: passed, measuredAt: o.measuredAt ?? f?.measuredAt ?? null });
     }
   }
   return out.sort((a, b) => a.overhead_ms - b.overhead_ms);
+}
+
+/** The latest measurement date (YYYY-MM-DD) across the points, or null. Used as
+ *  the chart's as-of so the SVG is deterministic across daily aggregate runs. */
+export function scatterAsOf(points) {
+  return (points ?? [])
+    .map((p) => p.measuredAt).filter(Boolean).map((s) => String(s).slice(0, 10))
+    .sort().pop() ?? null;
 }
 
 /** Build a self-contained SVG scatter (overhead x, fidelity y). Pure + deterministic. */
@@ -98,7 +106,9 @@ async function main() {
   const fidelity = (await rd('data/fidelity.json'))?.results ?? [];
   const points = joinMetrics(overhead, fidelity);
   if (!points.length) { console.error('[scatter] no gateways with both overhead + fidelity; skipping'); return; }
-  const asOf = new Date().toISOString().slice(0, 10);
+  // asOf = the latest data-measurement date (NOT today) so the SVG is deterministic
+  // across daily aggregate runs — it changes only when the underlying data does.
+  const asOf = scatterAsOf(points);
   const svg = buildScatterSvg(points, { asOf });
   const out = new URL('web/fidelity-scatter.svg', root);
   if (process.argv.includes('--check')) {

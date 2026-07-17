@@ -3,7 +3,7 @@
 <rect x="76" y="58" width="190.68" height="53" fill="#3fb950" opacity="0.07"/>
 <text x="84" y="103" fill="#3fb950" font-size="11" opacity="0.9">◤ fast &amp; faithful zone</text>
 <text x="76" y="30" fill="#e6edf3" font-size="16" font-weight="700">Fast <tspan fill="#8b949e">AND</tspan> faithful? Gateways by measured overhead × fidelity</text>
-<text x="76" y="47" fill="#8b949e" font-size="11.5">Both axes independently measured on a neutral CI runner — no keys, reproducible. · 2026-07-11</text>
+<text x="76" y="47" fill="#8b949e" font-size="11.5">Both axes independently measured on a neutral CI runner — no keys, reproducible. · 2026-07-10</text>
 <line x1="76" y1="58" x2="76" y2="376" stroke="#30363d" stroke-width="1"/>
 <line x1="76" y1="376" x2="530" y2="376" stroke="#30363d" stroke-width="1"/>
 <line x1="76" y1="376" x2="530" y2="376" stroke="#21262d" stroke-width="1"/>

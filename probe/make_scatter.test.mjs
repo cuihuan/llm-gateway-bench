@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { joinMetrics, buildScatterSvg } from './make_scatter.mjs';
+import { joinMetrics, buildScatterSvg, scatterAsOf } from './make_scatter.mjs';
 
 const OVERHEAD = [
   { name: 'litellm', version: '1.91.1', verdict: { overhead_ms: 5.83 } },
@@ -40,4 +40,20 @@ test('buildScatterSvg: escapes gateway names (no raw injection)', () => {
   const svg = buildScatterSvg([{ name: '<script>x', version: '', overhead_ms: 1, score: 3 }]);
   assert.ok(!svg.includes('<script>x'));
   assert.ok(svg.includes('&lt;script&gt;x'));
+});
+
+test('scatterAsOf: latest measurement date (deterministic, not "today")', () => {
+  // The SVG as-of must come from the data, not the wall clock, or the daily
+  // aggregate run rewrites it and the probe cron chokes on unstaged changes.
+  assert.equal(scatterAsOf([{ measuredAt: '2026-07-10T09:37:05Z' }, { measuredAt: '2026-07-10T09:37:34Z' }, { measuredAt: null }]), '2026-07-10');
+  assert.equal(scatterAsOf([]), null);
+  assert.equal(scatterAsOf([{ name: 'x' }]), null); // no measuredAt → no date
+});
+
+test('joinMetrics: carries measuredAt through for the as-of date', () => {
+  const pts = joinMetrics(
+    [{ name: 'a', verdict: { overhead_ms: 1 }, measuredAt: '2026-07-10T00:00:00Z' }],
+    [{ name: 'a', verdict: { tool_calls: true, streaming: true, stream_usage: true } }],
+  );
+  assert.equal(pts[0].measuredAt, '2026-07-10T00:00:00Z');
 });
