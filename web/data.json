@@ -1,11 +1,11 @@
 {
-  "generatedAt": "2026-07-22T08:45:11.755Z",
+  "generatedAt": "2026-07-22T14:22:35.316Z",
   "demo": false,
   "windowDays": 30,
   "regions": [
     "gh-us"
   ],
-  "runCount": 158,
+  "runCount": 159,
   "gateways": [
     {
       "id": "synthorai",
@@ -46,16 +46,16 @@
       "region": "gh-us",
       "byRegion": {
         "gh-us": {
-          "uptimePct": 82.49,
-          "uptime7dPct": 46.38,
-          "probes": 297,
+          "uptimePct": 81.67,
+          "uptime7dPct": 44.44,
+          "probes": 300,
           "ttftP50": 2108,
-          "connMs": 297
+          "connMs": 175
         }
       },
-      "probes": 297,
-      "uptimePct": 82.49,
-      "uptime7dPct": 46.38,
+      "probes": 300,
+      "uptimePct": 81.67,
+      "uptime7dPct": 44.44,
       "daysArr": [
         {
           "date": "2026-06-23",
@@ -182,9 +182,9 @@
         "429": 0,
         "5xx": 0,
         "timeout": 0,
-        "other": 52
+        "other": 55
       },
-      "authExcluded": 891,
+      "authExcluded": 900,
       "speed": {
         "ttftP50": 2108,
         "ttftP95": null,
@@ -295,7 +295,7 @@
       "toolCalls": {
         "ok": 1,
         "total": 4,
-        "nonStreamMs": 86
+        "nonStreamMs": 41
       },
       "streamBurst": null,
       "usageByModel": null,
@@ -381,8 +381,8 @@
         {
           "hour": 14,
           "ttftP50": 2619,
-          "okRate": 71.4,
-          "n": 21
+          "okRate": 62.5,
+          "n": 24
         },
         {
           "hour": 15,
@@ -418,10 +418,10 @@
         "worstOkRateHour": 2,
         "worstOkRate": 33.3
       },
-      "connMs": 297,
+      "connMs": 175,
       "connOk": true,
-      "modelCount": 74,
-      "lastRun": "2026-07-22T08:44:54.033Z"
+      "modelCount": 76,
+      "lastRun": "2026-07-22T14:22:19.750Z"
     },
     {
       "id": "openrouter",
@@ -2277,7 +2277,7 @@
     }
   ],
   "prices": {
-    "fetchedAt": "2026-07-22T08:45:11.660Z",
+    "fetchedAt": "2026-07-22T14:22:35.222Z",
     "unit": "USD per 1M tokens [input, output]",
     "sources": {
       "official": "litellm",
