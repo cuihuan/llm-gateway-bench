@@ -1,11 +1,11 @@
 {
-  "generatedAt": "2026-07-23T03:45:17.425Z",
+  "generatedAt": "2026-07-23T08:44:36.162Z",
   "demo": false,
   "windowDays": 30,
   "regions": [
     "gh-us"
   ],
-  "runCount": 161,
+  "runCount": 162,
   "gateways": [
     {
       "id": "synthorai",
@@ -46,16 +46,16 @@
       "region": "gh-us",
       "byRegion": {
         "gh-us": {
-          "uptimePct": 79.59,
-          "uptime7dPct": 42.31,
-          "probes": 294,
+          "uptimePct": 78.79,
+          "uptime7dPct": 40.74,
+          "probes": 297,
           "ttftP50": 2100,
-          "connMs": 261
+          "connMs": 385
         }
       },
-      "probes": 294,
-      "uptimePct": 79.59,
-      "uptime7dPct": 42.31,
+      "probes": 297,
+      "uptimePct": 78.79,
+      "uptime7dPct": 40.74,
       "daysArr": [
         {
           "date": "2026-06-24",
@@ -182,9 +182,9 @@
         "429": 0,
         "5xx": 0,
         "timeout": 0,
-        "other": 60
+        "other": 63
       },
-      "authExcluded": 882,
+      "authExcluded": 891,
       "speed": {
         "ttftP50": 2100,
         "ttftP95": null,
@@ -291,7 +291,7 @@
       "toolCalls": {
         "ok": 1,
         "total": 4,
-        "nonStreamMs": 37
+        "nonStreamMs": 81
       },
       "streamBurst": null,
       "usageByModel": null,
@@ -341,8 +341,8 @@
         {
           "hour": 8,
           "ttftP50": 2111,
-          "okRate": 66.7,
-          "n": 24
+          "okRate": 59.3,
+          "n": 27
         },
         {
           "hour": 9,
@@ -414,10 +414,10 @@
         "worstOkRateHour": 2,
         "worstOkRate": 33.3
       },
-      "connMs": 261,
+      "connMs": 385,
       "connOk": true,
       "modelCount": 76,
-      "lastRun": "2026-07-23T03:45:02.464Z"
+      "lastRun": "2026-07-23T08:44:19.311Z"
     },
     {
       "id": "openrouter",
@@ -2273,7 +2273,7 @@
     }
   ],
   "prices": {
-    "fetchedAt": "2026-07-23T03:45:17.356Z",
+    "fetchedAt": "2026-07-23T08:44:36.069Z",
     "unit": "USD per 1M tokens [input, output]",
     "sources": {
       "official": "litellm",
