@@ -1,11 +1,11 @@
 {
-  "generatedAt": "2026-07-25T14:07:21.221Z",
+  "generatedAt": "2026-07-25T19:34:50.463Z",
   "demo": false,
   "windowDays": 30,
   "regions": [
     "gh-us"
   ],
-  "runCount": 171,
+  "runCount": 172,
   "gateways": [
     {
       "id": "synthorai",
@@ -46,16 +46,16 @@
       "region": "gh-us",
       "byRegion": {
         "gh-us": {
-          "uptimePct": 70.55,
-          "uptime7dPct": 31.11,
-          "probes": 309,
-          "ttftP50": 1741,
-          "connMs": 10520
+          "uptimePct": 70.51,
+          "uptime7dPct": 32.26,
+          "probes": 312,
+          "ttftP50": 1758,
+          "connMs": 328
         }
       },
-      "probes": 309,
-      "uptimePct": 70.55,
-      "uptime7dPct": 31.11,
+      "probes": 312,
+      "uptimePct": 70.51,
+      "uptime7dPct": 32.26,
       "daysArr": [
         {
           "date": "2026-06-26",
@@ -182,13 +182,13 @@
         "429": 0,
         "5xx": 0,
         "timeout": 0,
-        "other": 91
+        "other": 92
       },
-      "authExcluded": 891,
+      "authExcluded": 900,
       "speed": {
-        "ttftP50": 1741,
+        "ttftP50": 1758,
         "ttftP95": null,
-        "tps": 250,
+        "tps": 299,
         "trend": [
           {
             "date": "2026-06-26",
@@ -288,19 +288,31 @@
           },
           {
             "date": "2026-07-25",
-            "ttftP50": 1741
+            "ttftP50": 1749
           }
         ]
       },
       "toolCalls": {
-        "ok": 0,
+        "ok": 1,
         "total": 4,
-        "nonStreamMs": 10494
+        "nonStreamMs": 88
       },
-      "streamBurst": null,
-      "usageByModel": null,
+      "streamBurst": {
+        "suspect": 1,
+        "total": 1
+      },
+      "usageByModel": [
+        {
+          "model": "deepseek-v4-flash",
+          "charsPerToken": 1.14,
+          "promptTokens": 32
+        }
+      ],
       "integrity": {
-        "modelEcho": null,
+        "modelEcho": {
+          "ok": 1,
+          "total": 1
+        },
         "cjk": {
           "ok": 0,
           "total": 4
@@ -398,9 +410,9 @@
         },
         {
           "hour": 19,
-          "ttftP50": 2111,
-          "okRate": 60.4,
-          "n": 48
+          "ttftP50": 2100,
+          "okRate": 60.8,
+          "n": 51
         },
         {
           "hour": 20,
@@ -418,10 +430,10 @@
         "worstOkRateHour": 2,
         "worstOkRate": 33.3
       },
-      "connMs": 10520,
-      "connOk": false,
-      "modelCount": null,
-      "lastRun": "2026-07-25T14:02:05.862Z"
+      "connMs": 328,
+      "connOk": true,
+      "modelCount": 76,
+      "lastRun": "2026-07-25T19:34:34.839Z"
     },
     {
       "id": "openrouter",
@@ -2277,7 +2289,7 @@
     }
   ],
   "prices": {
-    "fetchedAt": "2026-07-25T14:07:21.153Z",
+    "fetchedAt": "2026-07-25T19:34:50.359Z",
     "unit": "USD per 1M tokens [input, output]",
     "sources": {
       "official": "litellm",
