@@ -1,11 +1,11 @@
 {
-  "generatedAt": "2026-07-25T08:24:15.535Z",
+  "generatedAt": "2026-07-25T14:07:21.221Z",
   "demo": false,
   "windowDays": 30,
   "regions": [
     "gh-us"
   ],
-  "runCount": 170,
+  "runCount": 171,
   "gateways": [
     {
       "id": "synthorai",
@@ -46,16 +46,16 @@
       "region": "gh-us",
       "byRegion": {
         "gh-us": {
-          "uptimePct": 73.4,
-          "uptime7dPct": 35.9,
-          "probes": 297,
+          "uptimePct": 70.55,
+          "uptime7dPct": 31.11,
+          "probes": 309,
           "ttftP50": 1741,
-          "connMs": 309
+          "connMs": 10520
         }
       },
-      "probes": 297,
-      "uptimePct": 73.4,
-      "uptime7dPct": 35.9,
+      "probes": 309,
+      "uptimePct": 70.55,
+      "uptime7dPct": 31.11,
       "daysArr": [
         {
           "date": "2026-06-26",
@@ -182,7 +182,7 @@
         "429": 0,
         "5xx": 0,
         "timeout": 0,
-        "other": 79
+        "other": 91
       },
       "authExcluded": 891,
       "speed": {
@@ -293,16 +293,16 @@
         ]
       },
       "toolCalls": {
-        "ok": 1,
+        "ok": 0,
         "total": 4,
-        "nonStreamMs": 87
+        "nonStreamMs": 10494
       },
       "streamBurst": null,
       "usageByModel": null,
       "integrity": {
         "modelEcho": null,
         "cjk": {
-          "ok": 1,
+          "ok": 0,
           "total": 4
         },
         "needle": {
@@ -381,8 +381,8 @@
         {
           "hour": 14,
           "ttftP50": 2187,
-          "okRate": 56.7,
-          "n": 30
+          "okRate": 40.5,
+          "n": 42
         },
         {
           "hour": 15,
@@ -418,10 +418,10 @@
         "worstOkRateHour": 2,
         "worstOkRate": 33.3
       },
-      "connMs": 309,
-      "connOk": true,
-      "modelCount": 76,
-      "lastRun": "2026-07-25T08:23:57.745Z"
+      "connMs": 10520,
+      "connOk": false,
+      "modelCount": null,
+      "lastRun": "2026-07-25T14:02:05.862Z"
     },
     {
       "id": "openrouter",
@@ -2277,7 +2277,7 @@
     }
   ],
   "prices": {
-    "fetchedAt": "2026-07-25T08:24:15.442Z",
+    "fetchedAt": "2026-07-25T14:07:21.153Z",
     "unit": "USD per 1M tokens [input, output]",
     "sources": {
       "official": "litellm",
