@@ -1,0 +1,265 @@
+{
+  "schema": 1,
+  "startedAt": "2026-08-02T08:36:47.594Z",
+  "finishedAt": "2026-08-02T08:37:04.191Z",
+  "region": "gh-us",
+  "runner": "github-actions",
+  "samplesPerModel": 3,
+  "results": [
+    {
+      "gateway": "synthorai",
+      "skipped": false,
+      "connectivity": {
+        "ok": true,
+        "latencyMs": 456,
+        "modelCount": 83
+      },
+      "models": [
+        {
+          "model": "gemini-2.5-flash",
+          "samples": 3,
+          "success": 0,
+          "successRate": 0,
+          "ttftMs": {
+            "avg": null,
+            "p50": null,
+            "p95": null
+          },
+          "tokensPerSec": {
+            "avg": null,
+            "p50": null
+          },
+          "totalMs": {
+            "avg": null,
+            "p95": null
+          },
+          "usageReportedRate": null,
+          "burstStreamRate": null,
+          "modelEchoRate": null,
+          "usage": {
+            "promptTokens": null,
+            "charsPerToken": null
+          },
+          "errors": [
+            "HTTP 403 {\"error\":{\"message\":\"API key does not have access to any of the requested models\",\"type\":\"model_not_allowed\"}}",
+            "HTTP 403 {\"error\":{\"message\":\"API key does not have access to any of the requested models\",\"type\":\"model_not_allowed\"}}",
+            "HTTP 403 {\"error\":{\"message\":\"API key does not have access to any of the requested models\",\"type\":\"model_not_allowed\"}}"
+          ],
+          "toolCall": {
+            "ok": false,
+            "totalMs": 81,
+            "error": "HTTP 403 {\"error\":{\"message\":\"API key does not have access to any of the requested models\",\"type\":\"model_not_allowed\"}}"
+          },
+          "cjk": {
+            "ok": false,
+            "error": "HTTP 403 {\"error\":{\"message\":\"API key does not have access to any of the requested models\",\"type\":\"model_not_allowed\"}}"
+          },
+          "needle": {
+            "ok": false,
+            "error": "HTTP 403 {\"error\":{\"message\":\"API key does not have access to any of the requested models\",\"type\":\"model_not_allowed\"}}"
+          },
+          "cache": {
+            "ok": false,
+            "error": "HTTP 403 {\"error\":{\"message\":\"API key does not have access to any of the requested models"
+          }
+        },
+        {
+          "model": "claude-haiku-4-5-20251001",
+          "samples": 3,
+          "success": 0,
+          "successRate": 0,
+          "ttftMs": {
+            "avg": null,
+            "p50": null,
+            "p95": null
+          },
+          "tokensPerSec": {
+            "avg": null,
+            "p50": null
+          },
+          "totalMs": {
+            "avg": null,
+            "p95": null
+          },
+          "usageReportedRate": null,
+          "burstStreamRate": null,
+          "modelEchoRate": null,
+          "usage": {
+            "promptTokens": null,
+            "charsPerToken": null
+          },
+          "errors": [
+            "HTTP 403 {\"error\":{\"message\":\"API key does not have access to any of the requested models\",\"type\":\"model_not_allowed\"}}",
+            "HTTP 403 {\"error\":{\"message\":\"API key does not have access to any of the requested models\",\"type\":\"model_not_allowed\"}}",
+            "HTTP 403 {\"error\":{\"message\":\"API key does not have access to any of the requested models\",\"type\":\"model_not_allowed\"}}"
+          ],
+          "toolCall": {
+            "ok": false,
+            "totalMs": 82,
+            "error": "HTTP 403 {\"error\":{\"message\":\"API key does not have access to any of the requested models\",\"type\":\"model_not_allowed\"}}"
+          },
+          "cjk": {
+            "ok": false,
+            "error": "HTTP 403 {\"error\":{\"message\":\"API key does not have access to any of the requested models\",\"type\":\"model_not_allowed\"}}"
+          },
+          "needle": {
+            "ok": false,
+            "error": "HTTP 403 {\"error\":{\"message\":\"API key does not have access to any of the requested models\",\"type\":\"model_not_allowed\"}}"
+          },
+          "cache": {
+            "ok": false,
+            "error": "HTTP 403 {\"error\":{\"message\":\"API key does not have access to any of the requested models"
+          }
+        },
+        {
+          "model": "deepseek-v4-flash",
+          "samples": 3,
+          "success": 1,
+          "successRate": 0.3333,
+          "ttftMs": {
+            "avg": 2128,
+            "p50": 2128,
+            "p95": null
+          },
+          "tokensPerSec": {
+            "avg": 429.8,
+            "p50": 429.8
+          },
+          "totalMs": {
+            "avg": 2277,
+            "p95": null
+          },
+          "usageReportedRate": 1,
+          "burstStreamRate": 1,
+          "modelEchoRate": 1,
+          "usage": {
+            "promptTokens": 33,
+            "charsPerToken": 0.89
+          },
+          "errors": [
+            "no content received",
+            "no content received"
+          ],
+          "toolCall": {
+            "ok": true,
+            "totalMs": 1509
+          },
+          "cjk": {
+            "ok": false,
+            "error": "empty response"
+          },
+          "needle": {
+            "ok": false,
+            "error": "needle not found in answer (suspected truncation)"
+          },
+          "cache": {
+            "ok": true,
+            "reported": true,
+            "supported": true,
+            "cachedTokens": 2048,
+            "cachedFrac": 0.82,
+            "ttftSpeedupPct": 31
+          }
+        },
+        {
+          "model": "gpt-5.4-nano",
+          "samples": 3,
+          "success": 0,
+          "successRate": 0,
+          "ttftMs": {
+            "avg": null,
+            "p50": null,
+            "p95": null
+          },
+          "tokensPerSec": {
+            "avg": null,
+            "p50": null
+          },
+          "totalMs": {
+            "avg": null,
+            "p95": null
+          },
+          "usageReportedRate": null,
+          "burstStreamRate": null,
+          "modelEchoRate": null,
+          "usage": {
+            "promptTokens": null,
+            "charsPerToken": null
+          },
+          "errors": [
+            "HTTP 403 {\"error\":{\"message\":\"API key does not have access to any of the requested models\",\"type\":\"model_not_allowed\"}}",
+            "HTTP 403 {\"error\":{\"message\":\"API key does not have access to any of the requested models\",\"type\":\"model_not_allowed\"}}",
+            "HTTP 403 {\"error\":{\"message\":\"API key does not have access to any of the requested models\",\"type\":\"model_not_allowed\"}}"
+          ],
+          "toolCall": {
+            "ok": false,
+            "totalMs": 82,
+            "error": "HTTP 403 {\"error\":{\"message\":\"API key does not have access to any of the requested models\",\"type\":\"model_not_allowed\"}}"
+          },
+          "cjk": {
+            "ok": false,
+            "error": "HTTP 403 {\"error\":{\"message\":\"API key does not have access to any of the requested models\",\"type\":\"model_not_allowed\"}}"
+          },
+          "needle": {
+            "ok": false,
+            "error": "HTTP 403 {\"error\":{\"message\":\"API key does not have access to any of the requested models\",\"type\":\"model_not_allowed\"}}"
+          },
+          "cache": {
+            "ok": false,
+            "error": "HTTP 403 {\"error\":{\"message\":\"API key does not have access to any of the requested models"
+          }
+        }
+      ]
+    },
+    {
+      "gateway": "openrouter",
+      "skipped": true,
+      "reason": "missing OPENROUTER_API_KEY"
+    },
+    {
+      "gateway": "aihubmix",
+      "skipped": true,
+      "reason": "missing AIHUBMIX_API_KEY"
+    },
+    {
+      "gateway": "openai-direct",
+      "skipped": true,
+      "reason": "missing OPENAI_API_KEY"
+    },
+    {
+      "gateway": "deepseek-direct",
+      "skipped": true,
+      "reason": "missing DEEPSEEK_API_KEY"
+    },
+    {
+      "gateway": "moonshot-direct",
+      "skipped": true,
+      "reason": "missing MOONSHOT_API_KEY"
+    },
+    {
+      "gateway": "siliconflow",
+      "skipped": true,
+      "reason": "missing SILICONFLOW_API_KEY"
+    },
+    {
+      "gateway": "groq",
+      "skipped": true,
+      "reason": "missing GROQ_API_KEY"
+    },
+    {
+      "gateway": "together",
+      "skipped": true,
+      "reason": "missing TOGETHER_API_KEY"
+    },
+    {
+      "gateway": "ohmygpt",
+      "skipped": true,
+      "reason": "missing OHMYGPT_API_KEY"
+    },
+    {
+      "gateway": "closeai",
+      "skipped": true,
+      "reason": "missing CLOSEAI_API_KEY"
+    }
+  ]
+}
