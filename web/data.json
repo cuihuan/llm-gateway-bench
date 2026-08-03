@@ -1,11 +1,11 @@
 {
-  "generatedAt": "2026-08-03T10:05:47.040Z",
+  "generatedAt": "2026-08-03T15:16:23.501Z",
   "demo": false,
   "windowDays": 30,
   "regions": [
     "gh-us"
   ],
-  "runCount": 206,
+  "runCount": 207,
   "gateways": [
     {
       "id": "synthorai",
@@ -50,7 +50,7 @@
           "uptime7dPct": 45.33,
           "probes": 297,
           "ttftP50": 1729,
-          "connMs": 272
+          "connMs": 141
         }
       },
       "probes": 297,
@@ -184,7 +184,7 @@
         "timeout": 0,
         "other": 140
       },
-      "authExcluded": 891,
+      "authExcluded": 903,
       "speed": {
         "ttftP50": 1729,
         "ttftP95": null,
@@ -295,24 +295,12 @@
       "toolCalls": {
         "ok": 0,
         "total": 4,
-        "nonStreamMs": 86
+        "nonStreamMs": 37
       },
-      "streamBurst": {
-        "suspect": 1,
-        "total": 1
-      },
-      "usageByModel": [
-        {
-          "model": "deepseek-v4-flash",
-          "charsPerToken": 0.82,
-          "promptTokens": 34
-        }
-      ],
+      "streamBurst": null,
+      "usageByModel": null,
       "integrity": {
-        "modelEcho": {
-          "ok": 1,
-          "total": 1
-        },
+        "modelEcho": null,
         "cjk": {
           "ok": 0,
           "total": 4
@@ -322,11 +310,7 @@
           "total": 4
         }
       },
-      "cache": {
-        "supported": 1,
-        "reported": 1,
-        "total": 4
-      },
+      "cache": null,
       "hourly": [
         {
           "hour": 2,
@@ -410,10 +394,10 @@
         "worstOkRateHour": 2,
         "worstOkRate": 33.3
       },
-      "connMs": 272,
+      "connMs": 141,
       "connOk": true,
-      "modelCount": 83,
-      "lastRun": "2026-08-03T10:05:29.286Z"
+      "modelCount": 85,
+      "lastRun": "2026-08-03T15:16:20.106Z"
     },
     {
       "id": "openrouter",
@@ -2269,7 +2253,7 @@
     }
   ],
   "prices": {
-    "fetchedAt": "2026-08-03T10:05:46.935Z",
+    "fetchedAt": "2026-08-03T15:16:23.407Z",
     "unit": "USD per 1M tokens [input, output]",
     "sources": {
       "official": "litellm",
