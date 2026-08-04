@@ -1,11 +1,11 @@
 {
-  "generatedAt": "2026-08-04T09:08:11.521Z",
+  "generatedAt": "2026-08-04T14:39:47.720Z",
   "demo": false,
   "windowDays": 30,
   "regions": [
     "gh-us"
   ],
-  "runCount": 210,
+  "runCount": 211,
   "gateways": [
     {
       "id": "synthorai",
@@ -50,7 +50,7 @@
           "uptime7dPct": 43.06,
           "probes": 291,
           "ttftP50": 1960,
-          "connMs": 142
+          "connMs": 299
         }
       },
       "probes": 291,
@@ -184,7 +184,7 @@
         "timeout": 0,
         "other": 142
       },
-      "authExcluded": 897,
+      "authExcluded": 909,
       "speed": {
         "ttftP50": 1960,
         "ttftP95": null,
@@ -293,23 +293,14 @@
         ]
       },
       "toolCalls": {
-        "ok": 1,
+        "ok": 0,
         "total": 4,
-        "nonStreamMs": 19
+        "nonStreamMs": 66
       },
       "streamBurst": null,
-      "usageByModel": [
-        {
-          "model": "deepseek-v4-flash",
-          "charsPerToken": 0.45,
-          "promptTokens": 31.5
-        }
-      ],
+      "usageByModel": null,
       "integrity": {
-        "modelEcho": {
-          "ok": 1,
-          "total": 1
-        },
+        "modelEcho": null,
         "cjk": {
           "ok": 0,
           "total": 4
@@ -319,11 +310,7 @@
           "total": 4
         }
       },
-      "cache": {
-        "supported": 1,
-        "reported": 1,
-        "total": 4
-      },
+      "cache": null,
       "hourly": [
         {
           "hour": 2,
@@ -407,10 +394,10 @@
         "worstOkRateHour": 14,
         "worstOkRate": 28.9
       },
-      "connMs": 142,
+      "connMs": 299,
       "connOk": true,
       "modelCount": 85,
-      "lastRun": "2026-08-04T09:07:56.756Z"
+      "lastRun": "2026-08-04T14:39:43.818Z"
     },
     {
       "id": "openrouter",
@@ -2266,7 +2253,7 @@
     }
   ],
   "prices": {
-    "fetchedAt": "2026-08-04T09:08:11.411Z",
+    "fetchedAt": "2026-08-04T14:39:47.622Z",
     "unit": "USD per 1M tokens [input, output]",
     "sources": {
       "official": "litellm",
