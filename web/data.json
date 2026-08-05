@@ -1,11 +1,11 @@
 {
-  "generatedAt": "2026-08-05T03:33:05.223Z",
+  "generatedAt": "2026-08-05T09:05:56.920Z",
   "demo": false,
   "windowDays": 30,
   "regions": [
     "gh-us"
   ],
-  "runCount": 213,
+  "runCount": 214,
   "gateways": [
     {
       "id": "synthorai",
@@ -50,7 +50,7 @@
           "uptime7dPct": 45,
           "probes": 279,
           "ttftP50": 1960,
-          "connMs": 395
+          "connMs": 180
         }
       },
       "probes": 279,
@@ -184,7 +184,7 @@
         "timeout": 0,
         "other": 142
       },
-      "authExcluded": 897,
+      "authExcluded": 909,
       "speed": {
         "ttftP50": 1960,
         "ttftP95": null,
@@ -291,7 +291,7 @@
       "toolCalls": {
         "ok": 0,
         "total": 4,
-        "nonStreamMs": 88
+        "nonStreamMs": 41
       },
       "streamBurst": null,
       "usageByModel": null,
@@ -384,10 +384,10 @@
         "worstOkRateHour": 14,
         "worstOkRate": 28.9
       },
-      "connMs": 395,
+      "connMs": 180,
       "connOk": true,
       "modelCount": 85,
-      "lastRun": "2026-08-05T03:33:00.042Z"
+      "lastRun": "2026-08-05T09:05:53.859Z"
     },
     {
       "id": "openrouter",
@@ -2243,7 +2243,7 @@
     }
   ],
   "prices": {
-    "fetchedAt": "2026-08-05T03:33:05.112Z",
+    "fetchedAt": "2026-08-05T09:05:56.804Z",
     "unit": "USD per 1M tokens [input, output]",
     "sources": {
       "official": "litellm",
