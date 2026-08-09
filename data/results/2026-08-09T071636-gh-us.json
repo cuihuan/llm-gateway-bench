@@ -1,0 +1,260 @@
+{
+  "schema": 1,
+  "startedAt": "2026-08-09T07:16:36.349Z",
+  "finishedAt": "2026-08-09T07:17:14.205Z",
+  "region": "gh-us",
+  "runner": "github-actions",
+  "samplesPerModel": 3,
+  "results": [
+    {
+      "gateway": "synthorai",
+      "skipped": false,
+      "connectivity": {
+        "ok": true,
+        "latencyMs": 188,
+        "modelCount": 82
+      },
+      "models": [
+        {
+          "model": "gemini-2.5-flash",
+          "samples": 3,
+          "success": 1,
+          "successRate": 0.3333,
+          "ttftMs": {
+            "avg": 956,
+            "p50": 956,
+            "p95": null
+          },
+          "tokensPerSec": {
+            "avg": 4021.5,
+            "p50": 4021.5
+          },
+          "totalMs": {
+            "avg": 970,
+            "p95": null
+          },
+          "usageReportedRate": 1,
+          "burstStreamRate": null,
+          "modelEchoRate": 1,
+          "usage": {
+            "promptTokens": 28,
+            "charsPerToken": 0.13
+          },
+          "errors": [
+            "no content received",
+            "no content received"
+          ],
+          "toolCall": {
+            "ok": false,
+            "totalMs": 947,
+            "error": "no tool_calls in response"
+          },
+          "cjk": {
+            "ok": true
+          },
+          "needle": {
+            "ok": true
+          },
+          "cache": {
+            "ok": true,
+            "reported": true,
+            "supported": true,
+            "cachedTokens": 2028,
+            "cachedFrac": 0.86,
+            "ttftSpeedupPct": -37
+          }
+        },
+        {
+          "model": "claude-haiku-4-5-20251001",
+          "samples": 3,
+          "success": 3,
+          "successRate": 1,
+          "ttftMs": {
+            "avg": 900,
+            "p50": 923,
+            "p95": null
+          },
+          "tokensPerSec": {
+            "avg": 282.4,
+            "p50": 277.9
+          },
+          "totalMs": {
+            "avg": 1125.7,
+            "p95": null
+          },
+          "usageReportedRate": 1,
+          "burstStreamRate": 1,
+          "modelEchoRate": 1,
+          "usage": {
+            "promptTokens": 37,
+            "charsPerToken": 3.53
+          },
+          "errors": [],
+          "toolCall": {
+            "ok": true,
+            "totalMs": 1169
+          },
+          "cjk": {
+            "ok": true
+          },
+          "needle": {
+            "ok": true
+          },
+          "cache": {
+            "ok": true,
+            "reported": false,
+            "supported": null,
+            "cachedTokens": null,
+            "cachedFrac": null,
+            "ttftSpeedupPct": null
+          }
+        },
+        {
+          "model": "deepseek-v4-flash",
+          "samples": 3,
+          "success": 1,
+          "successRate": 0.3333,
+          "ttftMs": {
+            "avg": 1940,
+            "p50": 1940,
+            "p95": null
+          },
+          "tokensPerSec": {
+            "avg": 246.5,
+            "p50": 246.5
+          },
+          "totalMs": {
+            "avg": 2200,
+            "p95": null
+          },
+          "usageReportedRate": 1,
+          "burstStreamRate": 1,
+          "modelEchoRate": 1,
+          "usage": {
+            "promptTokens": 32,
+            "charsPerToken": 1.14
+          },
+          "errors": [
+            "no content received",
+            "no content received"
+          ],
+          "toolCall": {
+            "ok": false,
+            "totalMs": 1916,
+            "error": "tool arguments are not valid JSON"
+          },
+          "cjk": {
+            "ok": true
+          },
+          "needle": {
+            "ok": false,
+            "error": "needle not found in answer (suspected truncation)"
+          },
+          "cache": {
+            "ok": true,
+            "reported": true,
+            "supported": true,
+            "cachedTokens": 2048,
+            "cachedFrac": 0.82,
+            "ttftSpeedupPct": 8
+          }
+        },
+        {
+          "model": "gpt-5.4-nano",
+          "samples": 3,
+          "success": 3,
+          "successRate": 1,
+          "ttftMs": {
+            "avg": 753.7,
+            "p50": 741,
+            "p95": null
+          },
+          "tokensPerSec": {
+            "avg": 153.7,
+            "p50": 155.3
+          },
+          "totalMs": {
+            "avg": 1164.3,
+            "p95": null
+          },
+          "usageReportedRate": 1,
+          "burstStreamRate": 0,
+          "modelEchoRate": 1,
+          "usage": {
+            "promptTokens": 33,
+            "charsPerToken": 3.77
+          },
+          "errors": [],
+          "toolCall": {
+            "ok": true,
+            "totalMs": 928
+          },
+          "cjk": {
+            "ok": true
+          },
+          "needle": {
+            "ok": true
+          },
+          "cache": {
+            "ok": true,
+            "reported": true,
+            "supported": true,
+            "cachedTokens": 1792,
+            "cachedFrac": 0.76,
+            "ttftSpeedupPct": -4
+          }
+        }
+      ]
+    },
+    {
+      "gateway": "openrouter",
+      "skipped": true,
+      "reason": "missing OPENROUTER_API_KEY"
+    },
+    {
+      "gateway": "aihubmix",
+      "skipped": true,
+      "reason": "missing AIHUBMIX_API_KEY"
+    },
+    {
+      "gateway": "openai-direct",
+      "skipped": true,
+      "reason": "missing OPENAI_API_KEY"
+    },
+    {
+      "gateway": "deepseek-direct",
+      "skipped": true,
+      "reason": "missing DEEPSEEK_API_KEY"
+    },
+    {
+      "gateway": "moonshot-direct",
+      "skipped": true,
+      "reason": "missing MOONSHOT_API_KEY"
+    },
+    {
+      "gateway": "siliconflow",
+      "skipped": true,
+      "reason": "missing SILICONFLOW_API_KEY"
+    },
+    {
+      "gateway": "groq",
+      "skipped": true,
+      "reason": "missing GROQ_API_KEY"
+    },
+    {
+      "gateway": "together",
+      "skipped": true,
+      "reason": "missing TOGETHER_API_KEY"
+    },
+    {
+      "gateway": "ohmygpt",
+      "skipped": true,
+      "reason": "missing OHMYGPT_API_KEY"
+    },
+    {
+      "gateway": "closeai",
+      "skipped": true,
+      "reason": "missing CLOSEAI_API_KEY"
+    }
+  ]
+}
