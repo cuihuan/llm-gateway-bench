@@ -1,11 +1,11 @@
 {
-  "generatedAt": "2026-08-14T02:46:16.064Z",
+  "generatedAt": "2026-08-14T07:50:45.159Z",
   "demo": false,
   "windowDays": 30,
   "regions": [
     "gh-us"
   ],
-  "runCount": 250,
+  "runCount": 251,
   "gateways": [
     {
       "id": "synthorai",
@@ -46,16 +46,16 @@
       "region": "gh-us",
       "byRegion": {
         "gh-us": {
-          "uptimePct": 38.92,
-          "uptime7dPct": 34,
-          "probes": 555,
+          "uptimePct": 38.1,
+          "uptime7dPct": 32.69,
+          "probes": 567,
           "ttftP50": 1223,
-          "connMs": 341
+          "connMs": 230
         }
       },
-      "probes": 555,
-      "uptimePct": 38.92,
-      "uptime7dPct": 34,
+      "probes": 567,
+      "uptimePct": 38.1,
+      "uptime7dPct": 32.69,
       "daysArr": [
         {
           "date": "2026-07-16",
@@ -180,7 +180,7 @@
       ],
       "errors": {
         "429": 0,
-        "5xx": 168,
+        "5xx": 180,
         "timeout": 0,
         "other": 171
       },
@@ -287,7 +287,7 @@
       "toolCalls": {
         "ok": 0,
         "total": 4,
-        "nonStreamMs": 163
+        "nonStreamMs": 166
       },
       "streamBurst": null,
       "usageByModel": null,
@@ -331,8 +331,8 @@
         {
           "hour": 7,
           "ttftP50": 993,
-          "okRate": 28.3,
-          "n": 60
+          "okRate": 23.6,
+          "n": 72
         },
         {
           "hour": 8,
@@ -389,13 +389,13 @@
         "slowTtft": 2024,
         "fastHour": 7,
         "fastTtft": 993,
-        "worstOkRateHour": 14,
-        "worstOkRate": 26.2
+        "worstOkRateHour": 7,
+        "worstOkRate": 23.6
       },
-      "connMs": 341,
+      "connMs": 230,
       "connOk": true,
       "modelCount": 64,
-      "lastRun": "2026-08-14T02:46:10.618Z"
+      "lastRun": "2026-08-14T07:50:39.089Z"
     },
     {
       "id": "openrouter",
@@ -2251,7 +2251,7 @@
     }
   ],
   "prices": {
-    "fetchedAt": "2026-08-14T02:46:15.945Z",
+    "fetchedAt": "2026-08-14T07:50:45.049Z",
     "unit": "USD per 1M tokens [input, output]",
     "sources": {
       "official": "litellm",
