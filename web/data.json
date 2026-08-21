@@ -1,11 +1,11 @@
 {
-  "generatedAt": "2026-08-21T01:57:32.594Z",
+  "generatedAt": "2026-08-21T07:08:08.851Z",
   "demo": false,
   "windowDays": 30,
   "regions": [
     "gh-us"
   ],
-  "runCount": 278,
+  "runCount": 279,
   "gateways": [
     {
       "id": "synthorai",
@@ -21,7 +21,7 @@
         "deepseek-v4-flash",
         "gpt-5.4-nano"
       ],
-      "priceIdx": 1,
+      "priceIdx": 0.71,
       "trust": {
         "id": "synthorai",
         "annotatedAt": "2026-06-13",
@@ -46,15 +46,15 @@
       "region": "gh-us",
       "byRegion": {
         "gh-us": {
-          "uptimePct": 22.43,
+          "uptimePct": 22.1,
           "uptime7dPct": 0,
-          "probes": 816,
+          "probes": 828,
           "ttftP50": 1223,
-          "connMs": 236
+          "connMs": 194
         }
       },
-      "probes": 816,
-      "uptimePct": 22.43,
+      "probes": 828,
+      "uptimePct": 22.1,
       "uptime7dPct": 0,
       "daysArr": [
         {
@@ -180,7 +180,7 @@
       ],
       "errors": {
         "429": 0,
-        "5xx": 504,
+        "5xx": 516,
         "timeout": 0,
         "other": 129
       },
@@ -263,7 +263,7 @@
       "toolCalls": {
         "ok": 0,
         "total": 4,
-        "nonStreamMs": 160
+        "nonStreamMs": 157
       },
       "streamBurst": null,
       "usageByModel": null,
@@ -319,8 +319,8 @@
         {
           "hour": 7,
           "ttftP50": 993,
-          "okRate": 14.2,
-          "n": 120
+          "okRate": 12.9,
+          "n": 132
         },
         {
           "hour": 8,
@@ -386,10 +386,10 @@
         "worstOkRateHour": 1,
         "worstOkRate": 0
       },
-      "connMs": 236,
+      "connMs": 194,
       "connOk": true,
       "modelCount": 68,
-      "lastRun": "2026-08-21T01:57:27.077Z"
+      "lastRun": "2026-08-21T07:08:03.246Z"
     },
     {
       "id": "openrouter",
@@ -403,7 +403,7 @@
         "openai/gpt-4o-mini",
         "google/gemini-2.5-flash"
       ],
-      "priceIdx": 0.88,
+      "priceIdx": 0.63,
       "trust": {
         "id": "openrouter",
         "annotatedAt": "2026-06-10",
@@ -2245,7 +2245,7 @@
     }
   ],
   "prices": {
-    "fetchedAt": "2026-08-21T01:57:32.469Z",
+    "fetchedAt": "2026-08-21T07:08:08.740Z",
     "unit": "USD per 1M tokens [input, output]",
     "sources": {
       "official": "litellm",
@@ -2320,8 +2320,8 @@
       {
         "model": "deepseek-v4-flash",
         "official": [
-          0.14,
-          0.28
+          0.44,
+          1.32
         ],
         "cells": {
           "synthorai": [
