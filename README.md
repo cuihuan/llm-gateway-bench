@@ -173,6 +173,7 @@ Where we sit: **user-perspective, black-box, trust-first** benchmarking of OpenA
 - The probe scripts, detection prompts, decision thresholds, raw data, and aggregation logic are **all open source** — anyone can reproduce them with their own key.
 - The leaderboard has **no black-box weighted score**; each dimension is its own column. Policy claims must carry an **evidence link + date**; when missing they are recorded as "—" and **never fabricated**.
 - When the maintainer has a conflict of interest with a gateway, it is **disclosed** inline in the entry.
+- **Standing disclosure:** the maintainer runs [Runix](https://runixcloud.io), a commercial LLM gateway. It is **not** benchmarked here and holds no entry on the leaderboard — a maintainer publishing numbers for their own gateway alongside competitors is not a number anyone should trust. The probe scripts work against it the same as any other endpoint if you want to run them yourself with your own key.
 
 Methodology in brief — every 6h via GitHub Actions, fixed-prompt streaming requests, 3 samples/model reported as percentiles, concurrency ≤4 (this is dial-testing, not load-testing); time-of-day profiling uses real timestamps to account for cron jitter. Full definitions: [docs/methodology.md](docs/methodology.md).
 
