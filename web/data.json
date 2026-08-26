@@ -1,11 +1,11 @@
 {
-  "generatedAt": "2026-08-26T13:16:42.673Z",
+  "generatedAt": "2026-08-26T20:03:03.956Z",
   "demo": false,
   "windowDays": 30,
   "regions": [
     "gh-us"
   ],
-  "runCount": 300,
+  "runCount": 301,
   "gateways": [
     {
       "id": "synthorai",
@@ -46,15 +46,15 @@
       "region": "gh-us",
       "byRegion": {
         "gh-us": {
-          "uptimePct": 16.13,
+          "uptimePct": 15.94,
           "uptime7dPct": 0,
-          "probes": 1017,
+          "probes": 1029,
           "ttftP50": 1223,
-          "connMs": 308
+          "connMs": 365
         }
       },
-      "probes": 1017,
-      "uptimePct": 16.13,
+      "probes": 1029,
+      "uptimePct": 15.94,
       "uptime7dPct": 0,
       "daysArr": [
         {
@@ -180,7 +180,7 @@
       ],
       "errors": {
         "429": 0,
-        "5xx": 768,
+        "5xx": 780,
         "timeout": 0,
         "other": 85
       },
@@ -243,7 +243,7 @@
       "toolCalls": {
         "ok": 0,
         "total": 4,
-        "nonStreamMs": 190
+        "nonStreamMs": 186
       },
       "streamBurst": null,
       "usageByModel": null,
@@ -349,6 +349,12 @@
           "ttftP50": 1594,
           "okRate": 27.5,
           "n": 102
+        },
+        {
+          "hour": 20,
+          "ttftP50": null,
+          "okRate": 0,
+          "n": 12
         }
       ],
       "peakDrift": {
@@ -360,10 +366,10 @@
         "worstOkRateHour": 1,
         "worstOkRate": 0
       },
-      "connMs": 308,
+      "connMs": 365,
       "connOk": true,
       "modelCount": 67,
-      "lastRun": "2026-08-26T13:16:35.636Z"
+      "lastRun": "2026-08-26T20:02:56.955Z"
     },
     {
       "id": "openrouter",
@@ -377,7 +383,7 @@
         "openai/gpt-4o-mini",
         "google/gemini-2.5-flash"
       ],
-      "priceIdx": 0.63,
+      "priceIdx": 0.62,
       "trust": {
         "id": "openrouter",
         "annotatedAt": "2026-06-10",
@@ -2219,7 +2225,7 @@
     }
   ],
   "prices": {
-    "fetchedAt": "2026-08-26T13:16:42.552Z",
+    "fetchedAt": "2026-08-26T20:03:03.836Z",
     "unit": "USD per 1M tokens [input, output]",
     "sources": {
       "official": "litellm",
@@ -2303,8 +2309,8 @@
             0.275
           ],
           "openrouter": [
-            0.081,
-            0.162
+            0.08,
+            0.159
           ],
           "modelsdev": [
             0.14,
