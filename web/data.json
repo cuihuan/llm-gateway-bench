@@ -1,11 +1,11 @@
 {
-  "generatedAt": "2026-08-26T01:58:41.959Z",
+  "generatedAt": "2026-08-26T07:09:01.694Z",
   "demo": false,
   "windowDays": 30,
   "regions": [
     "gh-us"
   ],
-  "runCount": 298,
+  "runCount": 299,
   "gateways": [
     {
       "id": "synthorai",
@@ -46,15 +46,15 @@
       "region": "gh-us",
       "byRegion": {
         "gh-us": {
-          "uptimePct": 16.52,
+          "uptimePct": 16.32,
           "uptime7dPct": 0,
-          "probes": 993,
+          "probes": 1005,
           "ttftP50": 1223,
-          "connMs": 276
+          "connMs": 2389
         }
       },
-      "probes": 993,
-      "uptimePct": 16.52,
+      "probes": 1005,
+      "uptimePct": 16.32,
       "uptime7dPct": 0,
       "daysArr": [
         {
@@ -180,7 +180,7 @@
       ],
       "errors": {
         "429": 0,
-        "5xx": 744,
+        "5xx": 756,
         "timeout": 0,
         "other": 85
       },
@@ -243,7 +243,7 @@
       "toolCalls": {
         "ok": 0,
         "total": 4,
-        "nonStreamMs": 134
+        "nonStreamMs": 184
       },
       "streamBurst": null,
       "usageByModel": null,
@@ -293,8 +293,8 @@
         {
           "hour": 7,
           "ttftP50": 993,
-          "okRate": 10.1,
-          "n": 168
+          "okRate": 9.4,
+          "n": 180
         },
         {
           "hour": 8,
@@ -360,10 +360,10 @@
         "worstOkRateHour": 1,
         "worstOkRate": 0
       },
-      "connMs": 276,
+      "connMs": 2389,
       "connOk": true,
       "modelCount": 67,
-      "lastRun": "2026-08-26T01:58:36.912Z"
+      "lastRun": "2026-08-26T07:08:52.664Z"
     },
     {
       "id": "openrouter",
@@ -2219,7 +2219,7 @@
     }
   ],
   "prices": {
-    "fetchedAt": "2026-08-26T01:58:41.852Z",
+    "fetchedAt": "2026-08-26T07:09:01.572Z",
     "unit": "USD per 1M tokens [input, output]",
     "sources": {
       "official": "litellm",
