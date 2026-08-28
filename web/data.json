@@ -1,11 +1,11 @@
 {
-  "generatedAt": "2026-08-28T11:24:39.198Z",
+  "generatedAt": "2026-08-28T22:20:56.818Z",
   "demo": false,
   "windowDays": 30,
   "regions": [
     "gh-us"
   ],
-  "runCount": 304,
+  "runCount": 305,
   "gateways": [
     {
       "id": "synthorai",
@@ -46,15 +46,15 @@
       "region": "gh-us",
       "byRegion": {
         "gh-us": {
-          "uptimePct": 14.75,
+          "uptimePct": 14.58,
           "uptime7dPct": 0,
-          "probes": 1044,
+          "probes": 1056,
           "ttftP50": 1223,
-          "connMs": 333
+          "connMs": 226
         }
       },
-      "probes": 1044,
-      "uptimePct": 14.75,
+      "probes": 1056,
+      "uptimePct": 14.58,
       "uptime7dPct": 0,
       "daysArr": [
         {
@@ -180,7 +180,7 @@
       ],
       "errors": {
         "429": 0,
-        "5xx": 816,
+        "5xx": 828,
         "timeout": 0,
         "other": 74
       },
@@ -235,7 +235,7 @@
       "toolCalls": {
         "ok": 0,
         "total": 4,
-        "nonStreamMs": 144
+        "nonStreamMs": 125
       },
       "streamBurst": null,
       "usageByModel": null,
@@ -358,7 +358,7 @@
           "hour": 22,
           "ttftP50": null,
           "okRate": 0,
-          "n": 12
+          "n": 24
         }
       ],
       "peakDrift": {
@@ -370,10 +370,10 @@
         "worstOkRateHour": 1,
         "worstOkRate": 0
       },
-      "connMs": 333,
+      "connMs": 226,
       "connOk": true,
       "modelCount": 67,
-      "lastRun": "2026-08-28T11:24:33.859Z"
+      "lastRun": "2026-08-28T22:20:52.729Z"
     },
     {
       "id": "openrouter",
@@ -2229,7 +2229,7 @@
     }
   ],
   "prices": {
-    "fetchedAt": "2026-08-28T11:24:39.071Z",
+    "fetchedAt": "2026-08-28T22:20:56.698Z",
     "unit": "USD per 1M tokens [input, output]",
     "sources": {
       "official": "litellm",
@@ -2313,8 +2313,8 @@
             0.275
           ],
           "openrouter": [
-            0.089,
-            0.177
+            0.087,
+            0.174
           ],
           "modelsdev": [
             0.14,
