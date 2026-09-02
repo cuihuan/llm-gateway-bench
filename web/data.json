@@ -1,11 +1,11 @@
 {
-  "generatedAt": "2026-09-02T16:35:26.486Z",
+  "generatedAt": "2026-09-02T21:04:13.932Z",
   "demo": false,
   "windowDays": 30,
   "regions": [
     "gh-us"
   ],
-  "runCount": 322,
+  "runCount": 323,
   "gateways": [
     {
       "id": "synthorai",
@@ -46,15 +46,15 @@
       "region": "gh-us",
       "byRegion": {
         "gh-us": {
-          "uptimePct": 10.78,
+          "uptimePct": 10.67,
           "uptime7dPct": 0,
-          "probes": 1206,
+          "probes": 1218,
           "ttftP50": 1223,
-          "connMs": 388
+          "connMs": 468
         }
       },
-      "probes": 1206,
-      "uptimePct": 10.78,
+      "probes": 1218,
+      "uptimePct": 10.67,
       "uptime7dPct": 0,
       "daysArr": [
         {
@@ -180,7 +180,7 @@
       ],
       "errors": {
         "429": 0,
-        "5xx": 1032,
+        "5xx": 1044,
         "timeout": 0,
         "other": 44
       },
@@ -215,7 +215,7 @@
       "toolCalls": {
         "ok": 0,
         "total": 4,
-        "nonStreamMs": 194
+        "nonStreamMs": 179
       },
       "streamBurst": null,
       "usageByModel": null,
@@ -344,7 +344,7 @@
           "hour": 21,
           "ttftP50": null,
           "okRate": 0,
-          "n": 24
+          "n": 36
         },
         {
           "hour": 22,
@@ -362,10 +362,10 @@
         "worstOkRateHour": 1,
         "worstOkRate": 0
       },
-      "connMs": 388,
+      "connMs": 468,
       "connOk": true,
       "modelCount": 69,
-      "lastRun": "2026-09-02T16:35:17.532Z"
+      "lastRun": "2026-09-02T21:04:07.091Z"
     },
     {
       "id": "openrouter",
@@ -2221,7 +2221,7 @@
     }
   ],
   "prices": {
-    "fetchedAt": "2026-09-02T16:35:26.363Z",
+    "fetchedAt": "2026-09-02T21:04:13.805Z",
     "unit": "USD per 1M tokens [input, output]",
     "sources": {
       "official": "litellm",
@@ -2305,8 +2305,8 @@
             0.275
           ],
           "openrouter": [
-            0.084,
-            0.168
+            0.081,
+            0.162
           ],
           "modelsdev": [
             0.14,
