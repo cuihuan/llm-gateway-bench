@@ -1,14 +1,14 @@
 {
   "schema": "gwbench-report/1",
   "kind": "pricematrix",
-  "generatedAt": "2026-09-02T11:19:49.880Z",
+  "generatedAt": "2026-09-02T16:35:26.503Z",
   "tool": {
     "name": "gwbench",
     "version": "0.2.0"
   },
   "model": null,
   "region": "Public pricing API",
-  "fetchedAt": "2026-09-02T11:19:49.775Z",
+  "fetchedAt": "2026-09-02T16:35:26.363Z",
   "sources": {
     "official": "litellm",
     "synthorai": "https://synthorai.io/api/pricing",
@@ -139,10 +139,10 @@
         },
         "openrouter": {
           "price": [
-            0.089,
-            0.177
+            0.084,
+            0.168
           ],
-          "idx": 0.17
+          "idx": 0.16
         },
         "modelsdev": {
           "price": [
