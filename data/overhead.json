@@ -4,11 +4,11 @@
   "results": [
     {
       "name": "bifrost",
-      "version": "docker-sha256:95caedb1c368",
-      "measuredAt": "2026-07-10T09:37:24.347Z",
+      "version": "docker-sha256:cf71be9fad4e",
+      "measuredAt": "2026-09-03T08:18:17.403Z",
       "env": {
         "runner": "github-actions",
-        "node": "v22.23.1",
+        "node": "v22.23.2",
         "platform": "linux"
       },
       "config": {
@@ -18,38 +18,38 @@
       },
       "verdict": {
         "rounds": 7,
-        "direct_ms": 1.8,
-        "gateway_ms": 2.41,
-        "overhead_ms": 0.62,
+        "direct_ms": 1.77,
+        "gateway_ms": 2.43,
+        "overhead_ms": 0.66,
         "overhead_iqr_ms": [
-          0.59,
-          0.78
+          0.65,
+          0.67
         ]
       },
       "directSummary": {
         "n": 175,
-        "p50": 1.8,
-        "p90": 2.01,
-        "p99": 2.72,
-        "min": 0.61,
-        "max": 4.29
+        "p50": 1.78,
+        "p90": 1.97,
+        "p99": 2.93,
+        "min": 0.62,
+        "max": 3.06
       },
       "gatewaySummary": {
         "n": 175,
-        "p50": 2.45,
-        "p90": 3,
-        "p99": 4.19,
-        "min": 1.25,
-        "max": 5.4
+        "p50": 2.44,
+        "p90": 2.65,
+        "p99": 3.16,
+        "min": 1.27,
+        "max": 3.87
       }
     },
     {
       "name": "portkey-oss",
       "version": "1.15.2",
-      "measuredAt": "2026-07-10T09:37:12.710Z",
+      "measuredAt": "2026-09-03T08:18:05.244Z",
       "env": {
         "runner": "github-actions",
-        "node": "v22.23.1",
+        "node": "v22.23.2",
         "platform": "linux"
       },
       "config": {
@@ -59,38 +59,38 @@
       },
       "verdict": {
         "rounds": 7,
-        "direct_ms": 1.8,
-        "gateway_ms": 4.44,
-        "overhead_ms": 2.65,
+        "direct_ms": 1.79,
+        "gateway_ms": 4.39,
+        "overhead_ms": 2.6,
         "overhead_iqr_ms": [
-          2.57,
-          2.83
+          2.54,
+          2.81
         ]
       },
       "directSummary": {
         "n": 175,
-        "p50": 1.8,
-        "p90": 1.99,
-        "p99": 2.74,
-        "min": 0.65,
-        "max": 3.36
+        "p50": 1.79,
+        "p90": 1.93,
+        "p99": 2.25,
+        "min": 0.66,
+        "max": 2.81
       },
       "gatewaySummary": {
         "n": 175,
-        "p50": 4.52,
-        "p90": 5.05,
-        "p99": 6.06,
-        "min": 3.17,
-        "max": 7.06
+        "p50": 4.47,
+        "p90": 5.4,
+        "p99": 6,
+        "min": 3.03,
+        "max": 8.09
       }
     },
     {
       "name": "litellm",
-      "version": "1.91.1",
-      "measuredAt": "2026-07-10T09:37:05.801Z",
+      "version": "1.99.0",
+      "measuredAt": "2026-09-03T08:17:58.297Z",
       "env": {
         "runner": "github-actions",
-        "node": "v22.23.1",
+        "node": "v22.23.2",
         "platform": "linux"
       },
       "config": {
@@ -100,29 +100,29 @@
       },
       "verdict": {
         "rounds": 7,
-        "direct_ms": 1.8,
-        "gateway_ms": 7.54,
-        "overhead_ms": 5.83,
+        "direct_ms": 1.78,
+        "gateway_ms": 7.12,
+        "overhead_ms": 5.34,
         "overhead_iqr_ms": [
-          5.55,
-          5.86
+          5.29,
+          5.39
         ]
       },
       "directSummary": {
         "n": 175,
-        "p50": 1.82,
-        "p90": 2.01,
-        "p99": 2.78,
-        "min": 0.63,
-        "max": 2.9
+        "p50": 1.79,
+        "p90": 2,
+        "p99": 2.7,
+        "min": 0.69,
+        "max": 2.98
       },
       "gatewaySummary": {
         "n": 175,
-        "p50": 7.58,
-        "p90": 8.34,
-        "p99": 9.62,
-        "min": 6.13,
-        "max": 11.99
+        "p50": 7.15,
+        "p90": 7.57,
+        "p99": 8.35,
+        "min": 5.81,
+        "max": 8.95
       }
     }
   ]
