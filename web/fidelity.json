@@ -3,11 +3,11 @@
   "results": [
     {
       "name": "litellm",
-      "version": "1.91.1",
-      "measuredAt": "2026-07-10T09:37:29.939Z",
+      "version": "1.99.0",
+      "measuredAt": "2026-09-03T08:18:22.980Z",
       "env": {
         "runner": "github-actions",
-        "node": "v22.23.1",
+        "node": "v22.23.2",
         "platform": "linux"
       },
       "verdict": {
@@ -33,10 +33,10 @@
     {
       "name": "portkey-oss",
       "version": "1.15.2",
-      "measuredAt": "2026-07-10T09:37:30.362Z",
+      "measuredAt": "2026-09-03T08:18:23.504Z",
       "env": {
         "runner": "github-actions",
-        "node": "v22.23.1",
+        "node": "v22.23.2",
         "platform": "linux"
       },
       "verdict": {
@@ -61,11 +61,11 @@
     },
     {
       "name": "bifrost",
-      "version": "docker-sha256:95caedb1c368",
-      "measuredAt": "2026-07-10T09:37:34.591Z",
+      "version": "docker-sha256:cf71be9fad4e",
+      "measuredAt": "2026-09-03T08:18:27.741Z",
       "env": {
         "runner": "github-actions",
-        "node": "v22.23.1",
+        "node": "v22.23.2",
         "platform": "linux"
       },
       "verdict": {

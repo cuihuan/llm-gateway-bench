@@ -3,89 +3,85 @@
   "results": [
     {
       "name": "litellm",
-      "version": "",
-      "measuredAt": "2026-08-03T06:47:28.463Z",
+      "version": "1.99.0",
+      "measuredAt": "2026-09-03T08:18:33.883Z",
       "env": {
         "runner": "github-actions",
-        "node": "v22.23.1",
+        "node": "v22.23.2",
         "platform": "linux"
       },
-      "inconclusive": true,
-      "inconclusive_reason": "both endpoints returned an error/exception body — no clean measurement (setup/compat, not a fidelity verdict)",
       "verdict": {
-        "score": "0/3",
-        "tool_use": false,
-        "streaming": false,
-        "stream_usage": false
+        "score": "3/3",
+        "tool_use": true,
+        "streaming": true,
+        "stream_usage": true
       },
       "tool": {
-        "pass": false,
-        "note": "no Anthropic content array in relayed response"
+        "pass": true,
+        "note": "tool_use translated intact (name + parsed input)"
       },
       "stream": {
-        "pass": false,
-        "note": "only 0 text_delta event(s) — collapsed/buffered",
-        "deltas": 0
+        "pass": true,
+        "note": "3 text_delta events, content intact",
+        "deltas": 3
       },
       "usage": {
-        "pass": false,
-        "note": "message_delta usage output_tokens=0/absent — Anthropic-path billing cannot be reconciled"
+        "pass": true,
+        "note": "output_tokens=4 in message_delta (matches upstream)"
       },
       "debug": {
-        "tool_status": 0,
-        "tool_snippet": "{\"error\":{\"message\":\"transport failure: fetch failed\"}}",
-        "stream_status": 0,
-        "stream_snippet": "{\"error\":{\"message\":\"transport failure: fetch failed\"}}"
+        "tool_status": 200,
+        "tool_snippet": "{\"id\":\"resp_bGl0ZWxsbTpjdXN0b21fbGxtX3Byb3ZpZGVyOm9wZW5haTttb2RlbF9pZDpOb25lO3Jlc3BvbnNlX2lkOnJlc3BfbW9jaw==\",\"type\":\"message\",\"role\":\"assistant\",\"model\":\"mock-model\",\"stop_sequence\":null,\"usage\":{\"input_tokens\":20,\"outp",
+        "stream_status": 200,
+        "stream_snippet": "event: message_start data: {\"type\": \"message_start\", \"message\": {\"id\": \"msg_101e6a79-36f4-4253-9669-647de7c922f1\", \"type\": \"message\", \"role\": \"assistant\", \"content\": [], \"model\": \"mock-model\", \"stop_reason\": null, \"stop_"
       }
     },
     {
       "name": "bifrost",
-      "version": "docker-latest",
-      "measuredAt": "2026-08-03T06:47:28.554Z",
+      "version": "docker-sha256:cf71be9fad4e",
+      "measuredAt": "2026-09-03T08:18:34.285Z",
       "env": {
         "runner": "github-actions",
-        "node": "v22.23.1",
+        "node": "v22.23.2",
         "platform": "linux"
       },
-      "inconclusive": true,
-      "inconclusive_reason": "both endpoints returned an error/exception body — no clean measurement (setup/compat, not a fidelity verdict)",
       "verdict": {
-        "score": "0/3",
-        "tool_use": false,
-        "streaming": false,
-        "stream_usage": false
+        "score": "3/3",
+        "tool_use": true,
+        "streaming": true,
+        "stream_usage": true
       },
       "tool": {
-        "pass": false,
-        "note": "no Anthropic content array in relayed response"
+        "pass": true,
+        "note": "tool_use translated intact (name + parsed input)"
       },
       "stream": {
-        "pass": false,
-        "note": "only 0 text_delta event(s) — collapsed/buffered",
-        "deltas": 0
+        "pass": true,
+        "note": "4 text_delta events, content intact",
+        "deltas": 4
       },
       "usage": {
-        "pass": false,
-        "note": "message_delta usage output_tokens=0/absent — Anthropic-path billing cannot be reconciled"
+        "pass": true,
+        "note": "output_tokens=4 in message_delta (matches upstream)"
       },
       "debug": {
-        "tool_status": 0,
-        "tool_snippet": "{\"error\":{\"message\":\"transport failure: fetch failed\"}}",
-        "stream_status": 0,
-        "stream_snippet": "{\"error\":{\"message\":\"transport failure: fetch failed\"}}"
+        "tool_status": 200,
+        "tool_snippet": "{\"id\":\"resp_mock\",\"type\":\"message\",\"role\":\"assistant\",\"content\":[{\"type\":\"tool_use\",\"id\":\"call_abc123\",\"name\":\"get_weather\",\"input\":{\"location\":\"San Francisco\",\"unit\":\"celsius\"}}],\"model\":\"mock-model\",\"stop_reason\":\"tool",
+        "stream_status": 200,
+        "stream_snippet": "event: message_start data: {\"type\":\"message_start\",\"message\":{\"id\":\"resp_mock\",\"type\":\"message\",\"role\":\"assistant\",\"content\":[],\"model\":\"mock-model\",\"usage\":{\"input_tokens\":0,\"cache_creation_input_tokens\":0,\"cache_read_i"
       }
     },
     {
       "name": "portkey-oss",
       "version": "1.15.2",
-      "measuredAt": "2026-08-03T06:47:28.918Z",
+      "measuredAt": "2026-09-03T08:18:34.737Z",
       "env": {
         "runner": "github-actions",
-        "node": "v22.23.1",
+        "node": "v22.23.2",
         "platform": "linux"
       },
-      "inconclusive": true,
-      "inconclusive_reason": "both endpoints returned an error/exception body — no clean measurement (setup/compat, not a fidelity verdict)",
+      "unsupported": true,
+      "unsupported_reason": "gateway does not offer this cross-format path in this config (messages is not supported by openai)",
       "verdict": {
         "score": "0/3",
         "tool_use": false,
@@ -106,10 +102,10 @@
         "note": "message_delta usage output_tokens=0/absent — Anthropic-path billing cannot be reconciled"
       },
       "debug": {
-        "tool_status": 0,
-        "tool_snippet": "{\"error\":{\"message\":\"transport failure: fetch failed\"}}",
-        "stream_status": 0,
-        "stream_snippet": "{\"error\":{\"message\":\"transport failure: fetch failed\"}}"
+        "tool_status": 500,
+        "tool_snippet": "{\"status\":\"failure\",\"message\":\"messages is not supported by openai\"}",
+        "stream_status": 500,
+        "stream_snippet": "{\"status\":\"failure\",\"message\":\"messages is not supported by openai\"}"
       }
     }
   ]
