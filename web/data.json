@@ -1,11 +1,11 @@
 {
-  "generatedAt": "2026-09-04T11:19:03.244Z",
+  "generatedAt": "2026-09-04T16:22:05.138Z",
   "demo": false,
   "windowDays": 30,
   "regions": [
     "gh-us"
   ],
-  "runCount": 329,
+  "runCount": 330,
   "gateways": [
     {
       "id": "synthorai",
@@ -46,15 +46,15 @@
       "region": "gh-us",
       "byRegion": {
         "gh-us": {
-          "uptimePct": 9.89,
+          "uptimePct": 9.8,
           "uptime7dPct": 0,
-          "probes": 1284,
+          "probes": 1296,
           "ttftP50": 1223,
-          "connMs": 261
+          "connMs": 557
         }
       },
-      "probes": 1284,
-      "uptimePct": 9.89,
+      "probes": 1296,
+      "uptimePct": 9.8,
       "uptime7dPct": 0,
       "daysArr": [
         {
@@ -180,7 +180,7 @@
       ],
       "errors": {
         "429": 0,
-        "5xx": 1116,
+        "5xx": 1128,
         "timeout": 0,
         "other": 41
       },
@@ -211,7 +211,7 @@
       "toolCalls": {
         "ok": 0,
         "total": 4,
-        "nonStreamMs": 125
+        "nonStreamMs": 159
       },
       "streamBurst": null,
       "usageByModel": null,
@@ -316,7 +316,7 @@
           "hour": 16,
           "ttftP50": null,
           "okRate": 0,
-          "n": 60
+          "n": 72
         },
         {
           "hour": 18,
@@ -358,10 +358,10 @@
         "worstOkRateHour": 1,
         "worstOkRate": 0
       },
-      "connMs": 261,
+      "connMs": 557,
       "connOk": true,
       "modelCount": 70,
-      "lastRun": "2026-09-04T11:18:58.813Z"
+      "lastRun": "2026-09-04T16:21:58.897Z"
     },
     {
       "id": "openrouter",
@@ -2217,7 +2217,7 @@
     }
   ],
   "prices": {
-    "fetchedAt": "2026-09-04T11:19:03.107Z",
+    "fetchedAt": "2026-09-04T16:22:05.030Z",
     "unit": "USD per 1M tokens [input, output]",
     "sources": {
       "official": "litellm",
@@ -2301,8 +2301,8 @@
             0.275
           ],
           "openrouter": [
-            0.089,
-            0.177
+            0.088,
+            0.176
           ],
           "modelsdev": [
             0.14,
