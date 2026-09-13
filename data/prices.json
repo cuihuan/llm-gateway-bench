@@ -1,5 +1,5 @@
 {
-  "fetchedAt": "2026-09-12T20:39:03.701Z",
+  "fetchedAt": "2026-09-13T04:49:18.393Z",
   "unit": "USD per 1M tokens [input, output]",
   "sources": {
     "official": "litellm",
@@ -74,8 +74,8 @@
     {
       "model": "deepseek-v4-flash",
       "official": [
-        0.44,
-        1.32
+        0.3,
+        1.2
       ],
       "cells": {
         "synthorai": [
@@ -83,8 +83,8 @@
           0.275
         ],
         "openrouter": [
-          0.066,
-          0.131
+          0.065,
+          0.13
         ],
         "modelsdev": [
           0.15,
