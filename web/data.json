@@ -1,11 +1,11 @@
 {
-  "generatedAt": "2026-09-16T11:35:35.322Z",
+  "generatedAt": "2026-09-16T16:56:49.357Z",
   "demo": false,
   "windowDays": 30,
   "regions": [
     "gh-us"
   ],
-  "runCount": 375,
+  "runCount": 376,
   "gateways": [
     {
       "id": "synthorai",
@@ -48,12 +48,12 @@
         "gh-us": {
           "uptimePct": 0,
           "uptime7dPct": 0,
-          "probes": 1320,
+          "probes": 1332,
           "ttftP50": 1223,
-          "connMs": 345
+          "connMs": 247
         }
       },
-      "probes": 1320,
+      "probes": 1332,
       "uptimePct": 0,
       "uptime7dPct": 0,
       "daysArr": [
@@ -180,7 +180,7 @@
       ],
       "errors": {
         "429": 0,
-        "5xx": 1320,
+        "5xx": 1332,
         "timeout": 0,
         "other": 0
       },
@@ -194,7 +194,7 @@
       "toolCalls": {
         "ok": 0,
         "total": 4,
-        "nonStreamMs": 138
+        "nonStreamMs": 119
       },
       "streamBurst": null,
       "usageByModel": null,
@@ -281,7 +281,7 @@
           "hour": 16,
           "ttftP50": null,
           "okRate": 0,
-          "n": 144
+          "n": 156
         },
         {
           "hour": 18,
@@ -309,10 +309,10 @@
         }
       ],
       "peakDrift": null,
-      "connMs": 345,
+      "connMs": 247,
       "connOk": true,
       "modelCount": 70,
-      "lastRun": "2026-09-16T11:35:30.309Z"
+      "lastRun": "2026-09-16T16:56:45.016Z"
     },
     {
       "id": "openrouter",
@@ -326,7 +326,7 @@
         "openai/gpt-4o-mini",
         "google/gemini-2.5-flash"
       ],
-      "priceIdx": 0.69,
+      "priceIdx": 0.68,
       "trust": {
         "id": "openrouter",
         "annotatedAt": "2026-06-10",
@@ -2168,7 +2168,7 @@
     }
   ],
   "prices": {
-    "fetchedAt": "2026-09-16T11:35:35.223Z",
+    "fetchedAt": "2026-09-16T16:56:49.211Z",
     "unit": "USD per 1M tokens [input, output]",
     "sources": {
       "official": "litellm",
@@ -2252,8 +2252,8 @@
             0.275
           ],
           "openrouter": [
-            0.089,
-            0.177
+            0.087,
+            0.174
           ],
           "modelsdev": [
             0.15,
