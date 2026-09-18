@@ -1,11 +1,11 @@
 {
-  "generatedAt": "2026-09-18T16:24:38.912Z",
+  "generatedAt": "2026-09-18T20:54:58.466Z",
   "demo": false,
   "windowDays": 30,
   "regions": [
     "gh-us"
   ],
-  "runCount": 384,
+  "runCount": 385,
   "gateways": [
     {
       "id": "synthorai",
@@ -48,12 +48,12 @@
         "gh-us": {
           "uptimePct": 0,
           "uptime7dPct": 0,
-          "probes": 1326,
+          "probes": 1335,
           "ttftP50": 1223,
-          "connMs": 363
+          "connMs": 233
         }
       },
-      "probes": 1326,
+      "probes": 1335,
       "uptimePct": 0,
       "uptime7dPct": 0,
       "daysArr": [
@@ -180,11 +180,11 @@
       ],
       "errors": {
         "429": 0,
-        "5xx": 1326,
+        "5xx": 1335,
         "timeout": 0,
         "other": 0
       },
-      "authExcluded": 6,
+      "authExcluded": 9,
       "speed": {
         "ttftP50": 1223,
         "ttftP95": null,
@@ -194,7 +194,7 @@
       "toolCalls": {
         "ok": 0,
         "total": 4,
-        "nonStreamMs": 161
+        "nonStreamMs": 148
       },
       "streamBurst": null,
       "usageByModel": null,
@@ -299,7 +299,7 @@
           "hour": 20,
           "ttftP50": null,
           "okRate": 0,
-          "n": 120
+          "n": 129
         },
         {
           "hour": 21,
@@ -315,10 +315,10 @@
         }
       ],
       "peakDrift": null,
-      "connMs": 363,
+      "connMs": 233,
       "connOk": true,
       "modelCount": 58,
-      "lastRun": "2026-09-18T16:24:33.158Z"
+      "lastRun": "2026-09-18T20:54:53.203Z"
     },
     {
       "id": "openrouter",
@@ -2174,7 +2174,7 @@
     }
   ],
   "prices": {
-    "fetchedAt": "2026-09-18T16:24:38.803Z",
+    "fetchedAt": "2026-09-18T20:54:58.350Z",
     "unit": "USD per 1M tokens [input, output]",
     "sources": {
       "official": "litellm",
@@ -2258,8 +2258,8 @@
             0.275
           ],
           "openrouter": [
-            0.05,
-            0.1
+            0.048,
+            0.097
           ],
           "modelsdev": [
             0.15,
