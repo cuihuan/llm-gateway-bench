@@ -1,11 +1,11 @@
 {
-  "generatedAt": "2026-09-18T11:16:22.403Z",
+  "generatedAt": "2026-09-18T16:24:38.912Z",
   "demo": false,
   "windowDays": 30,
   "regions": [
     "gh-us"
   ],
-  "runCount": 383,
+  "runCount": 384,
   "gateways": [
     {
       "id": "synthorai",
@@ -48,12 +48,12 @@
         "gh-us": {
           "uptimePct": 0,
           "uptime7dPct": 0,
-          "probes": 1317,
+          "probes": 1326,
           "ttftP50": 1223,
-          "connMs": 182
+          "connMs": 363
         }
       },
-      "probes": 1317,
+      "probes": 1326,
       "uptimePct": 0,
       "uptime7dPct": 0,
       "daysArr": [
@@ -180,11 +180,11 @@
       ],
       "errors": {
         "429": 0,
-        "5xx": 1317,
+        "5xx": 1326,
         "timeout": 0,
         "other": 0
       },
-      "authExcluded": 3,
+      "authExcluded": 6,
       "speed": {
         "ttftP50": 1223,
         "ttftP95": null,
@@ -194,7 +194,7 @@
       "toolCalls": {
         "ok": 0,
         "total": 4,
-        "nonStreamMs": 147
+        "nonStreamMs": 161
       },
       "streamBurst": null,
       "usageByModel": null,
@@ -281,7 +281,7 @@
           "hour": 16,
           "ttftP50": null,
           "okRate": 0,
-          "n": 156
+          "n": 165
         },
         {
           "hour": 17,
@@ -315,10 +315,10 @@
         }
       ],
       "peakDrift": null,
-      "connMs": 182,
+      "connMs": 363,
       "connOk": true,
       "modelCount": 58,
-      "lastRun": "2026-09-18T11:16:17.317Z"
+      "lastRun": "2026-09-18T16:24:33.158Z"
     },
     {
       "id": "openrouter",
@@ -332,7 +332,7 @@
         "openai/gpt-4o-mini",
         "google/gemini-2.5-flash"
       ],
-      "priceIdx": 0.69,
+      "priceIdx": 0.59,
       "trust": {
         "id": "openrouter",
         "annotatedAt": "2026-06-10",
@@ -2174,7 +2174,7 @@
     }
   ],
   "prices": {
-    "fetchedAt": "2026-09-18T11:16:22.269Z",
+    "fetchedAt": "2026-09-18T16:24:38.803Z",
     "unit": "USD per 1M tokens [input, output]",
     "sources": {
       "official": "litellm",
@@ -2258,8 +2258,8 @@
             0.275
           ],
           "openrouter": [
-            0.089,
-            0.177
+            0.05,
+            0.1
           ],
           "modelsdev": [
             0.15,
