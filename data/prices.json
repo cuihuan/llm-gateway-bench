@@ -1,5 +1,5 @@
 {
-  "fetchedAt": "2026-09-22T11:39:51.802Z",
+  "fetchedAt": "2026-09-22T16:58:09.326Z",
   "unit": "USD per 1M tokens [input, output]",
   "sources": {
     "official": "litellm",
@@ -15,10 +15,7 @@
         15
       ],
       "cells": {
-        "synthorai": [
-          3,
-          15
-        ],
+        "synthorai": null,
         "openrouter": [
           3,
           15
@@ -83,8 +80,8 @@
           0.275
         ],
         "openrouter": [
-          0.089,
-          0.177
+          0.049,
+          0.098
         ],
         "modelsdev": [
           0.15,

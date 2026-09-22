@@ -1,14 +1,14 @@
 {
   "schema": "gwbench-report/1",
   "kind": "pricematrix",
-  "generatedAt": "2026-09-22T11:39:51.923Z",
+  "generatedAt": "2026-09-22T16:58:09.486Z",
   "tool": {
     "name": "gwbench",
     "version": "0.2.0"
   },
   "model": null,
   "region": "Public pricing API",
-  "fetchedAt": "2026-09-22T11:39:51.802Z",
+  "fetchedAt": "2026-09-22T16:58:09.326Z",
   "sources": {
     "official": "litellm",
     "synthorai": "https://synthorai.io/api/pricing",
@@ -37,13 +37,7 @@
         15
       ],
       "cells": {
-        "synthorai": {
-          "price": [
-            3,
-            15
-          ],
-          "idx": 1
-        },
+        "synthorai": null,
         "openrouter": {
           "price": [
             3,
@@ -59,7 +53,7 @@
           "idx": 1
         }
       },
-      "cheapest": "synthorai"
+      "cheapest": "openrouter"
     },
     {
       "model": "claude-haiku-4-5",
@@ -139,10 +133,10 @@
         },
         "openrouter": {
           "price": [
-            0.089,
-            0.177
+            0.049,
+            0.098
           ],
-          "idx": 0.22
+          "idx": 0.12
         },
         "modelsdev": {
           "price": [
