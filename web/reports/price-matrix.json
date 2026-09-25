@@ -1,14 +1,14 @@
 {
   "schema": "gwbench-report/1",
   "kind": "pricematrix",
-  "generatedAt": "2026-09-25T21:36:19.683Z",
+  "generatedAt": "2026-09-25T23:48:05.192Z",
   "tool": {
     "name": "gwbench",
     "version": "0.2.0"
   },
   "model": null,
   "region": "Public pricing API",
-  "fetchedAt": "2026-09-25T21:36:19.526Z",
+  "fetchedAt": "2026-09-25T23:48:05.011Z",
   "sources": {
     "official": "litellm",
     "synthorai": "https://synthorai.io/api/pricing",
@@ -31,13 +31,19 @@
   ],
   "rows": [
     {
-      "model": "claude-sonnet-4-5",
+      "model": "claude-sonnet-4-6",
       "official": [
         3,
         15
       ],
       "cells": {
-        "synthorai": null,
+        "synthorai": {
+          "price": [
+            3,
+            15
+          ],
+          "idx": 1
+        },
         "openrouter": {
           "price": [
             3,
@@ -53,7 +59,7 @@
           "idx": 1
         }
       },
-      "cheapest": "openrouter"
+      "cheapest": "synthorai"
     },
     {
       "model": "claude-haiku-4-5",
