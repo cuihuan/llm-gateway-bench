@@ -1,11 +1,11 @@
 {
-  "generatedAt": "2026-09-26T12:58:52.078Z",
+  "generatedAt": "2026-09-26T16:25:07.167Z",
   "demo": false,
   "windowDays": 30,
   "regions": [
     "gh-us"
   ],
-  "runCount": 417,
+  "runCount": 418,
   "gateways": [
     {
       "id": "synthorai",
@@ -46,16 +46,16 @@
       "region": "gh-us",
       "byRegion": {
         "gh-us": {
-          "uptimePct": 5.23,
-          "uptime7dPct": 22.33,
-          "probes": 1320,
-          "ttftP50": 1013,
-          "connMs": 87
+          "uptimePct": 6.08,
+          "uptime7dPct": 25.23,
+          "probes": 1332,
+          "ttftP50": 1012,
+          "connMs": 447
         }
       },
-      "probes": 1320,
-      "uptimePct": 5.23,
-      "uptime7dPct": 22.33,
+      "probes": 1332,
+      "uptimePct": 6.08,
+      "uptime7dPct": 25.23,
       "daysArr": [
         {
           "date": "2026-08-28",
@@ -186,9 +186,9 @@
       },
       "authExcluded": 48,
       "speed": {
-        "ttftP50": 1013,
+        "ttftP50": 1012,
         "ttftP95": null,
-        "tps": 1487,
+        "tps": 1439,
         "trend": [
           {
             "date": "2026-09-25",
@@ -196,14 +196,14 @@
           },
           {
             "date": "2026-09-26",
-            "ttftP50": 990
+            "ttftP50": 992
           }
         ]
       },
       "toolCalls": {
         "ok": 4,
         "total": 4,
-        "nonStreamMs": 1396
+        "nonStreamMs": 1060
       },
       "streamBurst": {
         "suspect": 1,
@@ -212,23 +212,23 @@
       "usageByModel": [
         {
           "model": "gemini-2.5-flash",
-          "charsPerToken": 0.07,
-          "promptTokens": 28
+          "charsPerToken": 0.13,
+          "promptTokens": 27
         },
         {
           "model": "claude-haiku-4-5-20251001",
           "charsPerToken": 3.53,
-          "promptTokens": 36
+          "promptTokens": 35
         },
         {
           "model": "deepseek-v4-flash",
-          "charsPerToken": 3.67,
-          "promptTokens": 33
+          "charsPerToken": 3.83,
+          "promptTokens": 32
         },
         {
           "model": "gpt-5.4-nano",
           "charsPerToken": 3.77,
-          "promptTokens": 33
+          "promptTokens": 32
         }
       ],
       "integrity": {
@@ -246,8 +246,8 @@
         }
       },
       "cache": {
-        "supported": 2,
-        "reported": 2,
+        "supported": 3,
+        "reported": 3,
         "total": 4
       },
       "hourly": [
@@ -301,9 +301,9 @@
         },
         {
           "hour": 16,
-          "ttftP50": null,
-          "okRate": 0,
-          "n": 186
+          "ttftP50": 1012,
+          "okRate": 6.1,
+          "n": 198
         },
         {
           "hour": 17,
@@ -345,10 +345,10 @@
         "worstOkRateHour": 5,
         "worstOkRate": 0
       },
-      "connMs": 87,
+      "connMs": 447,
       "connOk": true,
       "modelCount": 100,
-      "lastRun": "2026-09-26T12:58:10.670Z"
+      "lastRun": "2026-09-26T16:24:23.996Z"
     },
     {
       "id": "openrouter",
@@ -2204,7 +2204,7 @@
     }
   ],
   "prices": {
-    "fetchedAt": "2026-09-26T12:58:51.925Z",
+    "fetchedAt": "2026-09-26T16:25:07.011Z",
     "unit": "USD per 1M tokens [input, output]",
     "sources": {
       "official": "litellm",
