@@ -80,6 +80,11 @@ const TIMEOUT_MS = 60_000;
 // caching (docs/research.md engineering red line).
 const probePrompt = () => `List the numbers from one to fifty as English words, comma separated, no other text. Ignore this request id: ${Math.random().toString(36).slice(2, 8)}`;
 const MAX_TOKENS = 64;
+// Budget for the probes that check the answer text (tool call / CJK / needle). Reasoning models
+// (deepseek-v4-*, gemini-2.5-*, ...) think before answering and the thinking counts toward
+// max_tokens, so at 64 the answer comes back empty and the probe fails for every gateway alike.
+// Non-reasoning models stop after a short answer, so a larger cap costs them nothing.
+const CHECK_MAX_TOKENS = 1024;
 
 const PROBE_TOOL = {
   type: 'function',
@@ -156,7 +161,11 @@ async function probeChatOnce(gw, model, key) {
         if (!line.startsWith('data: ') || line.includes('[DONE]')) continue;
         let evt;
         try { evt = JSON.parse(line.slice(6)); } catch { continue; }
-        const delta = evt.choices?.[0]?.delta?.content;
+        // A reasoning model streams its thinking before any answer text. For a gateway benchmark the
+        // first streamed token of either kind is the time to first token, and both count toward
+        // completion_tokens, so both feed the timing and chars-per-token fingerprints.
+        const d = evt.choices?.[0]?.delta;
+        const delta = d?.content || d?.reasoning_content || d?.reasoning;
         if (delta) {
           chunks++;
           outputChars += delta.length;
@@ -211,7 +220,7 @@ async function probeToolCall(gw, model, key) {
         messages: [{ role: 'user', content: `What time is it in Tokyo right now? Use the tool. Ignore this request id: ${Math.random().toString(36).slice(2, 8)}` }],
         tools: [PROBE_TOOL],
         tool_choice: 'auto',
-        max_tokens: MAX_TOKENS,
+        max_tokens: CHECK_MAX_TOKENS,
       }),
     });
     const totalMs = Math.round(performance.now() - t0);
@@ -245,7 +254,7 @@ async function chatOnceText(gw, model, key, userContent, maxTokens) {
 // The Chinese instruction is written as \u escapes so the source stays ASCII (the probe still asks for Chinese output).
 async function probeCjk(gw, model, key) {
   try {
-    const r = await chatOnceText(gw, model, key, `\u7528\u4e2d\u6587\u5199\u4e00\u53e5\u5173\u4e8e\u4eca\u5929\u5929\u6c14\u7684\u8bdd\uff0c\u53ea\u8f93\u51fa\u8fd9\u53e5\u8bdd\u3002 Ignore this request id: ${Math.random().toString(36).slice(2, 8)}`, 64);
+    const r = await chatOnceText(gw, model, key, `\u7528\u4e2d\u6587\u5199\u4e00\u53e5\u5173\u4e8e\u4eca\u5929\u5929\u6c14\u7684\u8bdd\uff0c\u53ea\u8f93\u51fa\u8fd9\u53e5\u8bdd\u3002 Ignore this request id: ${Math.random().toString(36).slice(2, 8)}`, CHECK_MAX_TOKENS);
     if (!r.ok) return { ok: false, error: r.error };
     const v = evalCjkIntegrity(r.text);
     return v.ok ? { ok: true } : { ok: false, error: v.reason };
@@ -263,7 +272,7 @@ async function probeNeedle(gw, model, key) {
   filler.splice(40, 0, `IMPORTANT MARKER — remember this exact code: ${needle}`);
   const content = `${filler.join('\n')}\n\nQuestion: what is the exact code in the IMPORTANT MARKER line above? Reply with only the code.`;
   try {
-    const r = await chatOnceText(gw, model, key, content, 64);
+    const r = await chatOnceText(gw, model, key, content, CHECK_MAX_TOKENS);
     if (!r.ok) return { ok: false, error: r.error };
     const v = evalNeedle(r.text, needle);
     return v.ok ? { ok: true } : { ok: false, error: v.reason };
