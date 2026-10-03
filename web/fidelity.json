@@ -3,11 +3,11 @@
   "results": [
     {
       "name": "litellm",
-      "version": "1.99.0",
-      "measuredAt": "2026-09-03T08:18:22.980Z",
+      "version": "1.103.2",
+      "measuredAt": "2026-10-03T09:26:38.198Z",
       "env": {
         "runner": "github-actions",
-        "node": "v22.23.2",
+        "node": "v22.23.3",
         "platform": "linux"
       },
       "verdict": {
@@ -33,10 +33,10 @@
     {
       "name": "portkey-oss",
       "version": "1.15.2",
-      "measuredAt": "2026-09-03T08:18:23.504Z",
+      "measuredAt": "2026-10-03T09:26:38.616Z",
       "env": {
         "runner": "github-actions",
-        "node": "v22.23.2",
+        "node": "v22.23.3",
         "platform": "linux"
       },
       "verdict": {
@@ -61,11 +61,11 @@
     },
     {
       "name": "bifrost",
-      "version": "docker-sha256:cf71be9fad4e",
-      "measuredAt": "2026-09-03T08:18:27.741Z",
+      "version": "docker-sha256:65854fd1941b",
+      "measuredAt": "2026-10-03T09:26:42.851Z",
       "env": {
         "runner": "github-actions",
-        "node": "v22.23.2",
+        "node": "v22.23.3",
         "platform": "linux"
       },
       "verdict": {
@@ -80,8 +80,8 @@
       },
       "stream": {
         "pass": true,
-        "note": "5 chunks, content intact",
-        "chunks": 5
+        "note": "6 chunks, content intact",
+        "chunks": 6
       },
       "usage": {
         "pass": true,
