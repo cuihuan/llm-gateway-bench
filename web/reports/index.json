@@ -1,13 +1,13 @@
 {
   "schema": "gwbench-reports-index/1",
-  "updatedAt": "2026-10-04T21:27:41.671Z",
+  "updatedAt": "2026-10-05T05:42:26.846Z",
   "reports": [
     {
       "id": "price-matrix",
       "kind": "pricematrix",
       "model": null,
       "region": "Public pricing API",
-      "generatedAt": "2026-10-04T21:27:41.671Z",
+      "generatedAt": "2026-10-05T05:42:26.846Z",
       "demo": false,
       "title": "Classic models × gateways · Price comparison (public pricing, no key needed)",
       "targetCount": 4,
