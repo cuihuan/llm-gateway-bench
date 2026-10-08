@@ -1,5 +1,5 @@
 {
-  "fetchedAt": "2026-10-08T06:06:16.765Z",
+  "fetchedAt": "2026-10-08T13:31:44.875Z",
   "unit": "USD per 1M tokens [input, output]",
   "sources": {
     "official": "litellm",
@@ -83,7 +83,7 @@
           0.275
         ],
         "openrouter": [
-          0.01,
+          0.03,
           1.28
         ],
         "modelsdev": [
