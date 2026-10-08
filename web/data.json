@@ -1,11 +1,11 @@
 {
-  "generatedAt": "2026-10-07T23:06:25.118Z",
+  "generatedAt": "2026-10-08T06:06:16.927Z",
   "demo": false,
   "windowDays": 30,
   "regions": [
     "gh-us"
   ],
-  "runCount": 453,
+  "runCount": 454,
   "gateways": [
     {
       "id": "synthorai",
@@ -46,21 +46,17 @@
       "region": "gh-us",
       "byRegion": {
         "gh-us": {
-          "uptimePct": 36.78,
-          "uptime7dPct": 94.31,
-          "probes": 1278,
-          "ttftP50": 1194,
-          "connMs": 443
+          "uptimePct": 38.81,
+          "uptime7dPct": 95.05,
+          "probes": 1242,
+          "ttftP50": 923,
+          "connMs": 326
         }
       },
-      "probes": 1278,
-      "uptimePct": 36.78,
-      "uptime7dPct": 94.31,
+      "probes": 1242,
+      "uptimePct": 38.81,
+      "uptime7dPct": 95.05,
       "daysArr": [
-        {
-          "date": "2026-09-08",
-          "status": "b"
-        },
         {
           "date": "2026-09-09",
           "status": "b"
@@ -176,19 +172,23 @@
         {
           "date": "2026-10-07",
           "status": "w"
+        },
+        {
+          "date": "2026-10-08",
+          "status": "g"
         }
       ],
       "errors": {
         "429": 0,
-        "5xx": 768,
+        "5xx": 720,
         "timeout": 1,
         "other": 39
       },
       "authExcluded": 54,
       "speed": {
-        "ttftP50": 1194,
+        "ttftP50": 923,
         "ttftP95": null,
-        "tps": 563,
+        "tps": 590,
         "trend": [
           {
             "date": "2026-09-25",
@@ -241,13 +241,17 @@
           {
             "date": "2026-10-07",
             "ttftP50": 1156
+          },
+          {
+            "date": "2026-10-08",
+            "ttftP50": 923
           }
         ]
       },
       "toolCalls": {
         "ok": 4,
         "total": 4,
-        "nonStreamMs": 1210
+        "nonStreamMs": 903
       },
       "streamBurst": {
         "suspect": 0,
@@ -256,23 +260,23 @@
       "usageByModel": [
         {
           "model": "gemini-2.5-flash",
-          "charsPerToken": 0.31,
-          "promptTokens": 28.5
+          "charsPerToken": 0.13,
+          "promptTokens": 28
         },
         {
           "model": "claude-haiku-4-5-20251001",
           "charsPerToken": 3.53,
-          "promptTokens": 35
+          "promptTokens": 36
         },
         {
           "model": "deepseek-v4-flash",
-          "charsPerToken": 3.61,
-          "promptTokens": 33
+          "charsPerToken": 3.89,
+          "promptTokens": 32
         },
         {
           "model": "gpt-5.4-nano",
           "charsPerToken": 3.77,
-          "promptTokens": 34
+          "promptTokens": 32
         }
       ],
       "integrity": {
@@ -304,8 +308,8 @@
         {
           "hour": 4,
           "ttftP50": 970,
-          "okRate": 5.1,
-          "n": 216
+          "okRate": 5.4,
+          "n": 204
         },
         {
           "hour": 5,
@@ -316,8 +320,8 @@
         {
           "hour": 6,
           "ttftP50": 1001,
-          "okRate": 90.5,
-          "n": 21
+          "okRate": 93.9,
+          "n": 33
         },
         {
           "hour": 10,
@@ -328,8 +332,8 @@
         {
           "hour": 11,
           "ttftP50": 1006,
-          "okRate": 10.9,
-          "n": 192
+          "okRate": 11.7,
+          "n": 180
         },
         {
           "hour": 12,
@@ -358,8 +362,8 @@
         {
           "hour": 16,
           "ttftP50": 990,
-          "okRate": 23.3,
-          "n": 150
+          "okRate": 25.4,
+          "n": 138
         },
         {
           "hour": 17,
@@ -382,8 +386,8 @@
         {
           "hour": 21,
           "ttftP50": 1004,
-          "okRate": 33.9,
-          "n": 165
+          "okRate": 36.6,
+          "n": 153
         },
         {
           "hour": 22,
@@ -407,10 +411,10 @@
         "worstOkRateHour": 10,
         "worstOkRate": 0
       },
-      "connMs": 443,
+      "connMs": 326,
       "connOk": true,
       "modelCount": 103,
-      "lastRun": "2026-10-07T23:05:46.530Z"
+      "lastRun": "2026-10-08T06:05:38.565Z"
     },
     {
       "id": "openrouter",
@@ -424,7 +428,7 @@
         "openai/gpt-4o-mini",
         "google/gemini-2.5-flash"
       ],
-      "priceIdx": 0.87,
+      "priceIdx": 0.86,
       "trust": {
         "id": "openrouter",
         "annotatedAt": "2026-06-10",
@@ -452,10 +456,6 @@
       "uptimePct": null,
       "uptime7dPct": null,
       "daysArr": [
-        {
-          "date": "2026-09-08",
-          "status": "n"
-        },
         {
           "date": "2026-09-09",
           "status": "n"
@@ -570,6 +570,10 @@
         },
         {
           "date": "2026-10-07",
+          "status": "n"
+        },
+        {
+          "date": "2026-10-08",
           "status": "n"
         }
       ],
@@ -639,10 +643,6 @@
       "uptime7dPct": null,
       "daysArr": [
         {
-          "date": "2026-09-08",
-          "status": "n"
-        },
-        {
           "date": "2026-09-09",
           "status": "n"
         },
@@ -756,6 +756,10 @@
         },
         {
           "date": "2026-10-07",
+          "status": "n"
+        },
+        {
+          "date": "2026-10-08",
           "status": "n"
         }
       ],
@@ -824,10 +828,6 @@
       "uptime7dPct": null,
       "daysArr": [
         {
-          "date": "2026-09-08",
-          "status": "n"
-        },
-        {
           "date": "2026-09-09",
           "status": "n"
         },
@@ -941,6 +941,10 @@
         },
         {
           "date": "2026-10-07",
+          "status": "n"
+        },
+        {
+          "date": "2026-10-08",
           "status": "n"
         }
       ],
@@ -1009,10 +1013,6 @@
       "uptime7dPct": null,
       "daysArr": [
         {
-          "date": "2026-09-08",
-          "status": "n"
-        },
-        {
           "date": "2026-09-09",
           "status": "n"
         },
@@ -1126,6 +1126,10 @@
         },
         {
           "date": "2026-10-07",
+          "status": "n"
+        },
+        {
+          "date": "2026-10-08",
           "status": "n"
         }
       ],
@@ -1194,10 +1198,6 @@
       "uptime7dPct": null,
       "daysArr": [
         {
-          "date": "2026-09-08",
-          "status": "n"
-        },
-        {
           "date": "2026-09-09",
           "status": "n"
         },
@@ -1311,6 +1311,10 @@
         },
         {
           "date": "2026-10-07",
+          "status": "n"
+        },
+        {
+          "date": "2026-10-08",
           "status": "n"
         }
       ],
@@ -1379,10 +1383,6 @@
       "uptime7dPct": null,
       "daysArr": [
         {
-          "date": "2026-09-08",
-          "status": "n"
-        },
-        {
           "date": "2026-09-09",
           "status": "n"
         },
@@ -1496,6 +1496,10 @@
         },
         {
           "date": "2026-10-07",
+          "status": "n"
+        },
+        {
+          "date": "2026-10-08",
           "status": "n"
         }
       ],
@@ -1564,10 +1568,6 @@
       "uptime7dPct": null,
       "daysArr": [
         {
-          "date": "2026-09-08",
-          "status": "n"
-        },
-        {
           "date": "2026-09-09",
           "status": "n"
         },
@@ -1681,6 +1681,10 @@
         },
         {
           "date": "2026-10-07",
+          "status": "n"
+        },
+        {
+          "date": "2026-10-08",
           "status": "n"
         }
       ],
@@ -1749,10 +1753,6 @@
       "uptime7dPct": null,
       "daysArr": [
         {
-          "date": "2026-09-08",
-          "status": "n"
-        },
-        {
           "date": "2026-09-09",
           "status": "n"
         },
@@ -1866,6 +1866,10 @@
         },
         {
           "date": "2026-10-07",
+          "status": "n"
+        },
+        {
+          "date": "2026-10-08",
           "status": "n"
         }
       ],
@@ -1934,10 +1938,6 @@
       "uptime7dPct": null,
       "daysArr": [
         {
-          "date": "2026-09-08",
-          "status": "n"
-        },
-        {
           "date": "2026-09-09",
           "status": "n"
         },
@@ -2051,6 +2051,10 @@
         },
         {
           "date": "2026-10-07",
+          "status": "n"
+        },
+        {
+          "date": "2026-10-08",
           "status": "n"
         }
       ],
@@ -2119,10 +2123,6 @@
       "uptime7dPct": null,
       "daysArr": [
         {
-          "date": "2026-09-08",
-          "status": "n"
-        },
-        {
           "date": "2026-09-09",
           "status": "n"
         },
@@ -2237,6 +2237,10 @@
         {
           "date": "2026-10-07",
           "status": "n"
+        },
+        {
+          "date": "2026-10-08",
+          "status": "n"
         }
       ],
       "errors": {
@@ -2266,7 +2270,7 @@
     }
   ],
   "prices": {
-    "fetchedAt": "2026-10-07T23:06:24.942Z",
+    "fetchedAt": "2026-10-08T06:06:16.765Z",
     "unit": "USD per 1M tokens [input, output]",
     "sources": {
       "official": "litellm",
@@ -2350,7 +2354,7 @@
             0.275
           ],
           "openrouter": [
-            0.03,
+            0.01,
             1.28
           ],
           "modelsdev": [
