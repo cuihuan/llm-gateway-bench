@@ -22,6 +22,6 @@ test('create input accepts multiple candidates and Codex', async () => {
 });
 test('create input rejects a private endpoint', async () => {
   await assert.rejects(() => validateCreateInput({ officialUrl: 'https://private.example', newUrl: 'https://new.example',
-    officialKey: 'a', newKey: 'b', model: 'model', trials: 5 }, async (host) => [{ address: host.startsWith('private') ? '10.0.0.2' : '8.8.8.8' }]), /私有网络/);
+    officialKey: 'a', newKey: 'b', model: 'model', trials: 5 }, async (host) => [{ address: host.startsWith('private') ? '10.0.0.2' : '8.8.8.8' }]), /private network/);
 });
 

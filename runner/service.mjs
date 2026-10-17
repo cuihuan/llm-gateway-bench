@@ -17,7 +17,7 @@ export class BenchmarkService {
   async list() { return (await this.store.list()).map(publicRun); }
   async get(id) { const run = await this.store.get(id); return run && publicRun(run); }
   async create(body) {
-    if (this.active.size >= this.maxActiveRuns) throw Object.assign(new Error('已有测试运行中，请稍后再试'), { statusCode: 409 });
+    if (this.active.size >= this.maxActiveRuns) throw Object.assign(new Error('A benchmark is already running. Try again when it finishes.'), { statusCode: 409 });
     const input = await validateCreateInput(body, this.lookup);
     const now = new Date().toISOString();
     const candidateRecords = input.candidates.map((item, index) => ({ id: `candidate-${index + 1}`, name: item.name, host: new URL(item.url).host }));
@@ -51,7 +51,7 @@ export class BenchmarkService {
   async cancel(id) {
     const run = await this.store.get(id);
     if (!run) return null;
-    if (!['queued', 'running'].includes(run.status)) throw Object.assign(new Error('该测试已结束'), { statusCode: 409 });
+    if (!['queued', 'running'].includes(run.status)) throw Object.assign(new Error('This benchmark has already finished.'), { statusCode: 409 });
     run.status = 'cancelled'; run.finishedAt = new Date().toISOString();
     await this.store.save(run); this.executor.cancel(id);
     return publicRun(run);

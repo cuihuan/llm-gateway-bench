@@ -26,17 +26,17 @@ export async function readJob(directory) {
 
 const average = (items, key) => items.length ? items.reduce((sum, item) => sum + (item[key] || 0), 0) / items.length : 0;
 export async function buildReport(jobsDirectory, input = {}) {
-  const names = ['baseline-a', 'baseline-b', ...(input.candidates || [{ name: '候选渠道 1' }]).map((_, index) => `candidate-${index + 1}`)];
+  const names = ['baseline-a', 'baseline-b', ...(input.candidates || [{ name: 'Candidate 1' }]).map((_, index) => `candidate-${index + 1}`)];
   const groups = await Promise.all(names.map((name) => readJob(path.join(jobsDirectory, name))));
-  const labels = ['基准 A', '基准 B', ...(input.candidates || [{ name: '候选渠道 1' }]).map((item) => item.name)];
-  const lines = ['# Terminal-Bench 渠道对比报告', '', `生成时间：${new Date().toISOString()}`, `Agent：${input.agent || 'claude-code'}`, `模型：${input.model || '-'}`, '',
-    `| 项目 | ${labels.join(' | ')} |`, `|---|${labels.map(() => '---:').join('|')}|`];
+  const labels = ['Baseline A', 'Baseline B', ...(input.candidates || [{ name: 'Candidate 1' }]).map((item) => item.name)];
+  const lines = ['# Terminal-Bench Route Comparison', '', `Generated: ${new Date().toISOString()}`, `Agent: ${input.agent || 'claude-code'}`, `Model: ${input.model || '-'}`, '',
+    `| Metric | ${labels.join(' | ')} |`, `|---|${labels.map(() => '---:').join('|')}|`];
   const cells = (fn) => groups.map(fn).join(' | ');
-  lines.push(`| trial 数 | ${cells((group) => group.length)} |`);
-  lines.push(`| 通过率 | ${cells((group) => group.length ? `${(average(group, 'reward') * 100).toFixed(1)}%` : '-')} |`);
-  lines.push(`| 异常 trial | ${cells((group) => group.filter((trial) => trial.error).length)} |`);
-  lines.push(`| agent 耗时均值 s | ${cells((group) => group.length ? average(group, 'seconds').toFixed(1) : '-')} |`);
-  lines.push('', '> 完整 token、缓存、thinking 签名和后端指纹请结合 jobs 中的 Claude Code session JSONL 复核。');
+  lines.push(`| Trials | ${cells((group) => group.length)} |`);
+  lines.push(`| Pass rate | ${cells((group) => group.length ? `${(average(group, 'reward') * 100).toFixed(1)}%` : '-')} |`);
+  lines.push(`| Failed trials | ${cells((group) => group.filter((trial) => trial.error).length)} |`);
+  lines.push(`| Mean agent duration (s) | ${cells((group) => group.length ? average(group, 'seconds').toFixed(1) : '-')} |`);
+  lines.push('', '> Review the job session JSONL files for complete token, cache, reasoning and backend fingerprint evidence.');
   return `${lines.join('\n')}\n`;
 }
 

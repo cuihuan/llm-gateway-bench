@@ -20,12 +20,18 @@ test('all API lifecycle routes respond', async t => {
 });
 test('API requires configured access token', async t => {
   const { server, base } = await fixture('secret'); t.after(() => server.close());
-  assert.equal((await fetch(`${base}/api/router-bench/runs`)).status, 401);
+  const response = await fetch(`${base}/api/router-bench/runs`);
+  assert.equal(response.status, 401);
+  assert.deepEqual(await response.json(), { error: 'Invalid operator access token.' });
   assert.equal((await fetch(`${base}/api/router-bench/runs`, { headers: { 'x-benchmark-token': 'secret' } })).status, 200);
 });
 test('invalid JSON and unknown runs return errors', async t => {
   const { server, base } = await fixture(); t.after(() => server.close());
-  assert.equal((await fetch(`${base}/api/router-bench/runs`, { method: 'POST', body: '{' })).status, 400);
-  assert.equal((await fetch(`${base}/api/router-bench/runs/22222222-2222-4222-8222-222222222222`)).status, 404);
+  let response = await fetch(`${base}/api/router-bench/runs`, { method: 'POST', body: '{' });
+  assert.equal(response.status, 400);
+  assert.deepEqual(await response.json(), { error: 'The request body contains invalid JSON.' });
+  response = await fetch(`${base}/api/router-bench/runs/22222222-2222-4222-8222-222222222222`);
+  assert.equal(response.status, 404);
+  assert.deepEqual(await response.json(), { error: 'Benchmark run not found.' });
 });
 

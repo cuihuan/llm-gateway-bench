@@ -25,35 +25,35 @@ export async function validatePublicUrl(value, lookup = dns.lookup) {
   try {
     url = new URL(value);
   } catch {
-    throw new Error('渠道地址不是有效 URL');
+    throw new Error('Route address is not a valid URL.');
   }
-  if (url.protocol !== 'https:') throw new Error('渠道地址必须使用 HTTPS');
-  if (url.username || url.password) throw new Error('渠道地址不能包含用户名或密码');
-  if (url.port && url.port !== '443') throw new Error('渠道地址只能使用 443 端口');
+  if (url.protocol !== 'https:') throw new Error('Route addresses must use HTTPS.');
+  if (url.username || url.password) throw new Error('Route addresses cannot contain a username or password.');
+  if (url.port && url.port !== '443') throw new Error('Route addresses can only use port 443.');
   const addresses = await lookup(url.hostname, { all: true, verbatim: true });
   if (!addresses.length || addresses.some(({ address }) => isPrivateAddress(address))) {
-    throw new Error('渠道地址不能指向本机或私有网络');
+    throw new Error('Route addresses cannot point to localhost or a private network.');
   }
   return url.toString().replace(/\/$/, '');
 }
 
 export async function validateCreateInput(body, lookup) {
-  if (!body || typeof body !== 'object') throw new Error('请求体必须是 JSON 对象');
+  if (!body || typeof body !== 'object') throw new Error('The request body must be a JSON object.');
   const model = String(body.model || '').trim();
   const task = String(body.task || 'regex-log').trim();
   const trials = Number(body.trials ?? 5);
   const agent = String(body.agent || 'claude-code');
-  if (!MODEL_RE.test(model)) throw new Error('模型名格式无效');
-  if (!TASK_RE.test(task)) throw new Error('题目名格式无效');
-  if (!AGENTS.has(agent)) throw new Error('Agent 只支持 Claude Code 或 Codex');
-  if (!Number.isInteger(trials) || trials < 1 || trials > 20) throw new Error('每组次数必须是 1–20 的整数');
-  const baseline = body.baseline || { name: '基准渠道', url: body.officialUrl, key: body.officialKey };
-  const candidates = Array.isArray(body.candidates) ? body.candidates : [{ name: '候选渠道 1', url: body.newUrl, key: body.newKey }];
-  if (!baseline.key || candidates.some((item) => !item?.key)) throw new Error('所有渠道都必须填写 Key');
-  if (candidates.length < 1 || candidates.length > 6) throw new Error('候选渠道数量必须为 1–6 个');
+  if (!MODEL_RE.test(model)) throw new Error('The model ID is invalid.');
+  if (!TASK_RE.test(task)) throw new Error('The task ID is invalid.');
+  if (!AGENTS.has(agent)) throw new Error('Agent must be Claude Code or Codex.');
+  if (!Number.isInteger(trials) || trials < 1 || trials > 20) throw new Error('Trials per route must be an integer from 1 to 20.');
+  const baseline = body.baseline || { name: 'Baseline', url: body.officialUrl, key: body.officialKey };
+  const candidates = Array.isArray(body.candidates) ? body.candidates : [{ name: 'Candidate 1', url: body.newUrl, key: body.newKey }];
+  if (!baseline.key || candidates.some((item) => !item?.key)) throw new Error('Every route requires an API key.');
+  if (candidates.length < 1 || candidates.length > 6) throw new Error('Add between 1 and 6 candidate routes.');
   const endpoints = [baseline, ...candidates];
-  const names = endpoints.map((item, index) => String(item.name || (index ? `候选渠道 ${index}` : '基准渠道')).trim());
-  if (names.some((name) => !name || name.length > 40)) throw new Error('渠道名称必须为 1–40 个字符');
+  const names = endpoints.map((item, index) => String(item.name || (index ? `Candidate ${index}` : 'Baseline')).trim());
+  if (names.some((name) => !name || name.length > 40)) throw new Error('Route names must contain 1 to 40 characters.');
   const urls = await Promise.all(endpoints.map((item) => validatePublicUrl(String(item.url || ''), lookup)));
   const normalized = endpoints.map((item, index) => ({ name: names[index], url: urls[index], key: String(item.key) }));
   return { baseline: normalized[0], candidates: normalized.slice(1), agent, model, task, trials };

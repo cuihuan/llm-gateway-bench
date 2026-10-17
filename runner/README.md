@@ -27,6 +27,8 @@ Configuration:
 
 Each comparison runs the baseline twice (A/A) plus one to six candidate routes. Claude models use Harbor's `claude-code` agent with `ANTHROPIC_BASE_URL` and `ANTHROPIC_API_KEY`; OpenAI-compatible models use Harbor's `codex` agent with `OPENAI_BASE_URL` and `OPENAI_API_KEY`. The other provider's variables are removed from every child environment.
 
+The HTTP request only creates the run. Harbor jobs continue in the runner service after the browser is closed, and their status and artifacts are persisted under `BENCHMARK_DATA_DIR`. Production readiness can be checked without a model call by running one verified task with Harbor's `nop` agent; this exercises Docker, task discovery, the verifier, and result persistence without using an API key.
+
 API keys are accepted in the create request and passed to Harbor only through child-process environment variables. They are not included in `run.json`, API responses, reports, or command arguments. The access token is kept in browser `sessionStorage`, not local storage.
 
 ## Reverse proxy
