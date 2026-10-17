@@ -1,0 +1,68 @@
+import http from 'node:http';
+import crypto from 'node:crypto';
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { loadConfig } from './config.mjs';
+import { RunStore } from './store.mjs';
+import { HarborExecutor } from './executor.mjs';
+import { BenchmarkService } from './service.mjs';
+
+const webRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../web');
+
+function safeEqual(left, right) {
+  const a = Buffer.from(left); const b = Buffer.from(right);
+  return a.length === b.length && crypto.timingSafeEqual(a, b);
+}
+function json(response, status, body) {
+  response.writeHead(status, { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' });
+  response.end(JSON.stringify(body));
+}
+async function readJson(request) {
+  const chunks = []; let size = 0;
+  for await (const chunk of request) { size += chunk.length; if (size > 32_768) throw Object.assign(new Error('请求体过大'), { statusCode: 413 }); chunks.push(chunk); }
+  try { return JSON.parse(Buffer.concat(chunks).toString('utf8')); } catch { throw Object.assign(new Error('JSON 格式无效'), { statusCode: 400 }); }
+}
+
+export function createServer({ service, accessToken = '', staticRoot = webRoot }) {
+  return http.createServer(async (request, response) => {
+    try {
+      const url = new URL(request.url, 'http://localhost');
+      if (url.pathname.startsWith('/api/router-bench')) {
+        if (accessToken && !safeEqual(request.headers['x-benchmark-token'] || '', accessToken)) return json(response, 401, { error: '访问口令无效' });
+        const match = url.pathname.match(/^\/api\/router-bench\/runs(?:\/([a-f0-9-]{36})(?:\/(cancel|report))?)?$/);
+        if (!match) return json(response, 404, { error: '接口不存在' });
+        const [, id, action] = match;
+        if (request.method === 'GET' && !id) return json(response, 200, { runs: await service.list() });
+        if (request.method === 'POST' && !id) return json(response, 202, { run: await service.create(await readJson(request)) });
+        if (request.method === 'GET' && id && !action) { const run = await service.get(id); return run ? json(response, 200, { run }) : json(response, 404, { error: '测试不存在' }); }
+        if (request.method === 'POST' && action === 'cancel') { const run = await service.cancel(id); return run ? json(response, 200, { run }) : json(response, 404, { error: '测试不存在' }); }
+        if (request.method === 'GET' && action === 'report') {
+          const artifact = await service.artifact(id, 'report');
+          if (!artifact) return json(response, 404, { error: '报告尚未生成' });
+          response.writeHead(200, { 'content-type': 'text/markdown; charset=utf-8', 'content-disposition': `attachment; filename=router-bench-${id}.md` });
+          return response.end(artifact);
+        }
+        return json(response, 405, { error: '方法不允许' });
+      }
+      const pathname = url.pathname === '/benchmark/testRouter' ? '/benchmark/testRouter/' : url.pathname;
+      const relative = pathname === '/benchmark/testRouter/' ? 'benchmark/testRouter/index.html' : pathname.replace(/^\//, '');
+      const file = path.resolve(staticRoot, relative);
+      if (!file.startsWith(`${staticRoot}${path.sep}`)) return json(response, 404, { error: '页面不存在' });
+      const content = await fs.readFile(file);
+      const type = file.endsWith('.css') ? 'text/css' : file.endsWith('.js') ? 'text/javascript' : 'text/html; charset=utf-8';
+      response.writeHead(200, { 'content-type': type }); response.end(content);
+    } catch (error) {
+      if (error.code === 'ENOENT') return json(response, 404, { error: '页面不存在' });
+      json(response, error.statusCode || 400, { error: String(error.message || error) });
+    }
+  });
+}
+
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+  const config = loadConfig();
+  const store = new RunStore(config.dataDir);
+  const service = new BenchmarkService({ store, executor: new HarborExecutor(config), maxActiveRuns: config.maxActiveRuns });
+  createServer({ service, accessToken: config.accessToken }).listen(config.port, config.host, () => console.log(`router benchmark listening on ${config.host}:${config.port}`));
+}
+

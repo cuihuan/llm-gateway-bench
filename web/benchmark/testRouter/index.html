@@ -1,0 +1,10 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Router Terminal-Bench</title><link rel="stylesheet" href="/benchmark/testRouter/style.css"></head><body>
+<main><header><p class="eyebrow">RUNIX BENCHMARK LAB</p><h1>渠道对比测试</h1><p>同题、同模型、同一时段运行官方 A/A 与新渠道 A/B。Key 只进入本次 runner 进程，不保存在历史记录中。</p></header>
+<section class="panel"><h2>开始一轮测试</h2><form id="form">
+<label>访问口令<input id="accessToken" type="password" autocomplete="off" placeholder="由管理员提供，可留空"></label>
+<div class="grid"><fieldset><legend>官方渠道</legend><label>Base URL<input name="officialUrl" type="url" required placeholder="https://api.anthropic.com"></label><label>API Key<input name="officialKey" type="password" required autocomplete="new-password"></label></fieldset>
+<fieldset><legend>新渠道</legend><label>Base URL<input name="newUrl" type="url" required placeholder="https://gateway.example.com"></label><label>API Key<input name="newKey" type="password" required autocomplete="new-password"></label></fieldset></div>
+<div class="grid three"><label>模型<input name="model" required value="claude-opus-4-8"></label><label>题目<input name="task" required value="regex-log"></label><label>每组次数<input name="trials" type="number" min="1" max="20" value="5"></label></div>
+<div class="notice">默认共 15 次 trial，约 20 分钟、约 6 美元。提交后请勿关闭 runner 服务。</div><button type="submit">开始 A/A/B 测试</button><span id="message"></span></form></section>
+<section class="panel"><div class="row"><div><h2>测试记录</h2><p>状态每 5 秒刷新；完成后可下载 Markdown 报告。</p></div><button id="refresh" class="secondary">刷新</button></div><div id="runs" class="runs"></div></section>
+</main><script type="module" src="/benchmark/testRouter/app.js"></script></body></html>

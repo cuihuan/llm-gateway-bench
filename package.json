@@ -26,7 +26,8 @@
     "node": ">=20"
   },
   "scripts": {
-    "test": "node --test probe/metrics.test.mjs probe/aggregate.test.mjs probe/prices.test.mjs probe/probe.test.mjs probe/data.test.mjs probe/report.test.mjs probe/compare.test.mjs probe/publish.test.mjs probe/longcontext.test.mjs probe/matrix.test.mjs probe/overhead.test.mjs probe/fidelity.test.mjs probe/xformat.test.mjs probe/make_scatter.test.mjs",
+    "test": "node --test probe/*.test.mjs runner/*.test.mjs",
+    "router-bench": "node runner/server.mjs",
     "probe": "node probe/probe.mjs",
     "compare": "node probe/compare.mjs",
     "matrix": "node probe/matrix.mjs",

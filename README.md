@@ -84,6 +84,10 @@ Open **https://cuihuan.github.io/llm-gateway-bench/**, top to bottom:
 - [web/articles/](web/articles/) — in-depth articles: selection framework, substitution detection, billing traps, exit risk, and more.
 - [docs/COMPARE-TO-BEST.md](docs/COMPARE-TO-BEST.md), [docs/PRODUCT-SPEC.md](docs/PRODUCT-SPEC.md) — design and data model.
 
+**Operator-only Terminal-Bench console**
+- `npm run router-bench` serves `/benchmark/testRouter/`: enter official/new Anthropic-compatible endpoints, keys, model and trial count, then retain status and reports.
+- This needs a Docker-capable Linux runner and is intentionally not part of the public static GitHub Pages deployment. See [runner/README.md](runner/README.md).
+
 ---
 
 ## 🚀 Quick Start
