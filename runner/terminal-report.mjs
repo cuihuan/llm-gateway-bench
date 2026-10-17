@@ -25,11 +25,12 @@ export async function readJob(directory) {
 }
 
 const average = (items, key) => items.length ? items.reduce((sum, item) => sum + (item[key] || 0), 0) / items.length : 0;
-export async function buildReport(jobsDirectory) {
-  const names = ['official-a', 'official-b', 'new'];
+export async function buildReport(jobsDirectory, input = {}) {
+  const names = ['baseline-a', 'baseline-b', ...(input.candidates || [{ name: '候选渠道 1' }]).map((_, index) => `candidate-${index + 1}`)];
   const groups = await Promise.all(names.map((name) => readJob(path.join(jobsDirectory, name))));
-  const lines = ['# Terminal-Bench 渠道对比报告', '', `生成时间：${new Date().toISOString()}`, '',
-    '| 项目 | official-a | official-b | new |', '|---|---:|---:|---:|'];
+  const labels = ['基准 A', '基准 B', ...(input.candidates || [{ name: '候选渠道 1' }]).map((item) => item.name)];
+  const lines = ['# Terminal-Bench 渠道对比报告', '', `生成时间：${new Date().toISOString()}`, `Agent：${input.agent || 'claude-code'}`, `模型：${input.model || '-'}`, '',
+    `| 项目 | ${labels.join(' | ')} |`, `|---|${labels.map(() => '---:').join('|')}|`];
   const cells = (fn) => groups.map(fn).join(' | ');
   lines.push(`| trial 数 | ${cells((group) => group.length)} |`);
   lines.push(`| 通过率 | ${cells((group) => group.length ? `${(average(group, 'reward') * 100).toFixed(1)}%` : '-')} |`);

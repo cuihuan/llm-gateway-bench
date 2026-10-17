@@ -3,7 +3,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { validateCreateInput } from './validation.mjs';
 
-const PUBLIC_FIELDS = ['id', 'status', 'createdAt', 'startedAt', 'finishedAt', 'model', 'task', 'trials', 'officialHost', 'newHost', 'progress', 'error'];
+const PUBLIC_FIELDS = ['id', 'status', 'createdAt', 'startedAt', 'finishedAt', 'agent', 'model', 'task', 'trials', 'baseline', 'candidates', 'progress', 'error'];
 
 export function publicRun(run) {
   return Object.fromEntries(PUBLIC_FIELDS.map((key) => [key, run[key]]).filter(([, value]) => value !== undefined));
@@ -20,9 +20,10 @@ export class BenchmarkService {
     if (this.active.size >= this.maxActiveRuns) throw Object.assign(new Error('已有测试运行中，请稍后再试'), { statusCode: 409 });
     const input = await validateCreateInput(body, this.lookup);
     const now = new Date().toISOString();
-    const run = { id: crypto.randomUUID(), status: 'queued', createdAt: now, model: input.model, task: input.task,
-      trials: input.trials, officialHost: new URL(input.officialUrl).host, newHost: new URL(input.newUrl).host,
-      progress: { 'official-a': 'queued', 'official-b': 'queued', new: 'queued' } };
+    const candidateRecords = input.candidates.map((item, index) => ({ id: `candidate-${index + 1}`, name: item.name, host: new URL(item.url).host }));
+    const progress = { 'baseline-a': 'queued', 'baseline-b': 'queued', ...Object.fromEntries(candidateRecords.map((item) => [item.id, 'queued'])) };
+    const run = { id: crypto.randomUUID(), status: 'queued', createdAt: now, agent: input.agent, model: input.model, task: input.task,
+      trials: input.trials, baseline: { name: input.baseline.name, host: new URL(input.baseline.url).host }, candidates: candidateRecords, progress };
     await this.store.save(run);
     const promise = this.execute(run, input);
     this.active.set(run.id, promise);

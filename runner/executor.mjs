@@ -29,27 +29,27 @@ export class HarborExecutor {
     const jobs = path.join(root, 'jobs');
     await fsp.mkdir(jobs, { recursive: true, mode: 0o700 });
     const definitions = [
-      ['official-a', input.officialUrl, input.officialKey],
-      ['official-b', input.officialUrl, input.officialKey],
-      ['new', input.newUrl, input.newKey],
+      ['baseline-a', input.baseline],
+      ['baseline-b', input.baseline],
+      ...input.candidates.map((target, index) => [`candidate-${index + 1}`, target]),
     ];
     const children = [];
     this.children.set(id, children);
     try {
-      const promises = definitions.map(([name, baseUrl, key]) => {
-        const args = ['run', '-p', 'legacy', '-i', input.task, '-a', 'claude-code', '-m', input.model,
+      const promises = definitions.map(([name, target]) => {
+        const args = ['run', '-p', 'legacy', '-i', input.task, '-a', input.agent, '-m', input.model,
           '-k', String(input.trials), '-n', String(input.trials), '--agent-setup-timeout-multiplier', '4',
           '-o', jobs, '--job-name', name];
         const process = spawnLogged(this.config.harborBin, args, {
           cwd: this.config.terminalBenchDir,
-          env: { ...processEnvWithoutAnthropic(), ANTHROPIC_BASE_URL: baseUrl, ANTHROPIC_API_KEY: key },
+          env: agentEnvironment(input.agent, target.url, target.key),
         }, path.join(root, `${name}.log`));
         children.push(process.child);
         return process.done.then(async () => onProgress(name, 'completed'), async (error) => { await onProgress(name, 'failed'); throw error; });
       });
       await Promise.all(promises);
       const reportPath = path.join(root, 'report.md');
-      await fsp.writeFile(reportPath, await buildReport(jobs), { mode: 0o600 });
+      await fsp.writeFile(reportPath, await buildReport(jobs, input), { mode: 0o600 });
       return { reportPath };
     } finally {
       this.children.delete(id);
@@ -58,6 +58,13 @@ export class HarborExecutor {
 }
 
 function processEnvWithoutAnthropic() {
-  return Object.fromEntries(Object.entries(process.env).filter(([key]) => !key.startsWith('ANTHROPIC_')));
+  return Object.fromEntries(Object.entries(process.env).filter(([key]) => !key.startsWith('ANTHROPIC_') && !key.startsWith('OPENAI_')));
+}
+
+export function agentEnvironment(agent, baseUrl, key) {
+  const env = processEnvWithoutAnthropic();
+  return agent === 'codex'
+    ? { ...env, OPENAI_BASE_URL: baseUrl, OPENAI_API_KEY: key }
+    : { ...env, ANTHROPIC_BASE_URL: baseUrl, ANTHROPIC_API_KEY: key };
 }
 

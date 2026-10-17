@@ -6,8 +6,9 @@ Provide a hosted console at `/benchmark/testRouter/` where an operator can compa
 
 ## Requirements
 
-- Accept official/new base URLs, API keys, model, task, and trials per arm.
-- Run official A, official B, and new jobs concurrently through Harbor.
+- Accept one baseline and one to six candidate endpoints, API keys, agent, model, task, and trials per arm.
+- Run baseline A, baseline B, and every candidate concurrently through Harbor.
+- Support Claude Code for Anthropic-compatible models and Codex for OpenAI-compatible models.
 - Persist status, timestamps, redacted configuration, logs, and the generated report.
 - Never persist, log, echo, or include API keys in process arguments.
 - List past runs, inspect a run, cancel an active run, and download its report/artifacts.
@@ -16,7 +17,7 @@ Provide a hosted console at `/benchmark/testRouter/` where an operator can compa
 
 ## Acceptance criteria
 
-- [ ] `/benchmark/testRouter/` supports create, progress, history, cancellation, and downloads.
+- [ ] `/benchmark/testRouter/` supports dynamic candidates, model/task selectors, create, progress, history, cancellation, and downloads.
 - [ ] Every API route has automated tests, including auth and validation failures.
 - [ ] A mock Harbor executable can exercise the lifecycle without paid calls.
 - [ ] Stored JSON contains no supplied API key.

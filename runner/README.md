@@ -23,7 +23,9 @@ Configuration:
 | `BENCHMARK_DATA_DIR` | `./var/router-bench` | Run metadata, logs, jobs and reports |
 | `TERMINAL_BENCH_DIR` | `./terminal-bench` | Pinned Terminal-Bench checkout |
 | `HARBOR_BIN` | `harbor` | Harbor executable |
-| `BENCHMARK_MAX_ACTIVE_RUNS` | `1` | Concurrent A/A/B groups |
+| `BENCHMARK_MAX_ACTIVE_RUNS` | `1` | Concurrent comparison groups |
+
+Each comparison runs the baseline twice (A/A) plus one to six candidate routes. Claude models use Harbor's `claude-code` agent with `ANTHROPIC_BASE_URL` and `ANTHROPIC_API_KEY`; OpenAI-compatible models use Harbor's `codex` agent with `OPENAI_BASE_URL` and `OPENAI_API_KEY`. The other provider's variables are removed from every child environment.
 
 API keys are accepted in the create request and passed to Harbor only through child-process environment variables. They are not included in `run.json`, API responses, reports, or command arguments. The access token is kept in browser `sessionStorage`, not local storage.
 
