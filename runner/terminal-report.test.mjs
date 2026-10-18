@@ -12,3 +12,14 @@ test('report summarizes all three jobs', async t => {
   const report = await buildReport(root, { agent: 'codex', model: 'gpt-6.1-sol', candidates: [{ name: 'Relay A' }] });
   assert.match(report, /Pass rate.*100.0%.*100.0%.*100.0%/); assert.match(report, /Relay A/);
 });
+
+test('report excludes Harbor aggregate result files from trial counts', async t => {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'router-report-')); t.after(() => fs.rm(root, { recursive: true, force: true }));
+  for (const name of ['baseline-a', 'baseline-b', 'candidate-1']) {
+    const dir = path.join(root, name); await fs.mkdir(path.join(dir, 'trial'), { recursive: true });
+    await fs.writeFile(path.join(dir, 'result.json'), JSON.stringify({ n_total_trials: 1 }));
+    await fs.writeFile(path.join(dir, 'trial', 'result.json'), JSON.stringify({ task_name: 'legacy/regex-log', verifier_result: { rewards: { reward: 1 } } }));
+  }
+  const report = await buildReport(root, { candidates: [{ name: 'NIBRoute' }] });
+  assert.match(report, /\| Trials \| 1 \| 1 \| 1 \|/);
+});

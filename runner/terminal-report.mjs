@@ -18,10 +18,11 @@ export async function readJob(directory) {
   const files = (await walk(directory)).filter((file) => file.endsWith('result.json'));
   return Promise.all(files.map(async (file) => {
     const result = JSON.parse(await fs.readFile(file, 'utf8'));
+    if (!result.task_name) return null;
     const execution = result.agent_execution || {};
     return { task: String(result.task_name || '').split('/').at(-1), reward: result.verifier_result?.rewards?.reward || 0,
       error: result.exception_info?.exception_type || null, seconds: isoSeconds(execution.started_at, execution.finished_at) };
-  }));
+  })).then((results) => results.filter(Boolean));
 }
 
 const average = (items, key) => items.length ? items.reduce((sum, item) => sum + (item[key] || 0), 0) / items.length : 0;

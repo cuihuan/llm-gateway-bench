@@ -19,6 +19,34 @@ function spawnLogged(command, args, options, logPath) {
   return { child, done };
 }
 
+async function walk(directory) {
+  const output = [];
+  for (const entry of await fsp.readdir(directory, { withFileTypes: true }).catch(() => [])) {
+    const file = path.join(directory, entry.name);
+    if (entry.isDirectory()) output.push(...await walk(file));
+    else output.push(file);
+  }
+  return output;
+}
+
+export async function assertValidJobResults(directory, expectedTrials) {
+  const files = (await walk(directory)).filter((file) => file.endsWith('result.json'));
+  const trials = [];
+  for (const file of files) {
+    const result = JSON.parse(await fsp.readFile(file, 'utf8'));
+    if (result.task_name) trials.push(result);
+  }
+  if (trials.length !== expectedTrials) {
+    throw new Error(`Harbor produced ${trials.length} trial result(s); expected ${expectedTrials}.`);
+  }
+  const invalid = trials.filter((trial) => trial.exception_info);
+  if (invalid.length) {
+    const types = [...new Set(invalid.map((trial) => trial.exception_info.exception_type || 'UnknownTrialError'))];
+    throw new Error(`Harbor produced ${invalid.length} invalid trial(s): ${types.join(', ')}.`);
+  }
+  return trials;
+}
+
 export class HarborExecutor {
   constructor(config) { this.config = config; this.children = new Map(); }
   cancel(id) {
@@ -45,9 +73,19 @@ export class HarborExecutor {
           env: agentEnvironment(input.agent, target.url, target.key),
         }, path.join(root, `${name}.log`));
         children.push(process.child);
-        return process.done.then(async () => onProgress(name, 'completed'), async (error) => { await onProgress(name, 'failed'); throw error; });
+        return process.done.then(async () => {
+          try {
+            await assertValidJobResults(path.join(jobs, name), input.trials);
+            await onProgress(name, 'completed');
+          } catch (error) {
+            await onProgress(name, 'failed');
+            throw error;
+          }
+        }, async (error) => { await onProgress(name, 'failed'); throw error; });
       });
-      await Promise.all(promises);
+      const outcomes = await Promise.allSettled(promises);
+      const failures = outcomes.filter((outcome) => outcome.status === 'rejected');
+      if (failures.length) throw new AggregateError(failures.map((failure) => failure.reason), `${failures.length} benchmark job(s) failed validation.`);
       const reportPath = path.join(root, 'report.md');
       await fsp.writeFile(reportPath, await buildReport(jobs, input), { mode: 0o600 });
       return { reportPath };
