@@ -1,5 +1,4 @@
 import http from 'node:http';
-import crypto from 'node:crypto';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -10,10 +9,6 @@ import { BenchmarkService } from './service.mjs';
 
 const webRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../web');
 
-function safeEqual(left, right) {
-  const a = Buffer.from(left); const b = Buffer.from(right);
-  return a.length === b.length && crypto.timingSafeEqual(a, b);
-}
 function json(response, status, body) {
   response.writeHead(status, { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' });
   response.end(JSON.stringify(body));
@@ -24,12 +19,11 @@ async function readJson(request) {
   try { return JSON.parse(Buffer.concat(chunks).toString('utf8')); } catch { throw Object.assign(new Error('The request body contains invalid JSON.'), { statusCode: 400 }); }
 }
 
-export function createServer({ service, accessToken = '', staticRoot = webRoot }) {
+export function createServer({ service, staticRoot = webRoot }) {
   return http.createServer(async (request, response) => {
     try {
       const url = new URL(request.url, 'http://localhost');
       if (url.pathname.startsWith('/api/router-bench')) {
-        if (accessToken && !safeEqual(request.headers['x-benchmark-token'] || '', accessToken)) return json(response, 401, { error: 'Invalid operator access token.' });
         const match = url.pathname.match(/^\/api\/router-bench\/runs(?:\/([a-f0-9-]{36})(?:\/(cancel|report))?)?$/);
         if (!match) return json(response, 404, { error: 'API endpoint not found.' });
         const [, id, action] = match;
@@ -63,6 +57,6 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const config = loadConfig();
   const store = new RunStore(config.dataDir);
   const service = new BenchmarkService({ store, executor: new HarborExecutor(config), maxActiveRuns: config.maxActiveRuns });
-  createServer({ service, accessToken: config.accessToken }).listen(config.port, config.host, () => console.log(`router benchmark listening on ${config.host}:${config.port}`));
+  createServer({ service }).listen(config.port, config.host, () => console.log(`router benchmark listening on ${config.host}:${config.port}`));
 }
 

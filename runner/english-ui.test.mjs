@@ -26,4 +26,7 @@ test('benchmark form exposes fixed routers and no endpoint or agent controls', a
   assert.match(html, /SynthorAI/);
   assert.match(html, /NIBRoute/);
   assert.doesNotMatch(html, /name="(?:baselineUrl|officialUrl|newUrl|agent)"/);
+  assert.doesNotMatch(html, /accessToken|Operator access token|Unlock the runner/);
+  const script = await fs.readFile(path.join(repositoryRoot, 'web/benchmark/testRouter/app.js'), 'utf8');
+  assert.doesNotMatch(script, /benchmarkToken|x-benchmark-token|accessToken/);
 });

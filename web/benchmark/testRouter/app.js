@@ -2,7 +2,6 @@ const $ = (selector) => document.querySelector(selector);
 const form = $('#form');
 const runs = $('#runs');
 const message = $('#message');
-const token = $('#accessToken');
 
 const MODELS = [
   ['claude-opus-4-8', 'Claude Opus 4.8'],
@@ -22,12 +21,9 @@ const TASKS = [
 ];
 const stateLabels = { queued: 'queued', running: 'running', completed: 'complete', failed: 'failed', cancelled: 'cancelled' };
 
-token.value = sessionStorage.getItem('benchmarkToken') || '';
-token.onchange = () => sessionStorage.setItem('benchmarkToken', token.value);
 const esc = (value) => String(value ?? '').replace(/[&<>"]/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[character]);
-const headers = () => ({ 'content-type': 'application/json', 'x-benchmark-token': token.value });
 async function api(path, options = {}) {
-  const response = await fetch(`/api/router-bench${path}`, { ...options, headers: { ...headers(), ...options.headers } });
+  const response = await fetch(`/api/router-bench${path}`, { ...options, headers: { 'content-type': 'application/json', ...options.headers } });
   const data = await response.json();
   if (!response.ok) throw new Error(data.error || 'Request failed');
   return data;
@@ -66,7 +62,7 @@ form.onsubmit = async (event) => {
   button.disabled = true; message.textContent = 'Starting…';
   try {
     await api('/runs', { method: 'POST', body: JSON.stringify(payload()) });
-    document.querySelectorAll('input[type=password]:not(#accessToken)').forEach((input) => { input.value = ''; });
+    document.querySelectorAll('input[type=password]').forEach((input) => { input.value = ''; });
     message.textContent = 'Comparison started'; await load();
   } catch (error) { message.textContent = error.message; } finally { button.disabled = false; }
 };
@@ -85,7 +81,7 @@ async function load() {
 runs.onclick = async (event) => {
   if (event.target.dataset.cancel) { await api(`/runs/${event.target.dataset.cancel}/cancel`, { method: 'POST' }); await load(); }
   if (event.target.dataset.download !== undefined) {
-    event.preventDefault(); const response = await fetch(event.target.href, { headers: headers() });
+    event.preventDefault(); const response = await fetch(event.target.href);
     if (!response.ok) { message.textContent = (await response.json()).error; return; }
     const blob = await response.blob(); const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = 'synthorai-vs-nibroute.md'; link.click(); URL.revokeObjectURL(link.href);
   }

@@ -7,7 +7,6 @@ uv tool install harbor==0.24.0
 git clone https://github.com/harbor-framework/terminal-bench.git /opt/terminal-bench
 git -C /opt/terminal-bench checkout 1d49c52e
 
-BENCHMARK_ACCESS_TOKEN='generate-a-long-random-value' \
 TERMINAL_BENCH_DIR=/opt/terminal-bench \
 BENCHMARK_DATA_DIR=/var/lib/router-bench \
 npm run router-bench
@@ -19,7 +18,6 @@ Configuration:
 |---|---|---|
 | `BENCHMARK_HOST` | `127.0.0.1` | Bind address |
 | `BENCHMARK_PORT` | `8788` | Bind port |
-| `BENCHMARK_ACCESS_TOKEN` | empty | Shared operator token; production must set it |
 | `BENCHMARK_DATA_DIR` | `./var/router-bench` | Run metadata, logs, jobs and reports |
 | `TERMINAL_BENCH_DIR` | `./terminal-bench` | Pinned Terminal-Bench checkout |
 | `HARBOR_BIN` | `harbor` | Harbor executable |
@@ -29,7 +27,7 @@ Each comparison pins SynthorAI as the baseline and NIBRoute as the candidate. Sy
 
 The HTTP request only creates the run. Harbor jobs continue in the runner service after the browser is closed, and their status and artifacts are persisted under `BENCHMARK_DATA_DIR`. Production readiness can be checked without a model call by running one verified task with Harbor's `nop` agent; this exercises Docker, task discovery, the verifier, and result persistence without using an API key.
 
-API keys are accepted in the create request and passed to Harbor only through child-process environment variables. They are not included in `run.json`, API responses, reports, or command arguments. The access token is kept in browser `sessionStorage`, not local storage.
+API keys are accepted in the create request and passed to Harbor only through child-process environment variables. They are not included in `run.json`, API responses, or reports. No separate operator token is required. Concurrency limits and required per-router credentials constrain execution.
 
 ## Reverse proxy
 
@@ -49,5 +47,5 @@ server {
 }
 ```
 
-Keep the service private until `BENCHMARK_ACCESS_TOKEN`, TLS, DNS, disk retention, and host firewall rules are configured.
+Keep the service private until TLS, DNS, disk retention, concurrency limits, and host firewall rules are configured.
 

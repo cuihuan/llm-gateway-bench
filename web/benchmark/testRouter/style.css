@@ -35,14 +35,6 @@
   text-transform: uppercase;
 }
 
-.access-strip {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(280px, 420px);
-  align-items: end;
-  gap: 32px;
-  background: linear-gradient(135deg, var(--bg-alt), #fff);
-}
-.access-strip .form-section-copy { margin: 0; }
 .execution-section { background: #fff; }
 .config-grid { display: grid; grid-template-columns: 1.1fr 1.5fr .72fr; gap: 14px; }
 
@@ -129,7 +121,6 @@ input::placeholder { color: #969eaa; }
 .site-footer { margin-top: 40px; }
 
 @media (max-width: 900px) {
-  .access-strip { grid-template-columns: 1fr; gap: 18px; }
   .config-grid { grid-template-columns: 1fr 1fr; }
   .router-grid { grid-template-columns: 1fr; }
   .run-summary { grid-template-columns: repeat(3, 1fr); }

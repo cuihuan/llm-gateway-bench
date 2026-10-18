@@ -16,11 +16,12 @@ Provide a hosted console at `/benchmark/testRouter/` where an operator can compa
 - Never persist, log, echo, or include API keys in process arguments.
 - List past runs, inspect a run, cancel an active run, and download its report/artifacts.
 - Limit concurrency and reject loopback/private-network targets to prevent SSRF.
-- Require a deployment access token when configured.
+- Let an operator start a run by entering only the two router API keys; do not require a separate console token.
 
 ## Acceptance criteria
 
 - [ ] `/benchmark/testRouter/` requires no endpoint setup and supports model/task selectors, create, progress, history, cancellation, and downloads.
+- [ ] The page and API do not require a separate operator access token.
 - [ ] The backend ignores caller-supplied routes and always selects the two pinned routers.
 - [ ] The operator UI, surfaced API errors, and generated report contain no CJK copy.
 - [ ] A no-model Harbor smoke run completes a real task container and verifier on the production host.
