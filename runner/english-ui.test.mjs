@@ -8,6 +8,7 @@ const repositoryRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url))
 const userFacingFiles = [
   'web/benchmark/testRouter/index.html',
   'web/benchmark/testRouter/app.js',
+  'web/benchmark/testRouter/report-preview.js',
   'runner/server.mjs',
   'runner/service.mjs',
   'runner/validation.mjs',

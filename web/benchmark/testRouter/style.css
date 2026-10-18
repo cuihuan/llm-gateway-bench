@@ -117,6 +117,23 @@ input::placeholder { color: #969eaa; }
 .job.failed { border-color: #b33; }
 .run-actions { justify-content: flex-end; }
 .run-actions button { border: 0; background: none; color: #a22; cursor: pointer; }
+.run-actions .view-report { padding: 8px 14px; border: 1px solid var(--line-2); border-radius: 8px; color: var(--indigo); font: inherit; font-weight: 600; }
+.report-dialog { width: min(960px, calc(100% - 32px)); max-height: calc(100dvh - 32px); margin: auto; padding: 0; border: 1px solid var(--line-2); border-radius: var(--radius); background: #fff; color: var(--ink); box-shadow: 0 24px 80px #10182833; }
+.report-dialog::backdrop { background: #10182888; }
+.report-header { position: sticky; top: 0; z-index: 1; display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 22px 26px; background: #fff; border-bottom: 1px solid var(--line); }
+.report-header h2 { margin: 4px 0 0; font-size: 22px; }
+.report-controls { display: flex; align-items: center; gap: 8px; }
+.report-controls .btn { cursor: pointer; font-size: 12px; padding: 10px 14px; }
+.report-content { padding: 26px; overflow-wrap: anywhere; font-size: 14px; line-height: 1.7; }
+.report-content h2, .report-content h3 { margin: 18px 0 12px; }
+.report-content p { margin: 8px 0; }
+.report-content blockquote { margin: 20px 0; padding: 12px 16px; background: var(--bg-alt); border-left: 3px solid var(--indigo); color: var(--ink-3); }
+.report-table { overflow-x: auto; margin: 22px 0; }
+.report-table table { width: 100%; border-collapse: collapse; white-space: nowrap; font-size: 13px; }
+.report-table th, .report-table td { padding: 12px 14px; text-align: right; border-bottom: 1px solid var(--line); }
+.report-table th { background: var(--bg-alt); font-weight: 600; }
+.report-table th:first-child, .report-table td:first-child { text-align: left; }
+.report-content pre { overflow-x: auto; padding: 16px; background: var(--bg-alt); border-radius: 8px; }
 .error-text { color: #a22; font-size: 12px; }
 .site-footer { margin-top: 40px; }
 
@@ -127,6 +144,8 @@ input::placeholder { color: #969eaa; }
   .run-summary p { grid-column: 1 / -1; }
 }
 @media (max-width: 640px) {
+  .report-header { align-items: flex-start; flex-direction: column; padding: 18px; }
+  .report-content { padding: 18px; }
   .nav-links a:not(.active) { display: none; }
   .bench-hero { padding: 72px 0 54px; }
   .config-grid { grid-template-columns: 1fr; }

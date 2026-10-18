@@ -15,6 +15,7 @@ Provide a hosted console at `/benchmark/testRouter/` where an operator can compa
 - Persist status, timestamps, redacted configuration, logs, and the generated report.
 - Never persist, log, echo, or include API keys in process arguments.
 - List past runs, inspect a run, cancel an active run, and download its report/artifacts.
+- Preview completed reports inline in an accessible dialog with comparison tables, loading/error states, and a Markdown download. Render report content as escaped text; never execute embedded HTML.
 - Limit concurrency and reject loopback/private-network targets to prevent SSRF.
 - Let an operator start a run by entering only the two router API keys; do not require a separate console token.
 

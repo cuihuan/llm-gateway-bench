@@ -1,7 +1,29 @@
+import { renderReportMarkdown } from './report-preview.js?v=20261018-3';
+
 const $ = (selector) => document.querySelector(selector);
 const form = $('#form');
 const runs = $('#runs');
 const message = $('#message');
+const reportDialog = $('#reportDialog');
+let reportRequest = 0;
+reportDialog.addEventListener('close', () => { reportRequest++; });
+$('#closeReport').onclick = () => reportDialog.close();
+
+async function previewReport(id) {
+  const request = ++reportRequest;
+  $('#reportRun').textContent = `Run ${id.slice(0, 8)}`;
+  $('#reportContent').textContent = 'Loading report…';
+  $('#reportDownload').href = `/api/router-bench/runs/${id}/report`;
+  if (!reportDialog.open) reportDialog.showModal();
+  try {
+    const response = await fetch(`/api/router-bench/runs/${id}/report`);
+    if (!response.ok) throw new Error((await response.json()).error || 'Unable to load report.');
+    const markdown = await response.text();
+    if (request === reportRequest) $('#reportContent').innerHTML = renderReportMarkdown(markdown);
+  } catch (error) {
+    if (request === reportRequest) $('#reportContent').textContent = error.message;
+  }
+}
 
 const MODELS = [
   ['claude-opus-4-8', 'Claude Opus 4.8'],
@@ -72,13 +94,14 @@ function runTargets(run) {
 }
 function runCard(run) {
   const targets = runTargets(run);
-  return `<article class="run-card"><div class="run-head"><div class="run-title"><b>${esc(run.model)}</b><span class="status ${esc(run.status)}">${esc(stateLabels[run.status] || run.status)}</span></div><code>${esc(run.id.slice(0, 8))}</code></div><div class="run-meta"><span>${esc(run.agent || 'claude-code')}</span><span>${esc(run.task)}</span><span>${run.trials} trials per job</span><span>${new Date(run.createdAt).toLocaleString('en-US')}</span></div><div class="job-grid">${targets.map((target) => `<div class="job ${esc(run.progress?.[target.id] || 'queued')}">${esc(target.name)} · ${esc(stateLabels[run.progress?.[target.id]] || 'queued')}</div>`).join('')}</div>${run.error ? `<p class="error-text">${esc(run.error)}</p>` : ''}<div class="run-actions">${run.status === 'completed' ? `<a href="/api/router-bench/runs/${run.id}/report" data-download>Download report →</a>` : ''}${['queued', 'running'].includes(run.status) ? `<button data-cancel="${run.id}">Cancel run</button>` : ''}</div></article>`;
+  return `<article class="run-card"><div class="run-head"><div class="run-title"><b>${esc(run.model)}</b><span class="status ${esc(run.status)}">${esc(stateLabels[run.status] || run.status)}</span></div><code>${esc(run.id.slice(0, 8))}</code></div><div class="run-meta"><span>${esc(run.agent || 'claude-code')}</span><span>${esc(run.task)}</span><span>${run.trials} trials per job</span><span>${new Date(run.createdAt).toLocaleString('en-US')}</span></div><div class="job-grid">${targets.map((target) => `<div class="job ${esc(run.progress?.[target.id] || 'queued')}">${esc(target.name)} · ${esc(stateLabels[run.progress?.[target.id]] || 'queued')}</div>`).join('')}</div>${run.error ? `<p class="error-text">${esc(run.error)}</p>` : ''}<div class="run-actions">${run.status === 'completed' ? `<button type="button" class="view-report" data-preview="${run.id}">View report</button><a href="/api/router-bench/runs/${run.id}/report" data-download>Download report →</a>` : ''}${['queued', 'running'].includes(run.status) ? `<button data-cancel="${run.id}">Cancel run</button>` : ''}</div></article>`;
 }
 async function load() {
   try { const data = await api('/runs'); runs.innerHTML = data.runs.length ? data.runs.map(runCard).join('') : '<div class="empty"><b>No comparison runs yet</b><span>Add both router keys to start the first run.</span></div>'; }
   catch (error) { runs.innerHTML = `<div class="empty"><b>History is locked</b><span>${esc(error.message)}</span></div>`; }
 }
 runs.onclick = async (event) => {
+  if (event.target.dataset.preview) await previewReport(event.target.dataset.preview);
   if (event.target.dataset.cancel) { await api(`/runs/${event.target.dataset.cancel}/cancel`, { method: 'POST' }); await load(); }
   if (event.target.dataset.download !== undefined) {
     event.preventDefault(); const response = await fetch(event.target.href);

@@ -34,3 +34,14 @@ test('invalid JSON and unknown runs return errors', async t => {
   assert.deepEqual(await response.json(), { error: 'Benchmark run not found.' });
 });
 
+test('report preview module is served as JavaScript and missing reports return JSON errors', async t => {
+  const { server, base } = await fixture(); t.after(() => server.close());
+  let response = await fetch(`${base}/benchmark/testRouter/report-preview.js?v=20261018-3`);
+  assert.equal(response.status, 200);
+  assert.match(response.headers.get('content-type'), /text\/javascript/);
+  assert.match(await response.text(), /export function renderReportMarkdown/);
+  response = await fetch(`${base}/api/router-bench/runs/22222222-2222-4222-8222-222222222222/report`);
+  assert.equal(response.status, 404);
+  assert.deepEqual(await response.json(), { error: 'The report is not available yet.' });
+});
+
