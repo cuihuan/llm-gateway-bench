@@ -30,7 +30,7 @@ The tiny direct probe exposed a substantial metering difference: SynthorAI repor
 - Reliability: not established. SynthorAI has only two trials and NIBRoute only one.
 - Speed: NIBRoute was slower in this sample, but additional repeated trials are required.
 - Usage: reported token shapes differ materially both between routes and between trajectories. Compare provider-side billing records before treating the Harbor estimate as actual spend.
-- Security: router credentials were held in process memory for execution and were not written into run metadata, reports, or the repository.
+- Security: the application did not write router credentials into run metadata, reports, or the repository. Harbor forwarded them to the task container as environment variables; during that handoff they were briefly visible to privileged users in the production host's local process table. Rotate both credentials after this evaluation because they were also pasted into the chat.
 
 ## Recommended next run
 
