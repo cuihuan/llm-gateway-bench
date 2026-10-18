@@ -85,7 +85,7 @@ Open **https://cuihuan.github.io/llm-gateway-bench/**, top to bottom:
 - [docs/COMPARE-TO-BEST.md](docs/COMPARE-TO-BEST.md), [docs/PRODUCT-SPEC.md](docs/PRODUCT-SPEC.md) — design and data model.
 
 **Operator-only Terminal-Bench console**
-- `npm run router-bench` serves `/benchmark/testRouter/`: enter official/new Anthropic-compatible endpoints, keys, model and trial count, then retain status and reports.
+- `npm run router-bench` serves `/benchmark/testRouter/`: enter only the SynthorAI and NIBRoute keys, choose a shared model, task and trial count, then retain status and reports. The endpoint addresses are pinned server-side.
 - This needs a Docker-capable Linux runner and is intentionally not part of the public static GitHub Pages deployment. See [runner/README.md](runner/README.md).
 
 ---
