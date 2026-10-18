@@ -20,3 +20,10 @@ test('benchmark UI, API errors and reports contain no CJK copy', async () => {
     assert.doesNotMatch(source, /[\u3400-\u9fff]/u, `${relativePath} contains CJK copy`);
   }
 });
+
+test('benchmark form exposes fixed routers and no endpoint or agent controls', async () => {
+  const html = await fs.readFile(path.join(repositoryRoot, 'web/benchmark/testRouter/index.html'), 'utf8');
+  assert.match(html, /SynthorAI/);
+  assert.match(html, /NIBRoute/);
+  assert.doesNotMatch(html, /name="(?:baselineUrl|officialUrl|newUrl|agent)"/);
+});

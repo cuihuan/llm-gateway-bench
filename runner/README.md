@@ -25,7 +25,7 @@ Configuration:
 | `HARBOR_BIN` | `harbor` | Harbor executable |
 | `BENCHMARK_MAX_ACTIVE_RUNS` | `1` | Concurrent comparison groups |
 
-Each comparison runs the baseline twice (A/A) plus one to six candidate routes. Claude models use Harbor's `claude-code` agent with `ANTHROPIC_BASE_URL` and `ANTHROPIC_API_KEY`; OpenAI-compatible models use Harbor's `codex` agent with `OPENAI_BASE_URL` and `OPENAI_API_KEY`. The other provider's variables are removed from every child environment.
+Each comparison pins SynthorAI as the baseline and NIBRoute as the candidate. SynthorAI runs twice (A/A) and NIBRoute runs once. Claude models use Harbor's `claude-code` agent with `ANTHROPIC_BASE_URL` and `ANTHROPIC_API_KEY`; all other models use Harbor's `codex` agent with `OPENAI_BASE_URL` and `OPENAI_API_KEY`. The other provider's variables are removed from every child environment. Caller-supplied endpoint URLs and agent values are ignored.
 
 The HTTP request only creates the run. Harbor jobs continue in the runner service after the browser is closed, and their status and artifacts are persisted under `BENCHMARK_DATA_DIR`. Production readiness can be checked without a model call by running one verified task with Harbor's `nop` agent; this exercises Docker, task discovery, the verifier, and result persistence without using an API key.
 

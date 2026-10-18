@@ -3,7 +3,14 @@ import net from 'node:net';
 
 const MODEL_RE = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/;
 const TASK_RE = /^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/;
-const AGENTS = new Set(['claude-code', 'codex']);
+export const FIXED_ROUTERS = Object.freeze({
+  synthorai: Object.freeze({ name: 'SynthorAI', url: 'https://synthorai.io' }),
+  nibroute: Object.freeze({ name: 'NIBRoute', url: 'https://api.aws.nibroute.xyz' }),
+});
+
+export function agentForModel(model) {
+  return /^claude(?:-|$)/i.test(model) ? 'claude-code' : 'codex';
+}
 
 export function isPrivateAddress(address) {
   if (net.isIPv4(address)) {
@@ -42,20 +49,20 @@ export async function validateCreateInput(body, lookup) {
   const model = String(body.model || '').trim();
   const task = String(body.task || 'regex-log').trim();
   const trials = Number(body.trials ?? 5);
-  const agent = String(body.agent || 'claude-code');
   if (!MODEL_RE.test(model)) throw new Error('The model ID is invalid.');
   if (!TASK_RE.test(task)) throw new Error('The task ID is invalid.');
-  if (!AGENTS.has(agent)) throw new Error('Agent must be Claude Code or Codex.');
   if (!Number.isInteger(trials) || trials < 1 || trials > 20) throw new Error('Trials per route must be an integer from 1 to 20.');
-  const baseline = body.baseline || { name: 'Baseline', url: body.officialUrl, key: body.officialKey };
-  const candidates = Array.isArray(body.candidates) ? body.candidates : [{ name: 'Candidate 1', url: body.newUrl, key: body.newKey }];
-  if (!baseline.key || candidates.some((item) => !item?.key)) throw new Error('Every route requires an API key.');
-  if (candidates.length < 1 || candidates.length > 6) throw new Error('Add between 1 and 6 candidate routes.');
-  const endpoints = [baseline, ...candidates];
-  const names = endpoints.map((item, index) => String(item.name || (index ? `Candidate ${index}` : 'Baseline')).trim());
-  if (names.some((name) => !name || name.length > 40)) throw new Error('Route names must contain 1 to 40 characters.');
-  const urls = await Promise.all(endpoints.map((item) => validatePublicUrl(String(item.url || ''), lookup)));
-  const normalized = endpoints.map((item, index) => ({ name: names[index], url: urls[index], key: String(item.key) }));
-  return { baseline: normalized[0], candidates: normalized.slice(1), agent, model, task, trials };
+  const synthoraiKey = String(body.synthoraiKey || body.baseline?.key || body.officialKey || '');
+  const nibrouteKey = String(body.nibrouteKey || body.candidates?.[0]?.key || body.newKey || '');
+  if (!synthoraiKey || !nibrouteKey) throw new Error('Both router API keys are required.');
+  const [synthoraiUrl, nibrouteUrl] = await Promise.all([
+    validatePublicUrl(FIXED_ROUTERS.synthorai.url, lookup),
+    validatePublicUrl(FIXED_ROUTERS.nibroute.url, lookup),
+  ]);
+  return {
+    baseline: { ...FIXED_ROUTERS.synthorai, url: synthoraiUrl, key: synthoraiKey },
+    candidates: [{ ...FIXED_ROUTERS.nibroute, url: nibrouteUrl, key: nibrouteKey }],
+    agent: agentForModel(model), model, task, trials,
+  };
 }
 
