@@ -68,3 +68,12 @@ test('missing usage, missing files, and malformed records stay unknown; zero thi
   const missing = await readClaudeEvidence(path.join(root, 'absent'));
   assert.equal(missing.complete, false); assert.equal(missing.calls, null); assert.equal(missing.apiErrors, null);
 });
+
+test('flags visible reasoning with a zero upstream token counter without retaining its text', async t => {
+  const r = response();
+  const root = await fixture(t, [response({ message: { ...r.message, usage: { ...usage, output_tokens_details: { thinking_tokens: 0 } } } })]);
+  const e = await readClaudeEvidence(root);
+  assert.equal(e.thinkingTokens, 0);
+  assert.equal(e.zeroThinkingCounterCalls, 1);
+  assert.doesNotMatch(JSON.stringify(e), /PRIVATE_THINKING/);
+});

@@ -22,6 +22,7 @@ Provide a hosted console at `/benchmark/testRouter/` where an operator can compa
 - Include ten statistical rows with separate A/B repeats, pooled-baseline versus candidate changes, two-sided task-stratified trial permutation p values and A/A variation. Exact enumeration for small samples, deterministic Monte Carlo for larger samples. Missing evidence remains N/A; no statistical difference does not establish equivalence. Session timestamp durations are estimates, not network timings.
 - Generate an evidence report even when Harbor results include exceptions or missing trials. Keep failed status and allow report preview/download for failed runs.
 - Include the run ID, UTC generation time and original trial directory IDs in evidence reports so downloads can be traced to the retained execution artifacts.
+- Flag inconsistent first-input totals within repeated identical logged requests even without an official reference. Expose visible thinking text paired with a zero upstream thinking-token counter as a telemetry discrepancy, not evidence of zero reasoning or model substitution.
 - Keep the latest nine-trial run when cleaning up the two historical pilot runs. Archive the two exact pilot directories outside the visible run store so deletion is recoverable; do not remove the current run or implement automatic deletion of future runs.
 - Limit concurrency and reject loopback/private-network targets to prevent SSRF.
 - Let an operator start a run by entering only the two router API keys; do not require a separate console token.

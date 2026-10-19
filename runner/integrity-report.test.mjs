@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { firstInputGate, hardGates, integrityReport } from './integrity-report.mjs';
+import { firstInputGate, firstInputConsistency, hardGates, integrityReport } from './integrity-report.mjs';
 const trial = (evidence = {}, rest = {}) => ({ task: 'regex-log', cacheRead: 80, input: 100, reward: 1, error: null,
   evidence: { complete: true, models: { 'claude-opus-4-8': 1 }, thinkingBlocks: 2, signedBlocks: 2,
     firstInput: 100, firstDigest: 'a'.repeat(64), ...evidence }, ...rest });
@@ -31,4 +31,14 @@ test('report preserves all hard gates and statistics without relabeling router b
   assert.doesNotMatch(report, /[\u3400-\u9fff]/);
   const mismatch = integrityReport([[trial()], [trial()], [trial({ firstInput: 101 })]], { model: 'claude-opus-4-8' }, 1).join('\n');
   assert.match(mismatch, /Hard-gate result: ISSUES DETECTED/);
+});
+
+test('repeated identical request input variation fails even without an official reference', () => {
+  assert.equal(firstInputConsistency([trial(), trial()], 2), 'PASS');
+  assert.match(firstInputConsistency([trial(), trial({ firstInput: 101 })], 2), /^FAIL/);
+  assert.match(firstInputConsistency([trial()], 1), /^UNVERIFIED/);
+  const report = integrityReport([[trial(), trial()], [trial(), trial()], [trial({ zeroThinkingCounterCalls: 1 }), trial({ firstInput: 101, zeroThinkingCounterCalls: 1 })]], { model: 'claude-opus-4-8' }, 2).join('\n');
+  assert.match(report, /Hard-gate result: ISSUES DETECTED/);
+  assert.match(report, /2 response message\(s\) contain visible thinking text but report zero thinking tokens/);
+  assert.match(report, /not evidence of zero reasoning/);
 });

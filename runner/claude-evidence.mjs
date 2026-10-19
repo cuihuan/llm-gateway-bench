@@ -67,6 +67,7 @@ export async function readClaudeEvidence(directory) {
         const key = Number.isInteger(e.apiBlockIndex) ? `index:${e.apiBlockIndex + i}`
           : b.type === 'tool_use' && b.id ? `tool:${b.id}` : `content:${hash(b)}`;
         c.blocks.set(key, { type: b.type, signed: typeof b.signature === 'string' && Boolean(b.signature.trim()),
+          visibleText: typeof b.thinking === 'string' && Boolean(b.thinking.trim()),
           opaque: typeof b.data === 'string' && Boolean(b.data.trim()) });
       }
       calls.set(m.id, c);
@@ -104,6 +105,8 @@ export async function readClaudeEvidence(directory) {
     redactedWithData: messages.length ? redacted.filter((b) => b.opaque).length : null,
     thinkingShare: complete ? messages.filter((c) => [...c.blocks.values()].some((b) => ['thinking', 'redacted_thinking'].includes(b.type))).length / messages.length : null,
     thinkingTokens: complete ? sum(messages.map((c) => num(c.usage.output_tokens_details?.thinking_tokens))) : null,
+    zeroThinkingCounterCalls: complete ? messages.filter((c) => num(c.usage.output_tokens_details?.thinking_tokens) === 0 &&
+      [...c.blocks.values()].some((b) => b.type === 'thinking' && b.visibleText)).length : null,
     input: complete ? sum(messages.map((c) => totalInput(c.usage))) : null,
     cacheRead: complete ? sum(messages.map((c) => num(c.usage.cache_read_input_tokens))) : null,
     output: complete ? sum(messages.map((c) => num(c.usage.output_tokens))) : null,

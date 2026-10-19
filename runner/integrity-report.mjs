@@ -25,6 +25,17 @@ export function firstInputGate(reference, candidate, expectedReference, expected
   return 'PASS';
 }
 
+export function firstInputConsistency(trials, expected) {
+  if (!trials.length || trials.length !== expected || trials.some((t) => !t.evidence?.complete || !t.evidence.firstDigest || t.evidence.firstInput == null)) return 'UNVERIFIED: incomplete evidence';
+  const byRequest = new Map();
+  for (const t of trials) {
+    const key = `${t.task}:${t.evidence.firstDigest}`;
+    byRequest.set(key, [...(byRequest.get(key) || []), t.evidence.firstInput]);
+  }
+  if ([...byRequest.values()].some((values) => new Set(values).size > 1)) return 'FAIL: input varies for identical logged requests';
+  return [...byRequest.values()].every((values) => values.length > 1) ? 'PASS' : 'UNVERIFIED: no repeated request';
+}
+
 export function hardGates(trials, expected, model) {
   const covered = trials.length === expected && trials.length > 0 && trials.every((t) => t.evidence?.complete);
   const observed = trials.flatMap((t) => Object.keys(t.evidence?.models || {}));
@@ -52,6 +63,7 @@ export function integrityReport(jobs, input, perJob) {
   };
   const gates = jobs.map((ts) => hardGates(ts, perJob, input.model));
   const firstGates = jobs.map((ts) => firstInputGate(jobs[0], ts, perJob, perJob));
+  const consistency = jobs.map((ts) => firstInputConsistency(ts, perJob));
   table([
     ['Response model matches requested model', gates.map((g) => g.model)],
     ['Every visible thinking block has a signature', gates.map((g) => g.signature)],
@@ -60,9 +72,16 @@ export function integrityReport(jobs, input, perJob) {
     ['Trial exceptions no greater than official', jobs.map(() => 'UNVERIFIED: official reference unavailable')],
     ['API errors no greater than official', jobs.map(() => 'UNVERIFIED: official reference unavailable')],
     ['First input equals baseline A/B (router comparison)', firstGates],
+    ['First input stable on identical logged requests within router', consistency],
   ]);
-  const failed = gates.some((g) => Object.values(g).some((v) => v.startsWith('FAIL'))) || firstGates.some((v) => v.startsWith('FAIL'));
+  const failed = gates.some((g) => Object.values(g).some((v) => v.startsWith('FAIL'))) || [...firstGates, ...consistency].some((v) => v.startsWith('FAIL'));
   lines.push(`Hard-gate result: ${failed ? 'ISSUES DETECTED' : 'UNVERIFIED'}. ${failed ? 'At least one directly observable hard gate failed.' : 'No all-clear is issued without the missing official reference and complete evidence.'}`, '');
+  jobs.forEach((ts, i) => {
+    if (consistency[i].startsWith('FAIL')) lines.push(`- ${safe(labels[i])}: first-input totals vary for the same logged request digest. Investigate hidden upstream prompt changes or usage recounting; this does not prove model substitution.`);
+    const zero = sum(ts, 'zeroThinkingCounterCalls');
+    if (zero > 0) lines.push(`- ${safe(labels[i])}: ${zero} response message(s) contain visible thinking text but report zero thinking tokens. Treat the thinking-token row as an upstream telemetry discrepancy, not evidence of zero reasoning. Token-based cost estimates may also be affected by unreliable usage.`);
+  });
+  lines.push('');
   table([
     ['Trials / expected', jobs.map((ts) => `${ts.length}/${perJob}`)],
     ['Complete session evidence (trials)', jobs.map((ts) => `${ts.filter((t) => t.evidence?.complete).length}/${perJob}`)],
@@ -74,6 +93,7 @@ export function integrityReport(jobs, input, perJob) {
       const n = sum(ts, 'thinkingBlocks'), s = sum(ts, 'signedBlocks');
       return n ? `${pct(s / n)} (${s}/${n})` : 'N/A: no visible thinking blocks';
     })],
+    ['Calls with thinking text but zero reported thinking tokens', jobs.map((ts) => number(sum(ts, 'zeroThinkingCounterCalls')))],
     ['Redacted thinking with opaque data / blocks', jobs.map((ts) => `${number(sum(ts, 'redactedWithData'))} / ${number(sum(ts, 'redactedBlocks'))}`)],
     ['Trials with cache hits', jobs.map((ts) => `${ts.filter((t) => t.cacheRead > 0).length}/${perJob}`)],
     ['First request total input tokens (all observed values)', jobs.map((ts) => values(ts, 'firstInput'))],
