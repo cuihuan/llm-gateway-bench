@@ -29,4 +29,7 @@ test('comparison uses pooled baseline and A/A variation without inventing missin
   const pp = comparison(trials([0, 0]), trials([0, 0]), trials([1, 1]), 'v', true);
   assert.equal(pp.ab, 1); assert.equal(pp.aa, 0);
   assert.equal(comparison(trials([null, null]), b, n, 'v').verdict, 'Insufficient data');
+  const zero = comparison(trials(Array(5).fill(0)), trials(Array(5).fill(0)), trials(Array(5).fill(1)), 'v');
+  assert.equal(zero.ab, null);
+  assert.equal(zero.verdict, 'Difference detected');
 });

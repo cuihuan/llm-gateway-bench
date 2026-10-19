@@ -12,6 +12,7 @@ test('hard gates fail mismatched models, one unsigned block, or a single trial w
   assert.equal(hardGates([trial({ thinkingBlocks: 0, signedBlocks: 0 })], 1, 'claude-opus-4-8').signature.startsWith('UNVERIFIED'), true);
   assert.equal(hardGates([trial()], 2, 'claude-opus-4-8').model, 'UNVERIFIED');
   assert.equal(hardGates([trial({ requestedModels: { different: 1 } })], 1, 'claude-opus-4-8').model, 'FAIL');
+  assert.equal(hardGates([], 0, 'claude-opus-4-8').cache, 'UNVERIFIED');
 });
 test('first input equality requires matching tasks and complete identical request digests', () => {
   assert.equal(firstInputGate([trial()], [trial()], 1, 1), 'PASS');
@@ -19,6 +20,7 @@ test('first input equality requires matching tasks and complete identical reques
   assert.match(firstInputGate([trial()], [trial({ firstInput: 101, firstDigest: 'b'.repeat(64) })], 1, 1), /UNVERIFIED: request digests differ/);
   assert.match(firstInputGate([trial()], [], 1, 1), /UNVERIFIED/);
   assert.match(firstInputGate([trial()], [trial({}, { task: 'other' })], 1, 1), /task mismatch/);
+  assert.match(firstInputGate([], [], 0, 0), /UNVERIFIED/);
 });
 test('report preserves all hard gates and statistics without relabeling router baselines official', () => {
   const report = integrityReport([[trial()], [trial()], [trial()]], { model: 'claude-opus-4-8', candidates: [{ name: 'NIBRoute' }] }, 1).join('\n');

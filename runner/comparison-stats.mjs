@@ -55,8 +55,10 @@ export function comparison(a, b, candidate, key, proportion = false) {
   const change = (x, y) => x === null || y === null || (!proportion && x === 0) ? null : proportion ? y - x : (y - x) / x;
   const aa = change(ma, mb), ab = change(pooled, mn);
   const p = permutationP([...a, ...b], candidate, key);
+  const beyondRepeat = aa !== null && ab !== null ? Math.abs(ab) > Math.abs(aa)
+    : means.every(valid) && Math.abs(mn - pooled) > Math.abs(mb - ma);
   const verdict = p === null || a.length < 2 || b.length < 2 ? 'Insufficient data'
-    : p < 0.05 && aa !== null && ab !== null && Math.abs(ab) > Math.abs(aa) ? 'Difference detected'
+    : p < 0.05 && beyondRepeat ? 'Difference detected'
       : p < 0.05 ? 'Within A/A variation' : 'No clear difference';
   return { means: means.slice(0, 3), aa, ab, p, verdict };
 }

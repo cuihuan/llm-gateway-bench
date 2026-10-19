@@ -13,7 +13,7 @@ const counters = (ts, key) => {
 const values = (ts, key) => [...new Set(ts.map((t) => t.evidence?.[key]).filter((v) => v != null))].sort((a, b) => a - b).map(number).join(', ') || 'N/A';
 
 export function firstInputGate(reference, candidate, expectedReference, expectedCandidate) {
-  if (reference.length !== expectedReference || candidate.length !== expectedCandidate ||
+  if (!reference.length || !candidate.length || reference.length !== expectedReference || candidate.length !== expectedCandidate ||
       [...reference, ...candidate].some((t) => !t.evidence?.complete || t.evidence.firstInput == null || !t.evidence.firstDigest)) return 'UNVERIFIED: incomplete evidence';
   for (const task of new Set([...reference, ...candidate].map((t) => t.task))) {
     const a = reference.filter((t) => t.task === task), b = candidate.filter((t) => t.task === task);
@@ -36,7 +36,7 @@ export function hardGates(trials, expected, model) {
   return {
     model: modelMismatch ? 'FAIL' : !covered || observed.includes('(missing)') ? 'UNVERIFIED' : 'PASS',
     signature: badSignature ? 'FAIL' : !covered || !thinking ? 'UNVERIFIED: no complete thinking sample' : signed === thinking ? 'PASS' : 'FAIL',
-    cache: cacheMissing ? 'FAIL' : trials.length !== expected || trials.some((t) => t.cacheRead == null) ? 'UNVERIFIED' : 'PASS',
+    cache: cacheMissing ? 'FAIL' : !trials.length || trials.length !== expected || trials.some((t) => t.cacheRead == null) ? 'UNVERIFIED' : 'PASS',
   };
 }
 
@@ -111,7 +111,7 @@ export function integrityReport(jobs, input, perJob) {
       const change = (v) => v === null ? 'N/A' : proportion ? `${v >= 0 ? '+' : ''}${(v * 100).toFixed(1)} pp` : `${v >= 0 ? '+' : ''}${(v * 100).toFixed(0)}%`;
       lines.push(`| ${label} | ${c.means.map(proportion ? pct : number).join(' | ')} | ${change(c.aa)} | ${change(c.ab)} | ${c.p === null ? 'N/A' : c.p.toFixed(4)} | ${c.verdict} |`);
     }
-    lines.push('', 'A/A = B minus A; A/B = candidate minus pooled A+B. Percentage metrics use percentage points; other changes are relative. The two-sided permutation test shuffles trial labels within each task (exact at up to 100,000 permutations; otherwise 10,000 seeded draws). A difference is flagged only at p < 0.05 and beyond the observed A/A change. Missing metrics or fewer than two trials per group remain inconclusive. These ten exploratory tests are not corrected for multiple comparisons; no clear difference is not evidence of equivalence.', '',
+    lines.push('', 'A/A = B minus A; A/B = candidate minus pooled A+B. Percentage metrics use percentage points; other changes are relative (N/A for a zero denominator; absolute changes are then used for the variation check). The two-sided permutation test shuffles trial labels within each task (exact at up to 100,000 permutations; otherwise 10,000 seeded draws). A difference is flagged only at p < 0.05 and beyond the observed A/A change. Missing metrics or fewer than two trials per group remain inconclusive. These ten exploratory tests are not corrected for multiple comparisons; no clear difference is not evidence of equivalence.', '',
       'Call duration uses the paired api-request timestamp through the last logged response block; it is a session-log estimate, not wire latency or time to first token. Unpaired calls remain N/A. Usage and thinking token counts are upstream-reported.', '');
   }
   lines.push('## Per-trial integrity evidence', '', '| Group | Task | Trial | Pass | Exception | API errors | First input | First request digest | Thinking signed / visible | Cache hit |', '|---|---|---|---|---|---:|---:|---|---|---|');
