@@ -1,5 +1,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import { readClaudeEvidence } from './claude-evidence.mjs';
+import { integrityReport } from './integrity-report.mjs';
 
 const number = (value) => typeof value === 'number' && Number.isFinite(value) && value >= 0 ? value : null;
 const safeText = (value) => String(value ?? '').replace(/[\r\n|]/g, ' ');
@@ -35,9 +37,10 @@ export async function readJob(directory) {
     const result = JSON.parse(await fs.readFile(file, 'utf8'));
     if (!result.task_name) return null;
     const trialDirectory = path.dirname(file);
-    const [trajectory, verifier] = await Promise.all([
+    const [trajectory, verifier, evidence] = await Promise.all([
       optionalJson(path.join(trialDirectory, 'agent', 'trajectory.json')),
       optionalJson(path.join(trialDirectory, 'verifier', 'ctrf.json')),
+      readClaudeEvidence(path.join(trialDirectory, 'agent', 'sessions')),
     ]);
     const execution = result.agent_execution || {};
     const agent = result.agent_result || {};
@@ -57,6 +60,7 @@ export async function readJob(directory) {
       toolCalls: trajectory?.steps ? trajectory.steps.reduce((sum, step) => sum + (Array.isArray(step.tool_calls) ? step.tool_calls.length : 0), 0) : null,
       checks: number(verifier?.results?.summary?.tests),
       checksPassed: number(verifier?.results?.summary?.passed),
+      evidence,
     };
   })).then((results) => results.filter(Boolean));
 }
@@ -172,6 +176,7 @@ export async function buildReport(jobsDirectory, input = {}) {
   ]);
   lines.push('Quality is measured by the independent task verifier, not an invented intelligence score. A pass requires reward 1 with no execution exception. Missing usage remains N/A, never zero.', '',
     `Cost sources: ${[...new Set(routes.flatMap((route) => route.costSources))].filter(Boolean).join('; ') || 'Unavailable'}. Neither source verifies the router invoice.`, '');
+  lines.push(...integrityReport(jobs, input, perJob));
   const baselineMeans = jobs.slice(0, 2).map((group) => summarizeTrials(group).meanSeconds);
   if (baselineMeans.every((value) => value !== null)) lines.push(`Baseline repeat check: SynthorAI A mean ${decimal(baselineMeans[0])} s; B mean ${decimal(baselineMeans[1])} s.`, '');
   lines.push('This sample measures only the selected task. Small samples do not establish general intelligence, stable speed advantages, or model identity. Usage counters and upstream model identity have not been independently audited.', '');

@@ -1,6 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createServer } from './server.mjs';
+import { BenchmarkService } from './service.mjs';
+import { RunStore } from './store.mjs';
+import fs from 'node:fs/promises';
+import os from 'node:os';
+import path from 'node:path';
 
 async function fixture() {
   const run = { id: '11111111-1111-4111-8111-111111111111', status: 'completed' };
@@ -43,5 +48,33 @@ test('report preview module is served as JavaScript and missing reports return J
   response = await fetch(`${base}/api/router-bench/runs/22222222-2222-4222-8222-222222222222/report`);
   assert.equal(response.status, 404);
   assert.deepEqual(await response.json(), { error: 'The report is not available yet.' });
+});
+
+test('failed run retains its downloadable evidence report through the real service and API', async t => {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'failed-report-api-'));
+  t.after(() => fs.rm(root, { recursive: true, force: true }));
+  const store = new RunStore(root);
+  const service = new BenchmarkService({ store, lookup: async () => [{ address: '8.8.8.8' }], executor: {
+    async run(id) {
+      await fs.writeFile(path.join(root, id, 'report.md'), '# Integrity hard gates\n\nFAIL: trial exception\n');
+      throw new Error('Benchmark job failed validation.');
+    },
+  } });
+  const server = createServer({ service });
+  await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+  t.after(() => server.close());
+  const base = `http://127.0.0.1:${server.address().port}`;
+  const created = await fetch(`${base}/api/router-bench/runs`, { method: 'POST', headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ model: 'claude-opus-4-8', synthoraiKey: 'SENTINEL_A', nibrouteKey: 'SENTINEL_B', trials: 1 }) });
+  assert.equal(created.status, 202);
+  const { run } = await created.json();
+  await service.active.get(run.id);
+  const current = await fetch(`${base}/api/router-bench/runs/${run.id}`);
+  assert.equal((await current.json()).run.status, 'failed');
+  const report = await fetch(`${base}/api/router-bench/runs/${run.id}/report`);
+  assert.equal(report.status, 200);
+  assert.match(report.headers.get('content-type'), /text\/markdown/);
+  assert.match(await report.text(), /FAIL: trial exception/);
+  assert.doesNotMatch(await fs.readFile(path.join(root, run.id, 'run.json'), 'utf8'), /SENTINEL/);
 });
 

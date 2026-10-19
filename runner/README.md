@@ -29,6 +29,12 @@ The HTTP request only creates the run. Harbor jobs continue in the runner servic
 
 API keys are accepted in the create request and passed to Harbor only through child-process environment variables. They are not included in `run.json`, API responses, or reports. No separate operator token is required. Concurrency limits and required per-router credentials constrain execution.
 
+Reports retain performance, estimated price/cache, and verifier quality, and add separate A/A and A/B statistical tables plus integrity gates. Claude Code session JSONL supplies response models, visible thinking signature presence, first-response usage paired to the request digest, observed API errors, message ID prefixes and inference geography. Split message records are deduplicated. Unknown measurements are never filled with zeros. No raw prompts, thinking text or signatures are copied into the report.
+
+The fixed routers are both intermediaries. Neither is a direct official reference, so official token equality and official error ceilings remain unverified. Request digests must match before comparing first input counts; compatibility fallback can change settings and invalidate that comparison. Signature presence and backend hints cannot authenticate a model. Retained session error messages do not cover every HTTP retry; unpaired request records are shown separately. Statistical tests operate on trials within task strata, with exact small-sample permutations and deterministic Monte Carlo otherwise. Logged call durations are estimates, not network latency.
+
+A failed Harbor job still generates a report showing exceptions and missing evidence. Its run status remains failed, and the UI offers the same report preview/download controls.
+
 ## Reverse proxy
 
 Route the whole hostname to the runner so the UI and API remain same-origin:

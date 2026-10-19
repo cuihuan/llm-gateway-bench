@@ -13,6 +13,7 @@ const userFacingFiles = [
   'runner/service.mjs',
   'runner/validation.mjs',
   'runner/terminal-report.mjs',
+  'runner/integrity-report.mjs',
 ];
 
 test('benchmark UI, API errors and reports contain no CJK copy', async () => {
@@ -30,4 +31,5 @@ test('benchmark form exposes fixed routers and no endpoint or agent controls', a
   assert.doesNotMatch(html, /accessToken|Operator access token|Unlock the runner/);
   const script = await fs.readFile(path.join(repositoryRoot, 'web/benchmark/testRouter/app.js'), 'utf8');
   assert.doesNotMatch(script, /benchmarkToken|x-benchmark-token|accessToken/);
+  assert.match(script, /\['completed', 'failed'\]\.includes\(run.status\)/);
 });

@@ -36,6 +36,9 @@ test('three-dimension report previews every section and its route tables', async
   assert.match(html, /<h3>1\. Performance<\/h3>/);
   assert.match(html, /<h3>2\. Price &amp; cache<\/h3>/);
   assert.match(html, /<h3>3\. Quality &amp; governance<\/h3>/);
-  assert.equal((html.match(/<table>/g) || []).length, 4);
+  assert.equal((html.match(/<table>/g) || []).length, 9);
+  assert.match(html, /Integrity hard gates/);
+  assert.match(html, /Statistical comparison: NIBRoute/);
+  assert.match(html, /NO DIRECT OFFICIAL REFERENCE/);
   assert.match(html, /<td>Not collected<\/td>/);
 });
