@@ -129,10 +129,16 @@ input::placeholder { color: #969eaa; }
 .report-content p { margin: 8px 0; }
 .report-content blockquote { margin: 20px 0; padding: 12px 16px; background: var(--bg-alt); border-left: 3px solid var(--indigo); color: var(--ink-3); }
 .report-table { overflow-x: auto; margin: 22px 0; }
-.report-table table { width: 100%; border-collapse: collapse; white-space: nowrap; font-size: 13px; }
+.report-table table { width: 100%; border-collapse: collapse; font-size: 13px; }
 .report-table th, .report-table td { padding: 12px 14px; text-align: right; border-bottom: 1px solid var(--line); }
 .report-table th { background: var(--bg-alt); font-weight: 600; }
 .report-table th:first-child, .report-table td:first-child { text-align: left; }
+.report-table td:not(:first-child), .report-table th:not(:first-child) { white-space: nowrap; }
+.report-table th:first-child { width: 52%; }
+.report-content h3 { padding-top: 16px; border-top: 1px solid var(--line); color: var(--indigo); }
+.report-content > p { color: var(--ink-3); font-size: 13px; }
+.report-content ul { margin: 14px 0 24px; padding-left: 22px; }
+.report-content li { margin: 8px 0; }
 .report-content pre { overflow-x: auto; padding: 16px; background: var(--bg-alt); border-radius: 8px; }
 .error-text { color: #a22; font-size: 12px; }
 .site-footer { margin-top: 40px; }

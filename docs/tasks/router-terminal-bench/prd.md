@@ -16,6 +16,8 @@ Provide a hosted console at `/benchmark/testRouter/` where an operator can compa
 - Never persist, log, echo, or include API keys in process arguments.
 - List past runs, inspect a run, cancel an active run, and download its report/artifacts.
 - Preview completed reports inline in an accessible dialog with comparison tables, loading/error states, and a Markdown download. Render report content as escaped text; never execute embedded HTML.
+- Reports compare three dimensions: performance, price/cache, and quality/governance. Pool baseline A/B by router, report total and normalized costs, token-weighted cache-read hit rate, independent verifier passes/rewards, and execution/accounting exceptions. Keep missing usage as N/A. Agent/Harbor costs are estimates; actual billed spend is unavailable without provider billing evidence. Do not equate a single task score with general intelligence.
+- Keep the latest nine-trial run when cleaning up the two historical pilot runs. Archive the two exact pilot directories outside the visible run store so deletion is recoverable; do not remove the current run or implement automatic deletion of future runs.
 - Limit concurrency and reject loopback/private-network targets to prevent SSRF.
 - Let an operator start a run by entering only the two router API keys; do not require a separate console token.
 
