@@ -64,6 +64,7 @@ fs.writeFileSync(path.join(dir, 'result.json'), JSON.stringify({ task_name: 'leg
   const report = await fs.readFile(path.join(root, 'test-run', 'report.md'), 'utf8');
   assert.match(report, /AgentAuthenticationError/);
   assert.match(report, /Integrity hard gates/);
+  assert.match(report, /Run: test-run/);
   assert.match(report, /UNVERIFIED/);
   assert.doesNotMatch(report, /SENTINEL/);
   assert.equal(progress['candidate-1'], 'failed');

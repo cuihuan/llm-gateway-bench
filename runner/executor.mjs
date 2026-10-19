@@ -86,7 +86,7 @@ export class HarborExecutor {
       const outcomes = await Promise.allSettled(promises);
       const failures = outcomes.filter((outcome) => outcome.status === 'rejected');
       const reportPath = path.join(root, 'report.md');
-      await fsp.writeFile(reportPath, await buildReport(jobs, input), { mode: 0o600 });
+      await fsp.writeFile(reportPath, await buildReport(jobs, { ...input, runId: id, generatedAt: new Date().toISOString() }), { mode: 0o600 });
       if (failures.length) throw new AggregateError(failures.map((failure) => failure.reason), `${failures.length} benchmark job(s) failed validation. See the report for observed exceptions and missing evidence.`);
       return { reportPath };
     } finally {

@@ -46,6 +46,7 @@ export async function readJob(directory) {
     const agent = result.agent_result || {};
     const metrics = trajectory?.final_metrics || {};
     return {
+      id: path.basename(trialDirectory),
       task: String(result.task_name).split('/').at(-1),
       reward: number(result.verifier_result?.rewards?.reward),
       error: result.exception_info ? result.exception_info.exception_type || 'TrialError' : null,
@@ -111,6 +112,7 @@ export async function buildReport(jobsDirectory, input = {}) {
   const lines = ['# Router Comparison Report', '',
     `Model: ${safeText(input.model || '-')} · Task: ${safeText(input.task || groups[0][0]?.task || '-')} · Agent: ${safeText(input.agent || 'claude-code')}`, '',
     'SynthorAI A and B are pooled. Compare cost per trial and per successful task because the baseline runs twice as many trials.', ''];
+  if (input.runId) lines.splice(2, 0, `Run: ${safeText(input.runId)} · Generated (UTC): ${safeText(input.generatedAt || '-')}`, '');
   const table = (rows) => {
     lines.push(`| Metric | ${labels.map(safeText).join(' | ')} |`, `|---|${labels.map(() => '---:').join('|')}|`);
     for (const [label, cell] of rows) lines.push(`| ${label} | ${routes.map(cell).join(' | ')} |`);

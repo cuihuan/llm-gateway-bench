@@ -83,6 +83,7 @@ test('reader joins result, trajectory usage, tool calls and independent verifier
   assert.equal(result.checks, 5);
   assert.equal(result.reward, 0);
   assert.equal(result.costSource, 'Harbor pricing estimate');
+  assert.equal(result.id, path.basename(root));
 });
 
 test('report pools A/B, compares normalized costs, and includes all three dimensions', async t => {
@@ -93,7 +94,8 @@ test('report pools A/B, compares normalized costs, and includes all three dimens
     await fs.writeFile(path.join(dir, 'result.json'), JSON.stringify({ task_name: 'legacy/regex-log',
       verifier_result: { rewards: { reward: 1 } }, agent_result: { cost_usd: 0.2, n_input_tokens: 100, n_cache_tokens: 80, n_output_tokens: 20 } }));
   }
-  const report = await buildReport(root, { model: 'claude-opus-4-8', trials: 1, candidates: [{ name: 'NIBRoute' }] });
+  const report = await buildReport(root, { runId: 'audit-run', generatedAt: '2026-10-19T06:00:00Z', model: 'claude-opus-4-8', trials: 1, candidates: [{ name: 'NIBRoute' }] });
+  assert.match(report, /Run: audit-run.*Generated \(UTC\): 2026-10-19T06:00:00Z/);
   assert.match(report, /## 1\. Performance/);
   assert.match(report, /## 2\. Price & cache/);
   assert.match(report, /## 3\. Quality & governance/);

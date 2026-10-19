@@ -117,7 +117,7 @@ export function integrityReport(jobs, input, perJob) {
   lines.push('## Per-trial integrity evidence', '', '| Group | Task | Trial | Pass | Exception | API errors | First input | First request digest | Thinking signed / visible | Cache hit |', '|---|---|---|---|---|---:|---:|---|---|---|');
   jobs.forEach((ts, i) => ts.forEach((t, j) => {
     const e = t.evidence;
-    lines.push(`| ${safe(labels[i])} | ${safe(t.task)} | ${j + 1} | ${t.reward == null ? 'N/A' : !t.error && t.reward === 1 ? 'Yes' : 'No'} | ${safe(t.error || 'None')} | ${number(e?.apiErrors)} | ${number(e?.firstInput)} | ${e?.firstDigest || 'N/A'} | ${number(e?.signedBlocks)} / ${number(e?.thinkingBlocks)} | ${t.cacheRead == null ? 'N/A' : t.cacheRead > 0 ? 'Yes' : 'No'} |`);
+    lines.push(`| ${safe(labels[i])} | ${safe(t.task)} | ${safe(t.id || j + 1)} | ${t.reward == null ? 'N/A' : !t.error && t.reward === 1 ? 'Yes' : 'No'} | ${safe(t.error || 'None')} | ${number(e?.apiErrors)} | ${number(e?.firstInput)} | ${e?.firstDigest || 'N/A'} | ${number(e?.signedBlocks)} / ${number(e?.thinkingBlocks)} | ${t.cacheRead == null ? 'N/A' : t.cacheRead > 0 ? 'Yes' : 'No'} |`);
   }));
   lines.push('', '## First-request task check', '', `| Task | ${labels.map(safe).join(' | ')} |`, `|---|${labels.map(() => '---').join('|')}|`);
   for (const task of new Set(jobs.flat().map((t) => t.task))) {
