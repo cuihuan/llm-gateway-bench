@@ -6,6 +6,7 @@ Provide a hosted console at `/benchmark/testRouter/` where an operator can compa
 
 ## Requirements
 
+- Support a reversible production report-visibility switch. When enabled, omit finished comparisons from history, deny finished-run detail and every report download with 404, and close/clear report previews when the UI refreshes. Preserve stored jobs, report files and the ability to track active runs. New completed reports remain hidden until the switch is disabled.
 - Pin SynthorAI (`https://synthorai.io`) as the A/A baseline and NIBRoute (`https://api.aws.nibroute.xyz`) as the candidate; never accept operator-supplied endpoint URLs.
 - Accept only the two router API keys, shared model, task, and trials per job.
 - Run SynthorAI A, SynthorAI B, and NIBRoute concurrently through Harbor.

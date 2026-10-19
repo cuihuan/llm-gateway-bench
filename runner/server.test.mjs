@@ -6,6 +6,7 @@ import { RunStore } from './store.mjs';
 import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
+import { loadConfig } from './config.mjs';
 
 async function fixture() {
   const run = { id: '11111111-1111-4111-8111-111111111111', status: 'completed' };
@@ -76,5 +77,43 @@ test('failed run retains its downloadable evidence report through the real servi
   assert.match(report.headers.get('content-type'), /text\/markdown/);
   assert.match(await report.text(), /FAIL: trial exception/);
   assert.doesNotMatch(await fs.readFile(path.join(root, run.id, 'run.json'), 'utf8'), /SENTINEL/);
+});
+
+test('report visibility configuration is opt-in and reversible', () => {
+  assert.equal(loadConfig({}).reportsHidden, false);
+  assert.equal(loadConfig({ BENCHMARK_REPORTS_HIDDEN: 'true' }).reportsHidden, true);
+  assert.equal(loadConfig({ BENCHMARK_REPORTS_HIDDEN: 'false' }).reportsHidden, false);
+});
+
+test('hidden reports disappear from history and direct links while active work remains available', async t => {
+  const statuses = ['completed', 'failed', 'cancelled', 'running', 'queued'];
+  const runs = statuses.map((status, i) => ({ id: `${i + 1}1111111-1111-4111-8111-111111111111`, status }));
+  let artifactReads = 0;
+  const service = { list: async () => runs, get: async id => runs.find(run => run.id === id),
+    artifact: async () => { artifactReads++; return Buffer.from('PRIVATE_REPORT'); } };
+  const hidden = createServer({ service, reportsHidden: true });
+  const visible = createServer({ service });
+  for (const server of [hidden, visible]) {
+    await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+    t.after(() => server.close());
+  }
+  const base = `http://127.0.0.1:${hidden.address().port}`;
+  const response = await fetch(`${base}/api/router-bench/runs`);
+  assert.match(response.headers.get('cache-control'), /no-store/);
+  assert.deepEqual(await response.json(), { runs: runs.slice(3), reportsHidden: true });
+  for (const run of runs) {
+    const detail = await fetch(`${base}/api/router-bench/runs/${run.id}`);
+    assert.equal(detail.status, ['queued', 'running'].includes(run.status) ? 200 : 404);
+    const report = await fetch(`${base}/api/router-bench/runs/${run.id}/report`);
+    assert.equal(report.status, 404);
+    assert.match(report.headers.get('cache-control'), /no-store/);
+    assert.deepEqual(await report.json(), { error: 'Reports are temporarily hidden.' });
+  }
+  assert.equal(artifactReads, 0);
+  const restored = await fetch(`http://127.0.0.1:${visible.address().port}/api/router-bench/runs/${runs[0].id}/report`);
+  assert.equal(restored.status, 200);
+  assert.match(restored.headers.get('cache-control'), /no-store/);
+  assert.equal(await restored.text(), 'PRIVATE_REPORT');
+  assert.equal(runs.length, 5);
 });
 

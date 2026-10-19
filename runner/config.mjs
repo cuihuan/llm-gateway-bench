@@ -9,6 +9,7 @@ export function loadConfig(env = process.env) {
     harborBin: env.HARBOR_BIN || 'harbor',
     pythonBin: env.PYTHON_BIN || 'python3',
     maxActiveRuns: Number(env.BENCHMARK_MAX_ACTIVE_RUNS || 1),
+    reportsHidden: env.BENCHMARK_REPORTS_HIDDEN === 'true',
   };
 }
 

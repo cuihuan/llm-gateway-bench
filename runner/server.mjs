@@ -19,7 +19,7 @@ async function readJson(request) {
   try { return JSON.parse(Buffer.concat(chunks).toString('utf8')); } catch { throw Object.assign(new Error('The request body contains invalid JSON.'), { statusCode: 400 }); }
 }
 
-export function createServer({ service, staticRoot = webRoot }) {
+export function createServer({ service, staticRoot = webRoot, reportsHidden = false }) {
   return http.createServer(async (request, response) => {
     try {
       const url = new URL(request.url, 'http://localhost');
@@ -27,14 +27,21 @@ export function createServer({ service, staticRoot = webRoot }) {
         const match = url.pathname.match(/^\/api\/router-bench\/runs(?:\/([a-f0-9-]{36})(?:\/(cancel|report))?)?$/);
         if (!match) return json(response, 404, { error: 'API endpoint not found.' });
         const [, id, action] = match;
-        if (request.method === 'GET' && !id) return json(response, 200, { runs: await service.list() });
+        if (request.method === 'GET' && !id) {
+          const runs = await service.list();
+          return json(response, 200, { runs: reportsHidden ? runs.filter((run) => ['queued', 'running'].includes(run.status)) : runs, reportsHidden });
+        }
         if (request.method === 'POST' && !id) return json(response, 202, { run: await service.create(await readJson(request)) });
-        if (request.method === 'GET' && id && !action) { const run = await service.get(id); return run ? json(response, 200, { run }) : json(response, 404, { error: 'Benchmark run not found.' }); }
+        if (request.method === 'GET' && id && !action) {
+          const run = await service.get(id);
+          return run && (!reportsHidden || ['queued', 'running'].includes(run.status)) ? json(response, 200, { run }) : json(response, 404, { error: 'Benchmark run not found.' });
+        }
         if (request.method === 'POST' && action === 'cancel') { const run = await service.cancel(id); return run ? json(response, 200, { run }) : json(response, 404, { error: 'Benchmark run not found.' }); }
         if (request.method === 'GET' && action === 'report') {
+          if (reportsHidden) return json(response, 404, { error: 'Reports are temporarily hidden.' });
           const artifact = await service.artifact(id, 'report');
           if (!artifact) return json(response, 404, { error: 'The report is not available yet.' });
-          response.writeHead(200, { 'content-type': 'text/markdown; charset=utf-8', 'content-disposition': `attachment; filename=router-bench-${id}.md` });
+          response.writeHead(200, { 'content-type': 'text/markdown; charset=utf-8', 'cache-control': 'no-store', 'content-disposition': `attachment; filename=router-bench-${id}.md` });
           return response.end(artifact);
         }
         return json(response, 405, { error: 'Method not allowed.' });
@@ -57,6 +64,6 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const config = loadConfig();
   const store = new RunStore(config.dataDir);
   const service = new BenchmarkService({ store, executor: new HarborExecutor(config), maxActiveRuns: config.maxActiveRuns });
-  createServer({ service }).listen(config.port, config.host, () => console.log(`router benchmark listening on ${config.host}:${config.port}`));
+  createServer({ service, reportsHidden: config.reportsHidden }).listen(config.port, config.host, () => console.log(`router benchmark listening on ${config.host}:${config.port}`));
 }
 

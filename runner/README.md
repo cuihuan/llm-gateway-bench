@@ -22,6 +22,7 @@ Configuration:
 | `TERMINAL_BENCH_DIR` | `./terminal-bench` | Pinned Terminal-Bench checkout |
 | `HARBOR_BIN` | `harbor` | Harbor executable |
 | `BENCHMARK_MAX_ACTIVE_RUNS` | `1` | Concurrent comparison groups |
+| `BENCHMARK_REPORTS_HIDDEN` | `false` | Set to `true` to hide finished history/details and block all report downloads without deleting stored evidence; active runs remain visible |
 
 Each comparison pins SynthorAI as the baseline and NIBRoute as the candidate. SynthorAI runs twice (A/A) and NIBRoute runs once. Claude models use Harbor's `claude-code` agent with `ANTHROPIC_BASE_URL` and `ANTHROPIC_API_KEY`; all other models use Harbor's `codex` agent with `OPENAI_BASE_URL` and `OPENAI_API_KEY`. The other provider's variables are removed from every child environment. Caller-supplied endpoint URLs and agent values are ignored.
 
