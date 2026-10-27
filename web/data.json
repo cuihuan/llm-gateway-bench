@@ -1,11 +1,11 @@
 {
-  "generatedAt": "2026-10-27T12:13:41.807Z",
+  "generatedAt": "2026-10-27T18:04:01.370Z",
   "demo": false,
   "windowDays": 30,
   "regions": [
     "gh-us"
   ],
-  "runCount": 522,
+  "runCount": 523,
   "gateways": [
     {
       "id": "synthorai",
@@ -46,16 +46,16 @@
       "region": "gh-us",
       "byRegion": {
         "gh-us": {
-          "uptimePct": 93.27,
-          "uptime7dPct": 93,
-          "probes": 1173,
-          "ttftP50": 1193,
-          "connMs": 316
+          "uptimePct": 93.33,
+          "uptime7dPct": 93.27,
+          "probes": 1185,
+          "ttftP50": 1182,
+          "connMs": 88
         }
       },
-      "probes": 1173,
-      "uptimePct": 93.27,
-      "uptime7dPct": 93,
+      "probes": 1185,
+      "uptimePct": 93.33,
+      "uptime7dPct": 93.27,
       "daysArr": [
         {
           "date": "2026-09-28",
@@ -186,9 +186,9 @@
       },
       "authExcluded": 15,
       "speed": {
-        "ttftP50": 1193,
+        "ttftP50": 1182,
         "ttftP95": null,
-        "tps": 428,
+        "tps": 328,
         "trend": [
           {
             "date": "2026-09-28",
@@ -308,14 +308,14 @@
           },
           {
             "date": "2026-10-27",
-            "ttftP50": 1123
+            "ttftP50": 1151
           }
         ]
       },
       "toolCalls": {
         "ok": 4,
         "total": 4,
-        "nonStreamMs": 1249
+        "nonStreamMs": 2106
       },
       "streamBurst": {
         "suspect": 1,
@@ -324,23 +324,23 @@
       "usageByModel": [
         {
           "model": "gemini-2.5-flash",
-          "charsPerToken": 0.06,
+          "charsPerToken": 0.65,
           "promptTokens": 27
         },
         {
           "model": "claude-haiku-4-5-20251001",
           "charsPerToken": 3.53,
-          "promptTokens": 36
+          "promptTokens": 37
         },
         {
           "model": "deepseek-v4-flash",
           "charsPerToken": 3.98,
-          "promptTokens": 32
+          "promptTokens": 31
         },
         {
           "model": "gpt-5.4-nano",
           "charsPerToken": 3.77,
-          "promptTokens": 35
+          "promptTokens": 33
         }
       ],
       "integrity": {
@@ -439,7 +439,7 @@
           "hour": 18,
           "ttftP50": 1154,
           "okRate": 100,
-          "n": 12
+          "n": 24
         },
         {
           "hour": 20,
@@ -475,10 +475,10 @@
         "worstOkRateHour": 10,
         "worstOkRate": 83.3
       },
-      "connMs": 316,
+      "connMs": 88,
       "connOk": true,
       "modelCount": 113,
-      "lastRun": "2026-10-27T12:12:51.229Z"
+      "lastRun": "2026-10-27T18:01:27.902Z"
     },
     {
       "id": "openrouter",
@@ -492,7 +492,7 @@
         "openai/gpt-4o-mini",
         "google/gemini-2.5-flash"
       ],
-      "priceIdx": 0.72,
+      "priceIdx": 0.59,
       "trust": {
         "id": "openrouter",
         "annotatedAt": "2026-06-10",
@@ -2334,7 +2334,7 @@
     }
   ],
   "prices": {
-    "fetchedAt": "2026-10-27T12:13:41.653Z",
+    "fetchedAt": "2026-10-27T18:04:01.183Z",
     "unit": "USD per 1M tokens [input, output]",
     "sources": {
       "official": "litellm",
@@ -2418,8 +2418,8 @@
             0.275
           ],
           "openrouter": [
-            0.05,
-            0.45
+            0.047,
+            0.095
           ],
           "modelsdev": [
             0.15,
