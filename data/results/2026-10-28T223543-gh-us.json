@@ -1,0 +1,254 @@
+{
+  "schema": 1,
+  "startedAt": "2026-10-28T22:35:43.382Z",
+  "finishedAt": "2026-10-28T22:36:59.736Z",
+  "region": "gh-us",
+  "runner": "github-actions",
+  "samplesPerModel": 3,
+  "results": [
+    {
+      "gateway": "synthorai",
+      "skipped": false,
+      "connectivity": {
+        "ok": true,
+        "latencyMs": 135,
+        "modelCount": 113
+      },
+      "models": [
+        {
+          "model": "gemini-2.5-flash",
+          "samples": 3,
+          "success": 3,
+          "successRate": 1,
+          "ttftMs": {
+            "avg": 897.3,
+            "p50": 830,
+            "p95": null
+          },
+          "tokensPerSec": {
+            "avg": 1356.5,
+            "p50": 1632.6
+          },
+          "totalMs": {
+            "avg": 956,
+            "p95": null
+          },
+          "usageReportedRate": 1,
+          "burstStreamRate": null,
+          "modelEchoRate": 1,
+          "usage": {
+            "promptTokens": 27,
+            "charsPerToken": 0.65
+          },
+          "errors": [],
+          "toolCall": {
+            "ok": true,
+            "totalMs": 1541
+          },
+          "cjk": {
+            "ok": true
+          },
+          "needle": {
+            "ok": true
+          },
+          "cache": {
+            "ok": true,
+            "reported": false,
+            "supported": null,
+            "cachedTokens": null,
+            "cachedFrac": null,
+            "ttftSpeedupPct": null
+          }
+        },
+        {
+          "model": "claude-haiku-4-5-20251001",
+          "samples": 3,
+          "success": 0,
+          "successRate": 0,
+          "ttftMs": {
+            "avg": null,
+            "p50": null,
+            "p95": null
+          },
+          "tokensPerSec": {
+            "avg": null,
+            "p50": null
+          },
+          "totalMs": {
+            "avg": null,
+            "p95": null
+          },
+          "usageReportedRate": null,
+          "burstStreamRate": null,
+          "modelEchoRate": null,
+          "usage": {
+            "promptTokens": null,
+            "charsPerToken": null
+          },
+          "errors": [
+            "HTTP 400 {\"error\":{\"message\":\"Access to Anthropic models is not allowed for this account.\",\"type\":\"invalid_request_error\"},\"type\"",
+            "HTTP 400 {\"error\":{\"message\":\"Access to Anthropic models is not allowed for this account.\",\"type\":\"invalid_request_error\"},\"type\"",
+            "HTTP 400 {\"error\":{\"message\":\"Access to Anthropic models is not allowed for this account.\",\"type\":\"invalid_request_error\"},\"type\""
+          ],
+          "toolCall": {
+            "ok": false,
+            "totalMs": 365,
+            "error": "HTTP 400 {\"error\":{\"message\":\"Access to Anthropic models is not allowed for this account.\",\"type\":\"invalid_request_error\"},\"type\""
+          },
+          "cjk": {
+            "ok": false,
+            "error": "HTTP 400 {\"error\":{\"message\":\"Access to Anthropic models is not allowed for this account.\",\"type\":\"invalid_request_error\"},\"type\""
+          },
+          "needle": {
+            "ok": false,
+            "error": "HTTP 400 {\"error\":{\"message\":\"Access to Anthropic models is not allowed for this account.\",\"type\":\"invalid_request_error\"},\"type\""
+          },
+          "cache": {
+            "ok": false,
+            "error": "HTTP 400 {\"error\":{\"message\":\"Access to Anthropic models is not allowed for this account."
+          }
+        },
+        {
+          "model": "deepseek-v4-flash",
+          "samples": 3,
+          "success": 3,
+          "successRate": 1,
+          "ttftMs": {
+            "avg": 4917,
+            "p50": 5159,
+            "p95": null
+          },
+          "tokensPerSec": {
+            "avg": 36.5,
+            "p50": 35.6
+          },
+          "totalMs": {
+            "avg": 6647.7,
+            "p95": null
+          },
+          "usageReportedRate": 1,
+          "burstStreamRate": 0,
+          "modelEchoRate": 1,
+          "usage": {
+            "promptTokens": 33,
+            "charsPerToken": 3.98
+          },
+          "errors": [],
+          "toolCall": {
+            "ok": true,
+            "totalMs": 9280
+          },
+          "cjk": {
+            "ok": true
+          },
+          "needle": {
+            "ok": true
+          },
+          "cache": {
+            "ok": true,
+            "reported": true,
+            "supported": false,
+            "cachedTokens": 0,
+            "cachedFrac": 0,
+            "ttftSpeedupPct": 84
+          }
+        },
+        {
+          "model": "gpt-5.4-nano",
+          "samples": 3,
+          "success": 3,
+          "successRate": 1,
+          "ttftMs": {
+            "avg": 1200.7,
+            "p50": 883,
+            "p95": null
+          },
+          "tokensPerSec": {
+            "avg": 165.7,
+            "p50": 168
+          },
+          "totalMs": {
+            "avg": 1582.3,
+            "p95": null
+          },
+          "usageReportedRate": 1,
+          "burstStreamRate": 0,
+          "modelEchoRate": 1,
+          "usage": {
+            "promptTokens": 33,
+            "charsPerToken": 3.77
+          },
+          "errors": [],
+          "toolCall": {
+            "ok": true,
+            "totalMs": 1042
+          },
+          "cjk": {
+            "ok": true
+          },
+          "needle": {
+            "ok": true
+          },
+          "cache": {
+            "ok": true,
+            "reported": true,
+            "supported": true,
+            "cachedTokens": 1792,
+            "cachedFrac": 0.76,
+            "ttftSpeedupPct": -269
+          }
+        }
+      ]
+    },
+    {
+      "gateway": "openrouter",
+      "skipped": true,
+      "reason": "missing OPENROUTER_API_KEY"
+    },
+    {
+      "gateway": "aihubmix",
+      "skipped": true,
+      "reason": "missing AIHUBMIX_API_KEY"
+    },
+    {
+      "gateway": "openai-direct",
+      "skipped": true,
+      "reason": "missing OPENAI_API_KEY"
+    },
+    {
+      "gateway": "deepseek-direct",
+      "skipped": true,
+      "reason": "missing DEEPSEEK_API_KEY"
+    },
+    {
+      "gateway": "moonshot-direct",
+      "skipped": true,
+      "reason": "missing MOONSHOT_API_KEY"
+    },
+    {
+      "gateway": "siliconflow",
+      "skipped": true,
+      "reason": "missing SILICONFLOW_API_KEY"
+    },
+    {
+      "gateway": "groq",
+      "skipped": true,
+      "reason": "missing GROQ_API_KEY"
+    },
+    {
+      "gateway": "together",
+      "skipped": true,
+      "reason": "missing TOGETHER_API_KEY"
+    },
+    {
+      "gateway": "ohmygpt",
+      "skipped": true,
+      "reason": "missing OHMYGPT_API_KEY"
+    },
+    {
+      "gateway": "closeai",
+      "skipped": true,
+      "reason": "missing CLOSEAI_API_KEY"
+    }
+  ]
+}
