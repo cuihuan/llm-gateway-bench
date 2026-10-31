@@ -162,3 +162,7 @@ input::placeholder { color: #969eaa; }
   .runs-head { align-items: flex-end; }
   .footer-bottom { display: grid; gap: 8px; }
 }
+
+/* Headings and short labels wrap evenly; no single word left on a line of its own (2026-10-31). */
+h1, h2, h3, h4, h2 .anchor, figcaption, button { text-wrap: balance; }
+p, li, dd { text-wrap: pretty; }
