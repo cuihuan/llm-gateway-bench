@@ -117,3 +117,26 @@ test('hidden reports disappear from history and direct links while active work r
   assert.equal(runs.length, 5);
 });
 
+
+test('directory paths serve their index page and static files carry their real types', async t => {
+  const { server, base } = await fixture(); t.after(() => server.close());
+  let response = await fetch(`${base}/`);
+  assert.equal(response.status, 200);
+  assert.match(response.headers.get('content-type'), /text\/html/);
+  assert.match(await response.text(), /<title>LLM Gateway Bench/);
+  response = await fetch(`${base}/benchmark/testRouter/`);
+  assert.equal(response.status, 200);
+  assert.match(await response.text(), /<html/i);
+  for (const [file, type] of [['/calc.mjs', /text\/javascript/], ['/report.mjs', /text\/javascript/], ['/sitemap.xml', /application\/xml/],
+    ['/robots.txt', /text\/plain/], ['/llms.txt', /text\/plain/], ['/data.json', /application\/json/], ['/fidelity-scatter.svg', /image\/svg\+xml/],
+    ['/articles/billing-traps.md', /text\/markdown/]]) {
+    response = await fetch(`${base}${file}`);
+    assert.equal(response.status, 200, file);
+    assert.match(response.headers.get('content-type'), type, file);
+  }
+  response = await fetch(`${base}/benchmark`);
+  assert.equal(response.status, 404);
+  assert.deepEqual(await response.json(), { error: 'Page not found.' });
+  response = await fetch(`${base}/missing/`);
+  assert.equal(response.status, 404);
+});

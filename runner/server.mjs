@@ -8,6 +8,12 @@ import { HarborExecutor } from './executor.mjs';
 import { BenchmarkService } from './service.mjs';
 
 const webRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../web');
+// Module scripts are refused by browsers unless served with a JavaScript type.
+const contentTypes = {
+  '.css': 'text/css', '.js': 'text/javascript', '.mjs': 'text/javascript',
+  '.json': 'application/json; charset=utf-8', '.xml': 'application/xml; charset=utf-8',
+  '.txt': 'text/plain; charset=utf-8', '.svg': 'image/svg+xml', '.md': 'text/markdown; charset=utf-8',
+};
 
 function json(response, status, body) {
   response.writeHead(status, { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' });
@@ -47,14 +53,14 @@ export function createServer({ service, staticRoot = webRoot, reportsHidden = fa
         return json(response, 405, { error: 'Method not allowed.' });
       }
       const pathname = url.pathname === '/benchmark/testRouter' ? '/benchmark/testRouter/' : url.pathname;
-      const relative = pathname === '/benchmark/testRouter/' ? 'benchmark/testRouter/index.html' : pathname.replace(/^\//, '');
+      const relative = pathname.endsWith('/') ? `${pathname.slice(1)}index.html` : pathname.replace(/^\//, '');
       const file = path.resolve(staticRoot, relative);
       if (!file.startsWith(`${staticRoot}${path.sep}`)) return json(response, 404, { error: 'Page not found.' });
       const content = await fs.readFile(file);
-      const type = file.endsWith('.css') ? 'text/css' : file.endsWith('.js') ? 'text/javascript' : 'text/html; charset=utf-8';
+      const type = contentTypes[path.extname(file)] || 'text/html; charset=utf-8';
       response.writeHead(200, { 'content-type': type }); response.end(content);
     } catch (error) {
-      if (error.code === 'ENOENT') return json(response, 404, { error: 'Page not found.' });
+      if (error.code === 'ENOENT' || error.code === 'EISDIR') return json(response, 404, { error: 'Page not found.' });
       json(response, error.statusCode || 400, { error: String(error.message || error) });
     }
   });
