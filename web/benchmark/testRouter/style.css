@@ -77,7 +77,7 @@ input::placeholder { color: #969eaa; }
 .router-card code { display: block; margin: 14px 0 18px; color: var(--ink-3); font-size: 12px; }
 .router-card label span { display: block; margin-bottom: 7px; color: var(--ink-3); font: 600 10px var(--mono); letter-spacing: .04em; text-transform: uppercase; }
 .router-card input { margin: 0; }
-.verified { padding: 5px 8px; border-radius: 999px; color: #08748d; background: rgba(11,150,184,.09); font: 600 10px var(--mono); text-transform: uppercase; }
+.verified { padding: 5px 8px; border-radius: 999px; color: #076c84; background: rgba(11,150,184,.09); font: 600 10px var(--mono); text-transform: uppercase; }
 
 .run-summary {
   display: grid;
@@ -106,7 +106,7 @@ input::placeholder { color: #969eaa; }
 .run-title b { font-size: 16px; }
 .status { padding: 4px 8px; border-radius: 999px; background: var(--bg-alt); font: 600 11px var(--mono); }
 .status.running { color: var(--indigo); background: rgba(74, 91, 214, .09); }
-.status.completed { color: #08748d; background: rgba(11, 150, 184, .09); }
+.status.completed { color: #076c84; background: rgba(11, 150, 184, .09); }
 .status.failed, .status.cancelled { color: #a22; background: #fff0f0; }
 .run-meta { justify-content: flex-start; flex-wrap: wrap; margin: 10px 0; color: var(--ink-3); font-size: 12px; }
 .run-meta span + span::before { content: '·'; margin-right: 12px; }

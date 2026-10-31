@@ -16,11 +16,11 @@
   --border-soft: #eef2f6;
   --text: #0f172a;          /* slate-900 headings / body */
   --muted: #475569;         /* slate-600 secondary text */
-  --faint: #94a3b8;         /* slate-400 de-emphasized */
-  --accent: #6366f1;        /* indigo */
-  --accent-strong: #4f46e5;
+  --faint: #5f6e83;         /* de-emphasized; slate-400 was 2.6:1 on white */
+  --accent: #4f46e5;        /* indigo-600; indigo-500 was 4.5:1 as text */
+  --accent-strong: #4338ca;
   --accent-soft: #eef2ff;   /* very light indigo background */
-  --good: #059669; --warn: #d97706; --bad: #dc2626;
+  --good: #047857; --warn: #b45309; --bad: #b91c1c; /* one shade darker so they read as text (>=4.5:1) */
   --good-bg: #ecfdf5; --warn-bg: #fffbeb; --bad-bg: #fef2f2; --unk-bg: #f1f5f9;
   --good-bd: #a7f3d0; --warn-bd: #fde68a; --bad-bd: #fecaca;
   --grad: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
@@ -131,7 +131,7 @@ td.r, th.r { text-align: right; }
 .pain h3 a { color: var(--text); }
 .pain h3 a:hover { color: var(--accent); }
 .pain p { color: var(--muted); font-size: 14px; line-height: 1.6; }
-.pain a { font-size: 14px; }
+.pain a { font-size: 14px; text-decoration: underline; text-underline-offset: 2px; }
 
 /* ===== Stability panel ===== */
 .stab-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(540px, 1fr)); gap: 16px; }
@@ -152,6 +152,7 @@ td.r, th.r { text-align: right; }
 /* ===== Annotations / footnotes ===== */
 .evidence { font-size: 11.5px; color: var(--faint); }
 .fn { font-size: 13px; color: var(--muted); margin-top: 14px; line-height: 1.6; }
+.fn a { text-decoration: underline; text-underline-offset: 2px; }
 .fn b { color: var(--text); }
 
 footer { margin-top: 56px; padding: 28px 0 56px; border-top: 1px solid var(--border);
@@ -300,3 +301,6 @@ article-list, .list { padding: 18px 0 8px; }
 .tier li::before { content: "✓"; color: var(--good); position: absolute; left: 0; font-weight: 700; }
 .tier .t-tag { font-size: 11px; font-weight: 700; color: var(--accent); background: var(--accent-soft);
   border-radius: 999px; padding: 3px 10px; align-self: flex-start; }
+
+/* Read by screen readers and crawlers, not drawn. */
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }

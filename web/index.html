@@ -62,6 +62,7 @@
     <div class="meta-item"><div class="k">Gateways Tested</div><div class="v" id="m-gw">—</div></div>
     <div class="meta-item"><div class="k">Probe Region</div><div class="v" id="m-region">—</div></div>
   </div>
+  <h2 class="sr-only">Three risks of routing through a gateway</h2>
   <div class="pains">
     <div class="pain"><div class="no">Risk #1</div><h3>Is it giving you the real model?</h3>
       <p>Swapped for a cheaper model, silent quantization degradation, stripped tool calls, fake streaming (buffer then dump as if streaming). See <a href="#catalog">tool calling / streaming authenticity ↓</a> and <a href="#trust">behavior fingerprints ↓</a></p></div>
@@ -98,7 +99,7 @@
       </div>
     </div>
     <div class="wz-row"><span class="pk-label">Type</span>
-      <select id="rec-cat"><option value="">Any</option><option>Gateway</option><option>Official Direct</option><option>Provider</option></select>
+      <select id="rec-cat" aria-label="Type"><option value="">Any</option><option>Gateway</option><option>Official Direct</option><option>Provider</option></select>
       <span class="muted" style="font-size:12px">Multiple selections are weighted equally; can be cross-referenced with the leaderboard below</span>
     </div>
     <div class="rec-out" id="rec-out"></div>
@@ -120,8 +121,8 @@
     </div>
     <div class="picker-row">
       <span class="pk-label">Filter</span>
-      <select id="f-proto"><option value="">Protocol: All</option><option>OpenAI</option><option>OpenAI · Anthropic</option></select>
-      <select id="f-cat"><option value="">Type: All</option><option>Gateway</option><option>Official Direct</option><option>Provider</option></select>
+      <select id="f-proto" aria-label="Protocol"><option value="">Protocol: All</option><option>OpenAI</option><option>OpenAI · Anthropic</option></select>
+      <select id="f-cat" aria-label="Type"><option value="">Type: All</option><option>Gateway</option><option>Official Direct</option><option>Provider</option></select>
       <a class="pk-self" href="reports.html">+ Test my own gateway</a>
     </div>
     <div class="verdict" id="verdict"></div>
