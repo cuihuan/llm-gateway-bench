@@ -1,5 +1,17 @@
 [
   {
+    "id": "therouter",
+    "name": "TheRouter.ai",
+    "website": "https://therouter.ai/",
+    "baseUrl": "https://api.therouter.ai",
+    "protocol": "openai",
+    "authEnv": "THEROUTER_API_KEY",
+    "probeModels": ["openai/gpt-4o-mini"],
+    "pricingUrl": "https://therouter.ai/pricing/",
+    "tags": ["gateway", "openai-compatible"],
+    "notes": "Hosted multi-provider gateway; entry submitted by an affiliate of the operator. Runtime measurements require an authorized key."
+  },
+  {
     "id": "synthorai",
     "name": "Synthorai",
     "website": "https://synthorai.io",
