@@ -1,0 +1,251 @@
+{
+  "schema": 1,
+  "startedAt": "2026-11-10T19:44:20.430Z",
+  "finishedAt": "2026-11-10T19:45:03.442Z",
+  "region": "gh-us",
+  "runner": "github-actions",
+  "samplesPerModel": 3,
+  "results": [
+    {
+      "gateway": "synthorai",
+      "skipped": false,
+      "connectivity": {
+        "ok": true,
+        "latencyMs": 290,
+        "modelCount": 116
+      },
+      "models": [
+        {
+          "model": "gemini-2.5-flash",
+          "samples": 3,
+          "success": 3,
+          "successRate": 1,
+          "ttftMs": {
+            "avg": 1121.3,
+            "p50": 1016,
+            "p95": null
+          },
+          "tokensPerSec": {
+            "avg": 1288.9,
+            "p50": 1356.7
+          },
+          "totalMs": {
+            "avg": 1179,
+            "p95": null
+          },
+          "usageReportedRate": 1,
+          "burstStreamRate": null,
+          "modelEchoRate": 1,
+          "usage": {
+            "promptTokens": 28,
+            "charsPerToken": 0.65
+          },
+          "errors": [],
+          "toolCall": {
+            "ok": true,
+            "totalMs": 1172
+          },
+          "cjk": {
+            "ok": true
+          },
+          "needle": {
+            "ok": true
+          },
+          "cache": {
+            "ok": true,
+            "reported": false,
+            "supported": null,
+            "cachedTokens": null,
+            "cachedFrac": null,
+            "ttftSpeedupPct": null
+          }
+        },
+        {
+          "model": "claude-haiku-4-5-20251001",
+          "samples": 3,
+          "success": 3,
+          "successRate": 1,
+          "ttftMs": {
+            "avg": 1335.3,
+            "p50": 1357,
+            "p95": null
+          },
+          "tokensPerSec": {
+            "avg": 2861,
+            "p50": 3435.8
+          },
+          "totalMs": {
+            "avg": 1408,
+            "p95": null
+          },
+          "usageReportedRate": 1,
+          "burstStreamRate": 1,
+          "modelEchoRate": 1,
+          "usage": {
+            "promptTokens": 35,
+            "charsPerToken": 3.53
+          },
+          "errors": [],
+          "toolCall": {
+            "ok": true,
+            "totalMs": 1194
+          },
+          "cjk": {
+            "ok": true
+          },
+          "needle": {
+            "ok": true
+          },
+          "cache": {
+            "ok": true,
+            "reported": false,
+            "supported": null,
+            "cachedTokens": null,
+            "cachedFrac": null,
+            "ttftSpeedupPct": null
+          }
+        },
+        {
+          "model": "deepseek-v4-flash",
+          "samples": 3,
+          "success": 3,
+          "successRate": 1,
+          "ttftMs": {
+            "avg": 700.7,
+            "p50": 647,
+            "p95": null
+          },
+          "tokensPerSec": {
+            "avg": 97.8,
+            "p50": 81.5
+          },
+          "totalMs": {
+            "avg": 2364.3,
+            "p95": null
+          },
+          "usageReportedRate": 1,
+          "burstStreamRate": 0,
+          "modelEchoRate": 1,
+          "usage": {
+            "promptTokens": 32,
+            "charsPerToken": 3.98
+          },
+          "errors": [],
+          "toolCall": {
+            "ok": true,
+            "totalMs": 1594
+          },
+          "cjk": {
+            "ok": true
+          },
+          "needle": {
+            "ok": true
+          },
+          "cache": {
+            "ok": true,
+            "reported": true,
+            "supported": true,
+            "cachedTokens": 2304,
+            "cachedFrac": 0.93,
+            "ttftSpeedupPct": -431
+          }
+        },
+        {
+          "model": "gpt-5.4-nano",
+          "samples": 3,
+          "success": 3,
+          "successRate": 1,
+          "ttftMs": {
+            "avg": 704,
+            "p50": 685,
+            "p95": null
+          },
+          "tokensPerSec": {
+            "avg": 142.2,
+            "p50": 145.3
+          },
+          "totalMs": {
+            "avg": 1148,
+            "p95": null
+          },
+          "usageReportedRate": 1,
+          "burstStreamRate": 0,
+          "modelEchoRate": 1,
+          "usage": {
+            "promptTokens": 32,
+            "charsPerToken": 3.77
+          },
+          "errors": [],
+          "toolCall": {
+            "ok": true,
+            "totalMs": 970
+          },
+          "cjk": {
+            "ok": true
+          },
+          "needle": {
+            "ok": true
+          },
+          "cache": {
+            "ok": true,
+            "reported": true,
+            "supported": true,
+            "cachedTokens": 1792,
+            "cachedFrac": 0.76,
+            "ttftSpeedupPct": -104
+          }
+        }
+      ]
+    },
+    {
+      "gateway": "openrouter",
+      "skipped": true,
+      "reason": "missing OPENROUTER_API_KEY"
+    },
+    {
+      "gateway": "aihubmix",
+      "skipped": true,
+      "reason": "missing AIHUBMIX_API_KEY"
+    },
+    {
+      "gateway": "openai-direct",
+      "skipped": true,
+      "reason": "missing OPENAI_API_KEY"
+    },
+    {
+      "gateway": "deepseek-direct",
+      "skipped": true,
+      "reason": "missing DEEPSEEK_API_KEY"
+    },
+    {
+      "gateway": "moonshot-direct",
+      "skipped": true,
+      "reason": "missing MOONSHOT_API_KEY"
+    },
+    {
+      "gateway": "siliconflow",
+      "skipped": true,
+      "reason": "missing SILICONFLOW_API_KEY"
+    },
+    {
+      "gateway": "groq",
+      "skipped": true,
+      "reason": "missing GROQ_API_KEY"
+    },
+    {
+      "gateway": "together",
+      "skipped": true,
+      "reason": "missing TOGETHER_API_KEY"
+    },
+    {
+      "gateway": "ohmygpt",
+      "skipped": true,
+      "reason": "missing OHMYGPT_API_KEY"
+    },
+    {
+      "gateway": "closeai",
+      "skipped": true,
+      "reason": "missing CLOSEAI_API_KEY"
+    }
+  ]
+}
