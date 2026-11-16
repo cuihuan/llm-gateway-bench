@@ -1,0 +1,21 @@
+{
+  "id": "teapotrouter",
+  "annotatedAt": "2026-11-16",
+  "channel": {
+    "claim": "operator-submitted hosted relay; machine-readable pricing at https://teapotrouter.com/api/pricing",
+    "verify": "pending"
+  },
+  "promptRetention": {
+    "status": "unknown",
+    "text": "Operator-submitted annotation. The privacy policy states that usage, billing, and audit records are retained for operational, accounting, security, and legal needs; it does not state a position on prompt-content retention, so this is left unknown pending maintainer verification.",
+    "evidence": "https://teapotrouter.com/en/privacy"
+  },
+  "training": {
+    "status": "unknown",
+    "text": "The current privacy policy does not state whether interaction content is used for training; left unknown pending maintainer verification.",
+    "evidence": "https://teapotrouter.com/en/privacy"
+  },
+  "entity": "TBD",
+  "invoice": "TBD",
+  "disclosure": "The gateway entry and this annotation are submitted by the TeapotRouter operator (official account). All statuses are deliberately unknown/pending so the maintainer can verify independently."
+}
