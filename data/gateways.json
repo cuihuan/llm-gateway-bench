@@ -130,5 +130,17 @@
     "pricingUrl": "https://www.closeai-asia.com",
     "tags": ["gateway", "openai-compatible"],
     "notes": "Long-running CN-facing gateway, enterprise invoicing."
+  },
+  {
+    "id": "teapotrouter",
+    "name": "TeapotRouter",
+    "website": "https://teapotrouter.com",
+    "baseUrl": "https://api.teapotrouter.com",
+    "protocol": "openai",
+    "authEnv": "TEAPOTROUTER_API_KEY",
+    "probeModels": ["claude-haiku-4-5", "gpt-6.1-terra"],
+    "pricingUrl": "https://teapotrouter.com/api/pricing",
+    "tags": ["gateway", "openai-compatible", "anthropic-compatible"],
+    "notes": "Dual-protocol gateway for coding agents: Anthropic-native /v1/messages and OpenAI-compatible /v1/chat/completions behind one key; machine-readable pricing at /api/pricing; per-request usage ledger in the dashboard."
   }
 ]
