@@ -130,5 +130,17 @@
     "pricingUrl": "https://www.closeai-asia.com",
     "tags": ["gateway", "openai-compatible"],
     "notes": "Long-running CN-facing gateway, enterprise invoicing."
+  },
+  {
+    "id": "gptzzz",
+    "name": "GPTZZZ",
+    "website": "https://gptzzz.ai",
+    "baseUrl": "https://gptzzz.ai",
+    "protocol": "openai",
+    "authEnv": "GPTZZZ_PROBE_KEY",
+    "probeModels": ["gpt-6.1-sol"],
+    "pricingUrl": "https://gptzzz.ai/pricing/",
+    "tags": ["gateway", "openai-compatible"],
+    "notes": "Keys are scoped to model groups. Use an OpenAI-compatible GPT/Codex group for the listed probe model; the Claude group uses a separate key and the Messages endpoint."
   }
 ]
