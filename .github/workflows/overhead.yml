@@ -107,6 +107,55 @@ jobs:
             --gateway-version "docker-${DIGEST:-latest}" \
             --rounds 7 --per-round 25 --warmup 15 --out data/overhead.json
 
+      - name: Start Kaeso (docker, host network for fairness)
+        run: |
+          # Kaeso keeps its organizations, projects and keys in PostgreSQL and its counters in
+          # Valkey, so both run beside it (host network, like Bifrost). The mock is added the
+          # way an operator adds any OpenAI-compatible server: a custom provider speaking
+          # OpenAI Chat Completions at http://127.0.0.1:9010/v1, which Kaeso may reach because
+          # KAESO_CUSTOM_PROVIDERS_ALLOWED_NETWORKS allows loopback (it refuses private
+          # addresses by default). Request logs (ClickHouse) are off, as nothing else here logs.
+          docker run -d --name kaeso-pg --network host -e POSTGRES_USER=kaeso -e POSTGRES_PASSWORD=bench -e POSTGRES_DB=kaeso postgres:18-alpine
+          docker run -d --name kaeso-valkey --network host valkey/valkey:9-alpine valkey-server --requirepass bench --maxmemory 512mb --maxmemory-policy noeviction
+          for i in $(seq 1 60); do docker exec kaeso-pg pg_isready -h 127.0.0.1 -U kaeso -d kaeso >/dev/null 2>&1 && break; sleep 1; done
+          docker run -d --name kaeso --network host \
+            -e KAESO_PUBLIC_URL=http://localhost:8090 -e KAESO_LISTEN=127.0.0.1:8090 \
+            -e KAESO_POSTGRES_URL=postgres://kaeso:bench@127.0.0.1:5432/kaeso \
+            -e KAESO_VALKEY_URL=redis://:bench@127.0.0.1:6379 \
+            -e KAESO_MASTER_KEYS=bench:YmVuY2gtb25seS1tYXN0ZXIta2V5LW5vdC1zZWNyZXQ= \
+            -e KAESO_MAIL_TRANSPORT=log \
+            -e KAESO_CUSTOM_PROVIDERS_ALLOWED_NETWORKS=127.0.0.1/32 \
+            ghcr.io/logicplanes/kaeso-gateway:0.7
+          for i in $(seq 1 90); do curl -sf -o /dev/null http://127.0.0.1:8090/readyz && break; sleep 1; done
+          curl -sf -o /dev/null http://127.0.0.1:8090/readyz || { docker logs kaeso | tail -50; exit 1; }
+          # First-boot setup, as the first user does it in the console: the setup link, then a
+          # project, the mock as a custom provider with its model, and an API key.
+          API=http://127.0.0.1:8090/platform/v1; J=/tmp/kaeso.jar; O='Origin: http://localhost:8090'
+          TOKEN=$(docker exec kaeso kaeso setup-link 2>&1 | grep -oE 'token=[A-Za-z0-9_.~-]+' | cut -d= -f2)
+          curl -sf -c $J -H "$O" -H 'content-type: application/json' -d "{\"token\":\"$TOKEN\",\"email\":\"owner@example.com\",\"name\":\"Bench\",\"org_name\":\"Bench\",\"password\":\"bench-only-password-1234\"}" $API/auth/setup -o /dev/null
+          ORG=$(curl -sf -b $J -H "$O" $API/auth/session | jq -r '.memberships[0].org_id')
+          post() {
+            local out code; out=$(curl -s -w '\n%{http_code}' -b $J -H "$O" -H 'content-type: application/json' -d "$2" "$API$1")
+            code=${out##*$'\n'}; out=${out%$'\n'*}
+            [ "${code:0:1}" = 2 ] || { echo "POST $1 -> $code: $out" >&2; docker logs kaeso | tail -20 >&2; return 1; }
+            printf '%s' "$out"
+          }
+          post /orgs/$ORG/custom-providers '{"id":"mock","name":"Mock","base_url":"http://127.0.0.1:9010/v1","auth":"bearer","generation":"openai_chat"}' > /dev/null
+          post /orgs/$ORG/credentials '{"provider":"mock","name":"mock","secret":"sk-mock-bench-key"}' > /dev/null
+          PROJECT=$(post /orgs/$ORG/projects '{"name":"Bench"}' | jq -r .id)
+          post /orgs/$ORG/projects/$PROJECT/models '{"provider":"mock","model_id":"mock-model","custom":true,"overrides":{"input_modalities":["text"],"output_modalities":["text"],"context_limit":128000,"output_limit":16384,"input_price":"0","output_price":"0","egress_dialect":"openai_chat","tool_call":true}}' > /dev/null
+          KEY=$(post /orgs/$ORG/projects/$PROJECT/keys '{"name":"bench"}' | jq -r .secret)
+          echo "::add-mask::$KEY"; echo "KAESO_KEY=$KEY" >> "$GITHUB_ENV"
+
+      - name: Measure Kaeso overhead
+        run: |
+          VERSION=$(docker image inspect ghcr.io/logicplanes/kaeso-gateway:0.7 --format '{{index .Config.Labels "org.opencontainers.image.version"}}')
+          node probe/overhead.mjs --gateway kaeso \
+            --gateway-url http://127.0.0.1:8090/v1/chat/completions \
+            --api-key "$KAESO_KEY" --model mock/mock-model \
+            --gateway-version "${VERSION:-0.7}" \
+            --rounds 7 --per-round 25 --warmup 15 --out data/overhead.json
+
       # ---- protocol-translation fidelity (reuses the same running gateways + mock port) ----
       - name: Fidelity — LiteLLM
         if: always()
@@ -130,6 +179,14 @@ jobs:
           node probe/fidelity.mjs --gateway bifrost --gateway-url http://127.0.0.1:8080/v1/chat/completions \
             --model openai/mock-model --gateway-version "docker-${DIGEST:-latest}" --mock-port 9010 --out data/fidelity.json || true
 
+      - name: Fidelity — Kaeso
+        # Only once Kaeso is set up: without its key every probe is a 401, not a fidelity result.
+        if: always() && env.KAESO_KEY != ''
+        run: |
+          V=$(docker image inspect ghcr.io/logicplanes/kaeso-gateway:0.7 --format '{{index .Config.Labels "org.opencontainers.image.version"}}')
+          node probe/fidelity.mjs --gateway kaeso --gateway-url http://127.0.0.1:8090/v1/chat/completions \
+            --api-key "$KAESO_KEY" --model mock/mock-model --gateway-version "${V:-0.7}" --mock-port 9010 --out data/fidelity.json || true
+
       # ---- cross-format fidelity (Anthropic client -> OpenAI upstream) ----
       # The hardest translation path: an Anthropic-format client (Claude Code / the
       # Anthropic SDK) routed to an OpenAI upstream. Each gateway is driven through
@@ -148,6 +205,14 @@ jobs:
           DIGEST=$(docker image inspect maximhq/bifrost --format '{{index .RepoDigests 0}}' | grep -oE 'sha256:[a-f0-9]{12}' | head -1)
           node probe/xformat.mjs --gateway bifrost --messages-url http://127.0.0.1:8080/anthropic/v1/messages \
             --api-key sk-mock --gateway-version "docker-${DIGEST:-latest}" --mock-port 9010 --out data/xformat.json || true
+
+      - name: Cross-format fidelity — Kaeso
+        # Only once Kaeso is set up: without its key every probe is a 401, not a fidelity result.
+        if: always() && env.KAESO_KEY != ''
+        run: |
+          V=$(docker image inspect ghcr.io/logicplanes/kaeso-gateway:0.7 --format '{{index .Config.Labels "org.opencontainers.image.version"}}')
+          node probe/xformat.mjs --gateway kaeso --messages-url http://127.0.0.1:8090/v1/messages \
+            --api-key "$KAESO_KEY" --model mock/mock-model --gateway-version "${V:-0.7}" --mock-port 9010 --out data/xformat.json || true
 
       # Portkey OSS: its /v1/messages is Anthropic-provider-only — with an OpenAI
       # provider it rejects the operation ("messages is not supported by openai"),
