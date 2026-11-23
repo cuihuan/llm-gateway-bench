@@ -107,6 +107,35 @@ jobs:
             --gateway-version "docker-${DIGEST:-latest}" \
             --rounds 7 --per-round 25 --warmup 15 --out data/overhead.json
 
+      - name: Start GoModel (docker, host network for fairness)
+        run: |
+          # GOMODEL_OFFLINE=true is this harness's "no egress" rule expressed in the
+          # gateway's own switch: it disables the update check and the remote model
+          # catalog download, so nothing but the mock is contacted. Everything else
+          # is left at the image defaults (audit log and usage tracking included),
+          # the same way LiteLLM, Portkey and Bifrost are measured here.
+          docker run -d --name gomodel --network host \
+            -e PORT=8091 \
+            -e GOMODEL_MASTER_KEY= \
+            -e OPENAI_API_KEY=sk-mock \
+            -e OPENAI_BASE_URL=http://127.0.0.1:9010/v1 \
+            -e GOMODEL_OFFLINE=true \
+            enterpilot/gomodel
+          for i in $(seq 1 60); do
+            curl -sf -o /dev/null http://127.0.0.1:8091/health && break
+            sleep 1
+          done
+          curl -sf -o /dev/null http://127.0.0.1:8091/health || { docker logs gomodel | tail -50; exit 1; }
+
+      - name: Measure GoModel overhead
+        run: |
+          DIGEST=$(docker image inspect enterpilot/gomodel --format '{{index .RepoDigests 0}}' | grep -oE 'sha256:[a-f0-9]{12}' | head -1)
+          node probe/overhead.mjs --gateway gomodel \
+            --gateway-url http://127.0.0.1:8091/v1/chat/completions \
+            --api-key sk-mock --model gpt-4o-mini \
+            --gateway-version "docker-${DIGEST:-latest}" \
+            --rounds 7 --per-round 25 --warmup 15 --out data/overhead.json
+
       # ---- protocol-translation fidelity (reuses the same running gateways + mock port) ----
       - name: Fidelity — LiteLLM
         if: always()
@@ -130,6 +159,13 @@ jobs:
           node probe/fidelity.mjs --gateway bifrost --gateway-url http://127.0.0.1:8080/v1/chat/completions \
             --model openai/mock-model --gateway-version "docker-${DIGEST:-latest}" --mock-port 9010 --out data/fidelity.json || true
 
+      - name: Fidelity — GoModel
+        if: always()
+        run: |
+          DIGEST=$(docker image inspect enterpilot/gomodel --format '{{index .RepoDigests 0}}' | grep -oE 'sha256:[a-f0-9]{12}' | head -1)
+          node probe/fidelity.mjs --gateway gomodel --gateway-url http://127.0.0.1:8091/v1/chat/completions \
+            --api-key sk-mock --model gpt-4o-mini --gateway-version "docker-${DIGEST:-latest}" --mock-port 9010 --out data/fidelity.json || true
+
       # ---- cross-format fidelity (Anthropic client -> OpenAI upstream) ----
       # The hardest translation path: an Anthropic-format client (Claude Code / the
       # Anthropic SDK) routed to an OpenAI upstream. Each gateway is driven through
@@ -148,6 +184,13 @@ jobs:
           DIGEST=$(docker image inspect maximhq/bifrost --format '{{index .RepoDigests 0}}' | grep -oE 'sha256:[a-f0-9]{12}' | head -1)
           node probe/xformat.mjs --gateway bifrost --messages-url http://127.0.0.1:8080/anthropic/v1/messages \
             --api-key sk-mock --gateway-version "docker-${DIGEST:-latest}" --mock-port 9010 --out data/xformat.json || true
+
+      - name: Cross-format fidelity — GoModel
+        if: always()
+        run: |
+          DIGEST=$(docker image inspect enterpilot/gomodel --format '{{index .RepoDigests 0}}' | grep -oE 'sha256:[a-f0-9]{12}' | head -1)
+          node probe/xformat.mjs --gateway gomodel --messages-url http://127.0.0.1:8091/v1/messages \
+            --api-key sk-mock --model gpt-4o-mini --gateway-version "docker-${DIGEST:-latest}" --mock-port 9010 --out data/xformat.json || true
 
       # Portkey OSS: its /v1/messages is Anthropic-provider-only — with an OpenAI
       # provider it rejects the operation ("messages is not supported by openai"),
